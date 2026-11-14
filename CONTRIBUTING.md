@@ -16,7 +16,7 @@ Read `README.md`, `AGENTS.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md`,
 6. Open a PR with rationale, OpenSpec change ID, tests/results, Forever build, screenshots where appropriate, risks and rollback.
 7. Address review feedback. **Only @hectoresen authorizes merges, tags and releases.** Contributors and agents may not merge or push directly to `main`.
 
-Tiny documentation-only/typo changes can skip OpenSpec when the PR states why. A PR is still expected. Follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
+Add a machine-readable `OpenSpec-Change: <change-id>` line in every functional PR; change files in `openspec/changes/<change-id>/` must be part of the PR. Documentation-only and mechanical maintenance PRs may instead carry `OpenSpec-Exemption: docs-only` or `OpenSpec-Exemption: maintenance`, subject to CI classification and owner review. Details: `docs/SDD_COMPLIANCE.md`.\n\nTiny documentation-only/typo changes can skip OpenSpec when the PR states why. A PR is still expected. Follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
 
 ## Data licensing
 
