@@ -35,3 +35,22 @@
 - [ ] 5.3 Update README, ROADMAP, INSTALLATION, ARCHITECTURE, DATA_MODEL, TESTING and CHANGELOG with verified implementation details.
 - [ ] 5.4 Package/install-test playable addon only, note initial catalog coverage limitations and installation steps.
 - [ ] 5.5 Confirm approval PR linkage, scope and OpenSpec acceptance scenarios; submit implementation PR for owner review.
+
+## Execution checkpoint — implementation branch
+
+**Implemented in source, but not yet verified in the real client:**
+- Lua namespace, pure itemID lookup and deterministic profession ordering.
+- Mainline-style item-tooltip adapter with guarded callback and refresh deduplication.
+- enUS/esES string catalog, account-level SavedVariables and native-inspired /craftatlas settings.
+- Original fact-level research for six material IDs, with per-item public source references; generated offline Lua table.
+- Source validator, byte-for-byte Lua generator, Python data tests and mocked Lua regression tests.
+- Initial implementation and release-gate documentation.
+
+**Not complete / not claimed as passed:**
+- 24 more validated material IDs required to reach 30, with all relationships checked against Forever recipes.
+- Real Forever build/API/.toc, native font/layout, inventory/bag tooltip and SavedVariables verification.
+- Full Lua/data tests executed in a compatible test environment (checked into the repo but not wired into current CI due approved scope boundary).
+- Any changes needed for guaranteed bank/auction/chat/global tooltip support; currently outside approved scope.
+- Final installation ZIP, release and owner acceptance.
+
+Do not mark a release, archive this change or merge implementation while these gates remain open.
