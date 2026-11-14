@@ -42,6 +42,10 @@ Register a hook appropriate to the tested Forever build, scoped to standard inve
 Use WoW locale where supported: esES → Spanish; enUS → English; any other code → English fallback. Account-wide override stores `auto`, `enUS`, or `esES` in SavedVariables. Invalid setting reverts to `auto`. `/craftatlas` opens a minimal accessible panel showing current choice and a selector, with localized UI copy. Changing language takes effect for subsequent tooltips without game restart; setting survives `/reload` and reopening the client. Do not require chat-only interaction.
 
 
+## Approved provisional interactive UI reference
+
+The reviewed interactive reference is stored at [prototype/settings.html](prototype/settings.html). This is the **second, user-approved visual iteration**: a clean sans-serif 'CraftAtlas' header with no decorative star or badge, restrained native-inspired colors, only the functional General section, and a simple language dropdown. Preserve the **visual hierarchy, whitespace, low-density layout and absence of the removed emblem** when implementing the real WoW UI. HTML/CSS/JavaScript is a review artifact, **not** addon runtime code and SHALL NOT ship inside the WoW AddOns folder. Native font objects, frames and textures available in the tested Forever/Classic client take precedence over exact web CSS values.
+
 ## Visual language: Forever-first, Classic-compatible settings
 
 The settings UI SHALL visually belong to the installed WoW Forever client. **Reuse the client's native frames, textures, controls, font objects and interaction conventions first**. When Forever has no distinct supported styling, fall back to native WoW Classic styling. Do not import modern web fonts, external art packs or an invented graphic identity.
