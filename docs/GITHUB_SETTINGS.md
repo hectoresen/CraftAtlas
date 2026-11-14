@@ -1,14 +1,26 @@
-# GitHub maintainer setup checklist
+# GitHub governance (maintainer-only)
 
-Some settings cannot be represented by tracked files or may be restricted by the plan. Maintainer should configure in repository Settings:
+## Currently tracked in Git
 
-1. About: describe "Open-source WoW Forever profession-material knowledge addon"; website optional; topics: `world-of-warcraft`, `wow-addon`, `lua`, `openspec`, `crafting`.
-2. Features: enable Issues, Discussions if community wants them, preserve public visibility.
-3. Settings → Rules → Rulesets: protect `main`, require PR, require one human review where supported, dismiss stale approvals, require passing `repository-validation` CI, disable force push and deletion. Rules may require higher plan for a public personal repo: document any unavailability.
-4. Prefer squash merge; delete branches after merging. Enable Dependabot/security advisories as relevant.
-5. Set GitHub Releases from SemVer tags `vX.Y.Z`; don't call v0.0.0 a playable release. Confirm artifacts include only the installable addon directory.
-6. Prefer private vulnerability reporting. CODEOWNERS already points to @hectoresen.
-7. Add labels `bug`, `enhancement`, `documentation`, `good first issue`, `help wanted`, `data`, `compatibility`.
-8. Ensure CI runs with read-only `GITHUB_TOKEN`; do not expose deploy credentials or secrets to untrusted PRs.
+- `.github/CODEOWNERS` points to `@hectoresen`.
+- PR/issue templates and read-only CI workflow exist.
+- `AGENTS.md`, `CONTRIBUTING.md` and `docs/AGENT_WORKFLOW.md` prohibit agents/contributors from merging without the owner's explicit decision.
 
-**Verification:** check settings in GitHub UI after saving. A committed documentation checklist does not itself enable branch protection or other repository settings.
+**These are policy instructions, not server-side access controls.** GitHub branch rulesets, permissions, squash merge settings and labels require repository API/CLI or UI changes. They are **not yet applied**. The owner has requested deferring ruleset creation to a later GitHub CLI operation.
+
+## Deferred GitHub CLI / ruleset task (DO NOT silently apply now)
+
+When @hectoresen explicitly requests it: use authenticated `gh` with sufficient administrator permissions and GitHub repository rulesets API. Inspect existing rulesets first; do not overwrite someone else's policy. Aim for:
+
+- Restrict `main`: all changes via PR, no direct pushes or force pushes/deletions.
+- Require human review (at least one approval) and successful CI `repository-validation` after the first successful workflow run.
+- Only @hectoresen may perform merges, even after other users' approvals. **Important:** branch review requirements do not automatically restrict *who* clicks merge. Confirm actual collaborator roles, fork model, repository owner rights and GitHub plan/ruleset capabilities before asserting this can be enforced.
+- Avoid global bypass actors that allow unintended direct pushes. Test restrictions with a non-owner role.
+- Prefer squash merge and cleanup of merged branches if available.
+- Verify newly saved rulesets are **active**, correctly scoped and actually enforced; record evidence.
+
+Other optional administration: repository description/topics, Issues, Discussions, code/security advisories, vulnerability reporting, standard labels and release settings. Never claim these are configured merely because this document describes them.
+
+## Security
+
+Avoid privileged workflows on untrusted PR code, never leak tokens or repository secrets, and prefer minimal `GITHUB_TOKEN` permissions. No releases without explicit owner approval.

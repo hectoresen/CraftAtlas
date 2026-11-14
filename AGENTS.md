@@ -1,42 +1,68 @@
-# AGENTS.md — Required onboarding for every coding agent
+# AGENTS.md — CraftAtlas agent contract
 
-**Read this before changing any file.** CraftAtlas is an MIT-licensed World of Warcraft: Forever addon in Lua. The repository is currently a **nonfunctional v0.0.0 scaffold**. The roadmap is NOT implemented behavior.
+**Required first read for every AI agent, including OpenCode, and recommended for humans.**
+CraftAtlas is an MIT-licensed Lua addon for World of Warcraft: Forever. **Current v0.0.0 is a non-playable repository scaffold.** Roadmap features are not implemented.
 
-## Onboarding sequence
+## Operating principles
 
-1. Read `README.md`, this document, `CONTRIBUTING.md`.
-2. Read `openspec/config.yaml`, `openspec/README.md`.
-3. Inspect `openspec/specs/` for accepted requirements and `openspec/changes/` for pending changes.
-4. Read applicable docs: `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/DEVELOPMENT.md`, `docs/TESTING.md`, `docs/ROADMAP.md`.
-5. Inspect git status and existing branches/PRs. Never overwrite other changes.
-6. Identify the intended release scope and check client/API assumptions before implementation.
+1. **Read before acting.** Read `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `openspec/config.yaml`, `openspec/README.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md` and relevant architecture/specs.
+2. **Recover context.** Inspect `git status`, current branch, open PRs/issues, accepted `openspec/specs/`, active `openspec/changes/`, and the target version in `docs/ROADMAP.md`. Never assume a task was completed because it appears on the roadmap. Ask for missing decisions only when they block safe work.
+3. **Spec before implementation.** New features, changed user behavior, data-model changes, client compatibility changes and nontrivial refactors require an OpenSpec proposal, explicit approval from **@hectoresen** and only then implementation. Never interpret generating a proposal as approval. No silent scope expansion.
+4. **Small maintenance exception.** Typographical or documentation-only fixes and strictly mechanical changes can skip OpenSpec with an explanation in the PR. Security/compatibility fixes still require test evidence and explicit approval before broad changes.
+5. **Agents prepare, owner integrates.** Agents may create branches, commits, tests, issues and PRs when authorized. They **must not push to `main`, merge or approve their own PR, bypass protection, publish releases, change repository permissions/rulesets or modify secrets** without an explicit separate request from @hectoresen. A conversational approval to implement is NOT merge approval.
+6. **Evidence over confidence.** List exactly what tests ran, what did not run, current Forever client build (if known), remaining assumptions and risks. Never claim client compatibility without a real-client test.
+7. **Do not introduce unrelated work.** Preserve existing code, specs, user changes, licenses and attribution. Avoid needless dependencies and large refactors.
 
-## Truth hierarchy
+## Required OpenSpec / OpenCode flow
 
-Approved canonical specs and approved active changes > accepted architecture decisions > existing source (for what is currently implemented) > future roadmap. Flag any inconsistency explicitly.
+**Terminal setup** (Node.js 22.12+ for the current official npm CLI):
 
-## Spec-driven development contract
+```sh
+npm install -g @fission-ai/openspec@latest
+openspec init
+openspec list
+```
 
-- A new feature, changed behavior, compatibility strategy, data format or significant refactor requires an OpenSpec change named in kebab-case under `openspec/changes/<name>/`. Include proposal, delta specs, design when appropriate, and checkable tasks.
-- Present the proposed scope to the maintainer for approval **before implementation**. OpenCode: `/opsx:propose`, then, after approval, `/opsx:apply`; verify, sync specs, archive after acceptance. Equivalent official OpenSpec commands/skills are allowed.
-- Small typos, documentation fixes and trivial mechanical upkeep may skip a formal change; state why in the PR.
-- Use branches `feat/`, `fix/`, `docs/`, `chore/`, or `refactor/`. No direct pushes to `main`, no autonomous merges/releases.
+Choose the OpenCode integration during initialization. Initialization generates local agent commands/skills; **keep existing config and project specs**. OpenSpec default core commands in OpenCode:
 
-## Invariants
+```text
+/opsx:explore                 # Optional research/clarification; no implementation
+/opsx:propose <change-name>  # proposal + specs + design + tasks
+# STOP: present artifacts; wait for @hectoresen approval
+/opsx:update                 # Revise planning artifacts if review demands
+/opsx:apply                  # Implement approved scope and tick tasks
+/opsx:sync                   # Sync approved delta specs into canonical specs
+/opsx:archive                # Archive accepted change after verification
+```
 
-- Runtime code is Lua. No required online service, game-time HTTP or telemetry.
-- Item lookup uses numeric itemID, **never translated names or tooltip phrases**.
-- Profession relationships are independent of the current character and may be many-to-many.
-- enUS and esES supported; unknown locale falls back to English. Manual override persists via SavedVariables.
-- Use versioned local data only if license/provenance is documented. Never invent recipes or professions.
-- Unknown IDs should not add guessed tooltip lines. Avoid duplicate lines and invasive hooks; protect game performance.
-- Keep game API adapters separate from domain lookup, data, settings, UI and localization.
-- **Never assume** Retail, Vanilla or legacy WoW APIs match Forever. Verify interface version and tooltip APIs against the current client.
+Some agent tools use different command spellings; use the commands generated by `openspec init`. The `/opsx:verify` command is only available with an expanded profile; verification (tests, manual smoke testing, spec comparison) is **mandatory regardless of profile**. See `openspec/README.md` for exact gates.
 
-## Definition of done
+**PR is mandatory for all changes**, including documentation, unless @hectoresen explicitly instructs otherwise. Never merge the PR on your own.
 
-Approved change/spec; implemented scenarios, tests and docs; checks passing; data provenance reviewed; localization updated in both locales; real-client manual smoke testing for client integration (or explicitly flagged unverified); changelog/roadmap updated where applicable; PR with human approval.
+## Source-of-truth and boundaries
 
-## Handoff
+Accepted `openspec/specs/` + approved active change > documented architectural decisions > current code for observed implementation > future roadmap. If they disagree, stop and flag the discrepancy before implementing.
 
-Always report: goal, affected files, OpenSpec change, tests actually run, Forever-client checks (performed/unperformed), risks, and PR. Never claim success without evidence.
+- `Core/`: wiring and lifecycle, not business logic.
+- `Domain/`: deterministic Lua lookups, independent of WoW API globals.
+- `Data/`: offline versioned itemID/profession datasets, with provenance.
+- `Infrastructure/`: client API adapters and persistent settings.
+- `Features/`: thin UI and tooltip/settings presenters.
+- `Localization/`: enUS/esES strings with fallback and persisted language choice.
+
+## Non-negotiable technical rules
+
+- Use **numeric itemID**, never localized item names or translated tooltip phrases, for material identity.
+- A material can belong to multiple professions independent of character skills. Unknown material = no fabricated result.
+- enUS/esES, auto locale selection and manual override. Keep user-facing content localized.
+- No runtime network service, telemetry, or mandatory third-party addon.
+- Verify supported Forever build, .toc interface number and tooltip hooks in-game; do not assume Retail or Vanilla compatibility.
+- Keep hooks safe and idempotent; no duplicate tooltip lines, side effects or per-frame scans.
+- Apply `docs/CODE_QUALITY.md`: simple functions, clear names, single responsibility, no dead code or speculative abstractions, deterministic tests, explicit failure paths.
+- Data licensing, retrieval date and applicability must be recorded before import. Do not copy unlicensed third-party databases.
+
+## Completion / handoff
+
+Before opening a PR: tests, lint and repo validation; relevant enUS/esES, docs and changelog; applicable in-game evidence; verify against acceptance scenarios; update or sync specs as appropriate. Include an explicit list of **not run** checks.
+
+Every handoff MUST say: goal; branch; OpenSpec change and approval; files modified; tests passed/failed/not run; Forever compatibility evidence; risks; PR URL; what needs @hectoresen's decision. **Only @hectoresen decides whether and when a PR is merged.**
