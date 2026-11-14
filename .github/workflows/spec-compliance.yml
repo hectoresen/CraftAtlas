@@ -1,0 +1,27 @@
+name: SDD Compliance
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  traceability:
+    name: traceability
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch target branch
+        run: git fetch origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify PR-to-OpenSpec traceability
+        run: python3 scripts/validate_sdd.py --base "origin/${{ github.base_ref }}" --head HEAD --event "$GITHUB_EVENT_PATH"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install official OpenSpec
+        run: npm install -g @fission-ai/openspec@latest
+      - name: Validate OpenSpec artifacts
+        run: openspec validate --all --strict --no-interactive
