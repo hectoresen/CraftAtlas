@@ -75,7 +75,7 @@ def github_api(path, token):
         return json.load(response)
 
 
-def verify_approval(pr_number, change_id, token, api=github_api):
+def verify_approval(pr_number, change_id, token, api=github_api, implementation_created=None):
     if not token:
         return ["GITHUB_TOKEN is required to verify owner-merged specification PR"]
     try:
@@ -83,6 +83,8 @@ def verify_approval(pr_number, change_id, token, api=github_api):
         errors = []
         if not pr.get("merged_at") or (pr.get("merged_by") or {}).get("login") != "hectoresen":
             errors.append("Specification PR must be merged by @hectoresen")
+        if implementation_created and pr.get("merged_at") and pr["merged_at"] >= implementation_created:
+            errors.append("Specification must have been merged before implementation PR creation")
         if (pr.get("base") or {}).get("ref") != "main":
             errors.append("Specification PR must target main")
         related = False
@@ -101,7 +103,7 @@ def verify_approval(pr_number, change_id, token, api=github_api):
 
 
 def validate(files, body, pr_number, root=Path("."), base="origin/main",
-             token=None, api=github_api, exists_in_base=None):
+             token=None, api=github_api, exists_in_base=None, implementation_created=None):
     errors = []
     info = parse_metadata(body)
     if any(len(x) > 1 for x in info.values()):
@@ -118,8 +120,10 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 errors.append("Bootstrap exemption is valid only for PR #2 and exact approved files")
         elif exemption == "docs-only":
             if any(not p.endswith((".md", ".txt")) or p.startswith((
-                    ".github/", "addon/", "scripts/", "tests/")) or
-                   p in ("AGENTS.md", "CONTRIBUTING.md", "docs/SDD_COMPLIANCE.md")
+                    ".github/", "addon/", "scripts/", "tests/", "openspec/")) or
+                   p in ("AGENTS.md", "CONTRIBUTING.md", "docs/SDD_COMPLIANCE.md",
+                         "docs/CODE_QUALITY.md", "docs/AGENT_WORKFLOW.md",
+                         "docs/GITHUB_SETTINGS.md", "openspec/README.md")
                    for p in files):
                 errors.append("docs-only exemption cannot change runtime/governance")
         elif exemption == "maintenance":
@@ -164,7 +168,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         if not approval:
             errors.append("Implementation requires OpenSpec-Approval-PR")
         else:
-            errors.extend(verify_approval(approval, change, token, api))
+            errors.extend(verify_approval(approval, change, token, api, implementation_created))
         for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
             if not exists_in_base(base_path + name):
                 errors.append("Approved " + name + " not present on main")
@@ -191,7 +195,8 @@ def main():
     body = (event.get("pull_request") or {}).get("body") or ""
     errors = validate(changed_files(args.base, args.head), body,
                       event.get("number"), base=args.base,
-                      token=os.getenv("GITHUB_TOKEN"))
+                      token=os.getenv("GITHUB_TOKEN"),
+                      implementation_created=(event.get("pull_request") or {}).get("created_at"))
     for error in errors:
         print("::error::" + error)
     print("SDD: " + ("FAIL" if errors else "PASS") +
