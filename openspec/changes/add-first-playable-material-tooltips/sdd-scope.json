@@ -11,8 +11,6 @@
     "docs/INSTALLATION.md",
     "docs/TESTING.md",
     "README.md",
-    "CHANGELOG.md",
-    ".github/workflows/ci.yml",
-    ".luacheckrc"
+    "CHANGELOG.md"
   ]
 }
