@@ -1,4 +1,78 @@
 {
   "schemaVersion": 1,
-  "materials": []
+  "notes": "Individual factual ingredient-to-profession relations researched from Warcraft Wiki; each relation still requires real Forever-client confirmation before release. These are not a bulk copy of a licensed database.",
+  "materials": [
+    {
+      "itemID": 2447,
+      "professions": [
+        "ALCHEMY"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Peacebloom",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    },
+    {
+      "itemID": 2589,
+      "professions": [
+        "BLACKSMITHING",
+        "ENGINEERING",
+        "FIRST_AID",
+        "TAILORING"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Linen_Cloth",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    },
+    {
+      "itemID": 2592,
+      "professions": [
+        "BLACKSMITHING",
+        "ENGINEERING",
+        "FIRST_AID",
+        "TAILORING"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Wool_Cloth",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    },
+    {
+      "itemID": 2841,
+      "professions": [
+        "BLACKSMITHING",
+        "ENGINEERING"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Bronze_Bar",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    },
+    {
+      "itemID": 3860,
+      "professions": [
+        "ALCHEMY",
+        "BLACKSMITHING",
+        "ENGINEERING"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Mithril_Bar",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    },
+    {
+      "itemID": 4306,
+      "professions": [
+        "BLACKSMITHING",
+        "ENGINEERING",
+        "FIRST_AID",
+        "TAILORING"
+      ],
+      "source": "https://warcraft.wiki.gg/wiki/Silk_Cloth",
+      "reviewed": "2026-11-14",
+      "clientScope": "Classic recipe evidence; Forever 1.60.1 real-client check pending",
+      "rights": "original-factual-research"
+    }
+  ]
 }
