@@ -4,7 +4,7 @@ Describe why this change is needed and what is intentionally out of scope.
 
 ## OpenSpec
 
-Change ID/link (or explain why this is a trivial maintenance exception):
+**Required machine-readable declaration** (exactly one; keep outside code fences):\n\n`OpenSpec-Change: <change-id>`\n\nOr, when eligible: `OpenSpec-Exemption: docs-only` / `OpenSpec-Exemption: maintenance`.\n\nSee `docs/SDD_COMPLIANCE.md`. Explain the approved change, tests and any exemption below:\n
 
 ## Validation
 
