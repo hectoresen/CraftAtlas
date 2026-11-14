@@ -40,10 +40,10 @@ class SddPolicyTests(unittest.TestCase):
             return [{"filename": "openspec/changes/add-material-tooltip/proposal.md"}]
         raise AssertionError(path)
 
-    def check(self, paths, body, number=42, present=False, api=None):
+    def check(self, paths, body, number=42, present=False, api=None, created=None):
         return gate.validate(set(paths), body, number, root=self.root,
                              token="mock-token", api=api or self.api,
-                             exists_in_base=lambda path: present)
+                             exists_in_base=lambda path: present, implementation_created=created)
 
     def test_new_proposal_passes(self):
         self.assertEqual(self.check({self.prefix + "proposal.md"}, self.proposal), [])
@@ -135,6 +135,19 @@ class SddPolicyTests(unittest.TestCase):
                                    "OpenSpec-Exemption: docs-only\n"
                                    "OpenSpec-Exemption: docs-only\n"))
 
+
+    def test_docs_exception_cannot_edit_openspec(self):
+        self.assertTrue(self.check({"openspec/changes/a/proposal.md"},
+                                   "OpenSpec-Exemption: docs-only\n"))
+
+    def test_docs_exception_cannot_edit_code_quality(self):
+        self.assertTrue(self.check({"docs/CODE_QUALITY.md"},
+                                   "OpenSpec-Exemption: docs-only\n"))
+
+    def test_implementation_cannot_precede_spec_approval(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True,
+                                   created="2026-10-01T00:00:00Z"))
 
 if __name__ == "__main__":
     unittest.main()
