@@ -22,12 +22,15 @@ local function onItemTooltip(tooltip, data)
     end
 
     local marker = tostring(data.dataInstanceID or itemID)
-    if tooltip.CraftAtlasLastData == marker then
+    local count = type(tooltip.NumLines) == "function" and tooltip:NumLines() or nil
+    if tooltip.CraftAtlasLastData == marker and count
+        and tooltip.CraftAtlasLineCount == count then
         return
     end
-    tooltip.CraftAtlasLastData = marker
     tooltip:AddLine(ns.L("USED_BY"), 0.9, 0.75, 0.47)
     tooltip:AddLine(formatProfessions(professions), 0.95, 0.90, 0.82, true)
+    tooltip.CraftAtlasLastData = marker
+    tooltip.CraftAtlasLineCount = count and count + 2 or nil
     if type(tooltip.Show) == "function" then
         tooltip:Show()
     end
