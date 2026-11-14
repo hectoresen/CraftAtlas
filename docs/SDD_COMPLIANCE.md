@@ -1,0 +1,101 @@
+# CraftAtlas SDD compliance — specification-to-code contract
+
+The policy in scripts/validate_sdd.py is enforced by .github/workflows/spec-compliance.yml on every pull request. It is **not** an OpenSpec command: OpenSpec generates and validates the specifications; CraftAtlas CI enforces their PR-level provenance.
+
+## Two separate pull requests (mandatory for functional work)
+
+**Phase A: specification.** Start with the official OpenSpec /opsx:propose command inside OpenCode (or the officially generated equivalent). After review, open a PR changing **only** a new openspec/changes/<id>/ directory. In the PR description, on separate lines:
+
+~~~text
+OpenSpec-Change: add-material-profession-tooltips
+OpenSpec-Phase: proposal
+~~~
+
+The change directory must contain proposal.md, design.md, tasks.md, at least one specs/**/spec.md and an additional project-specific manifest sdd-scope.json. The manifest is NOT an official OpenSpec artifact or command: it is a CraftAtlas CI policy input. Example:
+
+~~~json
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/**",
+    "tests/**",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ]
+}
+~~~
+
+Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. The owner reviews the requirements, proposed paths, tests and dataset rights, then merges the spec-only PR. Do not implement before owner approval.
+
+**Phase B: implementation.** Begin only after the approved specification PR has been merged into main by @hectoresen. Run the official /opsx:apply (or generated equivalent). Create a separate code PR with:
+
+~~~text
+OpenSpec-Change: add-material-profession-tooltips
+OpenSpec-Phase: implementation
+OpenSpec-Approval-PR: 17
+~~~
+
+Use the REAL number of the earlier merged spec PR. It must target main, have been merged by @hectoresen, and have modified the exact named OpenSpec change. The change's proposal, design, delta specs and scope must already exist in main. Implementation cannot change them; tasks.md may be updated as work progresses. Any changed files outside the pre-approved manifest cause CI failure. A spec needing revision requires a new reviewed specification proposal; do not silently modify its scope in the implementation PR.
+
+## How the validator works, exactly
+
+1. A pull_request event (opened, synchronize, reopened, edited, ready_for_review) triggers the job.
+2. GitHub Actions checks out the PR merge/head, fetches the base branch and uses a three-dot git diff to identify changed paths, including deletions. Only read-only GitHub API access is granted.
+3. Python tests run independently using mocked GitHub responses and temporary OpenSpec fixtures.
+4. The validator parses exactly one set of machine-readable PR metadata, ignores fenced code examples and rejects duplicates.
+5. For phase proposal, it checks the required artifacts, scope syntax, that the proposal is new relative to main, and that there are no other edits.
+6. For phase implementation, it checks the artifacts in main, consults GitHub's API for the referenced merged specification PR and its merging user, and verifies that the actual changed files fit the frozen scope. Previously existing unrelated specs do not authorize new work.
+7. The official OpenSpec CLI runs: openspec validate --all --strict --no-interactive. It checks OpenSpec syntax/requirements; it does not prove the developer followed the process.
+8. CI fails on any policy failure. The owner still reviews the code's semantic match with SHALL scenarios, tests and actual Forever client compatibility.
+
+## Small exceptions
+
+- OpenSpec-Exemption: docs-only — only Markdown/text outside governance and runtime directories.
+- OpenSpec-Exemption: maintenance — only .gitignore, .editorconfig or .luacheckrc.
+- OpenSpec-Exemption: bootstrap — **one-time PR #2 only**, restricted to AGENTS.md, CONTRIBUTING.md, PR template, SDD workflow, validator, its tests and this document.
+
+Do not combine an exemption with a change/phase/approval declaration. Unlisted files or any gameplay code reject the bootstrap exemption. Any other governance changes should follow the normal spec-first workflow.
+
+## Examples
+
+| PR change | Result |
+| --- | --- |
+| Lua only, no OpenSpec metadata | Rejected |
+| Lua plus brand-new spec in same PR | Rejected; two phases must be separate |
+| Lua plus an old unrelated spec ID | Rejected; no matching owner-merged approval PR |
+| Code references unmerged or other person's spec PR | Rejected |
+| Code modifies accepted delta spec or sdd-scope.json | Rejected |
+| Code outside the approved path manifest | Rejected |
+| Valid spec-only PR with new change and no code | Accepted by structural check |
+| Implementation after valid owner-merged spec PR, inside scope | Accepted by structural check; still needs code and human review |
+| README-only with docs-only exemption | Accepted by structural check |
+| Lua with maintenance exemption | Rejected |
+
+## Testing locally
+
+From a checkout containing both the base and PR branch:
+
+~~~bash
+python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v
+python3 scripts/validate_sdd.py --base origin/main --head HEAD --event /path/to/pr-event.json
+openspec validate --all --strict --no-interactive
+~~~
+
+The PR event JSON must contain number and pull_request.body. Implementation checks additionally require a read-only GITHUB_TOKEN to consult GitHub; this is available in Actions.
+
+## Threat model and limits
+
+- File paths and explicit approval evidence can be validated; **semantic equivalence of implementation and specs cannot**. The owner must review scenarios and implementation.
+- GitHub confirms the approval PR was merged by the owner. This does not prove the original specification was *read* by a person or that implementation started only afterwards. Human review checks chronology.
+- This workflow runs code from a proposed branch. A malicious contributor with write permissions might change its own validator or workflow, so for hard enforcement configure branch rulesets and protect the required check against bypass. We will do that later with GitHub CLI as requested.
+- Until main is protected, a failing CI does not technically forbid merging or direct pushes. CODEOWNERS and Markdown policies do not enforce owner-only merging.
+- A scope manifest proves only file boundaries, not that every changed line is justified. Broad directory scopes require careful human review.
+- OpenSpec must be installed via the official package; no custom OpenSpec commands are required.
+
+## Troubleshooting
+
+"Missing OpenSpec-Approval-PR": first obtain a merged specification PR.
+"Approved ... not present on main": update/rebase onto main after the spec is merged.
+"Changed files outside approved scope": revise the implementation scope or submit a separate spec review.
+"Governance": propose and approve a dedicated change, never bypass by claiming a docs exception.
+
+Do not merge PR #2 before its tests and both GitHub Actions workflows are green. The future ruleset should require the stable SDD Compliance / traceability and CI / repository-validation checks.

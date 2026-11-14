@@ -1,0 +1,153 @@
+"""Tests for PR-to-OpenSpec policy. Python standard library only."""
+import importlib.util
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts/validate_sdd.py"
+spec = importlib.util.spec_from_file_location("sdd_gate", SCRIPT)
+gate = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(gate)
+
+
+class SddPolicyTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.change = "add-material-tooltip"
+        self.prefix = "openspec/changes/" + self.change + "/"
+        directory = self.root / self.prefix
+        (directory / "specs" / "material-tooltip").mkdir(parents=True)
+        for name in ("proposal.md", "design.md", "tasks.md"):
+            (directory / name).write_text("# Example\n", encoding="utf-8")
+        (directory / "specs/material-tooltip/spec.md").write_text(
+            "## ADDED Requirements\n### Requirement: Example\n", encoding="utf-8")
+        (directory / "sdd-scope.json").write_text(
+            json.dumps({"allowed_paths": ["addon/CraftAtlas/**", "tests/**"]}))
+        self.proposal = "OpenSpec-Change: " + self.change + "\nOpenSpec-Phase: proposal\n"
+        self.implementation = (
+            "OpenSpec-Change: " + self.change + "\n"
+            "OpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+
+    @staticmethod
+    def api(path, token):
+        if path == "pulls/9":
+            return {"merged_at": "2026-11-01T00:00:00Z",
+                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+        if path.startswith("pulls/9/files"):
+            return [{"filename": "openspec/changes/add-material-tooltip/proposal.md"}]
+        raise AssertionError(path)
+
+    def check(self, paths, body, number=42, present=False, api=None, created=None):
+        return gate.validate(set(paths), body, number, root=self.root,
+                             token="mock-token", api=api or self.api,
+                             exists_in_base=lambda path: present, implementation_created=created)
+
+    def test_new_proposal_passes(self):
+        self.assertEqual(self.check({self.prefix + "proposal.md"}, self.proposal), [])
+
+    def test_proposal_with_lua_fails(self):
+        self.assertTrue(self.check({self.prefix + "proposal.md", "addon/CraftAtlas/Core/Init.lua"},
+                                   self.proposal))
+
+    def test_proposal_reusing_old_id_fails(self):
+        self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal, present=True))
+
+    def test_implementation_with_existing_approved_spec_passes(self):
+        self.assertEqual(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                    self.implementation, present=True), [])
+
+    def test_code_without_spec_metadata_fails(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"}, ""))
+
+    def test_implementation_without_approval_fails(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation.replace("OpenSpec-Approval-PR: 9", ""),
+                                   present=True))
+
+    def test_implementation_spec_must_be_in_main(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=False))
+
+    def test_implementation_cannot_modify_approved_scope(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua",
+                                    self.prefix + "sdd-scope.json"},
+                                   self.implementation, present=True))
+
+    def test_implementation_outside_scope_fails(self):
+        self.assertTrue(self.check({"private/admin.lua"},
+                                   self.implementation, present=True))
+
+    def test_implementation_bad_owner_fails(self):
+        def other_owner(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "someone-else"}, "base": {"ref": "main"}}
+            return [{"filename": self.prefix + "proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=other_owner))
+
+    def test_implementation_unrelated_approval_fails(self):
+        def unrelated(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+            return [{"filename": "openspec/changes/unrelated/proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=unrelated))
+
+    def test_docs_exemption_passes_for_readme(self):
+        self.assertEqual(self.check({"README.md"},
+                                    "OpenSpec-Exemption: docs-only\n"), [])
+
+    def test_docs_exemption_fails_for_policy(self):
+        self.assertTrue(self.check({"AGENTS.md"}, "OpenSpec-Exemption: docs-only\n"))
+
+    def test_maintenance_cannot_modify_lua(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   "OpenSpec-Exemption: maintenance\n"))
+
+    def test_bootstrap_only_pr2_with_allowlist(self):
+        exemption = "OpenSpec-Exemption: bootstrap\n"
+        self.assertEqual(self.check({"scripts/validate_sdd.py"}, exemption, number=2), [])
+        self.assertTrue(self.check({"scripts/validate_sdd.py"}, exemption, number=3))
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"}, exemption, number=2))
+
+    def test_fenced_metadata_does_not_count(self):
+        fields = gate.parse_metadata(
+            "~~~\nOpenSpec-Change: fake\n~~~\nOpenSpec-Exemption: docs-only\n")
+        self.assertEqual(fields["change"], [])
+        self.assertEqual(fields["exemption"], ["docs-only"])
+
+    def test_unsafe_wildcard_scope_fails(self):
+        (self.root / self.prefix / "sdd-scope.json").write_text(
+            '{"allowed_paths": ["**"]}')
+        self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal))
+
+    def test_missing_artifact_fails(self):
+        (self.root / self.prefix / "design.md").unlink()
+        self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal))
+
+    def test_duplicate_declarations_fail(self):
+        self.assertTrue(self.check({"README.md"},
+                                   "OpenSpec-Exemption: docs-only\n"
+                                   "OpenSpec-Exemption: docs-only\n"))
+
+
+    def test_docs_exception_cannot_edit_openspec(self):
+        self.assertTrue(self.check({"openspec/changes/a/proposal.md"},
+                                   "OpenSpec-Exemption: docs-only\n"))
+
+    def test_docs_exception_cannot_edit_code_quality(self):
+        self.assertTrue(self.check({"docs/CODE_QUALITY.md"},
+                                   "OpenSpec-Exemption: docs-only\n"))
+
+    def test_implementation_cannot_precede_spec_approval(self):
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True,
+                                   created="2026-10-01T00:00:00Z"))
+
+if __name__ == "__main__":
+    unittest.main()
