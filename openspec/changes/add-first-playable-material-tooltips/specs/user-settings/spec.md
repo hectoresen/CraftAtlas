@@ -32,3 +32,34 @@ A language change SHALL affect newly rendered CraftAtlas tooltip and settings la
 #### Scenario: Switching languages while logged in
 - **WHEN** the player changes their preference in the settings UI and subsequently hovers an item
 - **THEN** its annotation uses the newly selected language
+
+
+### Requirement: Match native Forever or Classic UI styling
+The settings interface SHALL use compatible native WoW Forever UI visual components and typography where available, or supported WoW Classic equivalents when necessary. It SHALL remain compact, readable and visually restrained, without non-native external fonts or unnecessary decoration.
+
+#### Scenario: Open settings on a supported Forever client
+- **WHEN** the player opens CraftAtlas settings using /craftatlas
+- **THEN** the window uses supported in-game fonts, frame textures, button treatments and legible contrast consistent with the client
+
+#### Scenario: Forever-specific visual templates unavailable
+- **WHEN** the tested client does not expose special Forever settings components
+- **THEN** the addon presents a compatible Classic-style interface without missing textures, fonts or Lua errors
+
+#### Scenario: Normal UI scale
+- **WHEN** the game is at its default UI scale
+- **THEN** labels, selector, heading and close control are readable and usable without decorative visual clutter
+
+### Requirement: Provide a minimal, extensible settings shell
+The interface SHALL contain a clear CraftAtlas title, a visible close control, a navigation region and a content region. v0.0.1 SHALL show only the functional General category and its language setting; the layout SHALL permit additional categories in future versions without rewriting the top-level window structure.
+
+#### Scenario: First opening of v0.0.1 settings
+- **WHEN** the player opens the settings window
+- **THEN** General is the active visible category and the only selectable category, showing the current language preference and a short explanatory text
+
+#### Scenario: Future modules are not yet shipped
+- **WHEN** v0.0.1 settings are displayed
+- **THEN** no inactive Search, Recipes or other misleading navigation entries are presented
+
+#### Scenario: Close and reopen
+- **WHEN** the player closes settings using its close control and invokes /craftatlas again
+- **THEN** the panel reopens in General with the previously selected language and without creating duplicate panels
