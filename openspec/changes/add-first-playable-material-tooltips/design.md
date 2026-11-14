@@ -41,6 +41,22 @@ Register a hook appropriate to the tested Forever build, scoped to standard inve
 
 Use WoW locale where supported: esES → Spanish; enUS → English; any other code → English fallback. Account-wide override stores `auto`, `enUS`, or `esES` in SavedVariables. Invalid setting reverts to `auto`. `/craftatlas` opens a minimal accessible panel showing current choice and a selector, with localized UI copy. Changing language takes effect for subsequent tooltips without game restart; setting survives `/reload` and reopening the client. Do not require chat-only interaction.
 
+
+## Visual language: Forever-first, Classic-compatible settings
+
+The settings UI SHALL visually belong to the installed WoW Forever client. **Reuse the client's native frames, textures, controls, font objects and interaction conventions first**. When Forever has no distinct supported styling, fall back to native WoW Classic styling. Do not import modern web fonts, external art packs or an invented graphic identity.
+
+- **Typography:** prefer client-supplied readable UI font objects at normal game UI scale; one clear panel title, small section headings, regular-size body text. Do not hardcode third-party font files or use ornate display typography for controls.
+- **Color:** neutral dark/in-game parchment surfaces as supplied by the client, restrained warm gold for headings or selected state, native muted text for help, accessible contrast. Avoid gradients, neon accents, oversized borders and unnecessary ornament.
+- **Density:** compact movable window with generous but efficient internal padding, short labels, no decorative cards, no permanently visible future-feature placeholders.
+- **Structure:** a reusable navigation region with a single visible **General** category in v0.0.1 and a content region for the language selector. The navigation model SHALL support adding Search, Recipes and other sections later without redesigning the window; those sections must not be shown as operational before implementation.
+- **Open/close:** `/craftatlas` opens (or focuses) the settings window; a recognizable native close button closes it. Reopening preserves the selected category. Integrate into the client's native addon settings menu only if the verified Forever API supports it, without making that entry point a release dependency.
+- **Language row:** label `Language / Idioma`, simple `Auto / English / Español` selector and one concise help sentence about following the game locale. Apply immediately and persist; no Save button.
+- **Accessibility:** native hover/focus behavior, visible selected state, clear mouse hit targets, readable text at default UI scale and graceful UI scaling. Do not rely on color alone for the selected option.
+- **Implementation boundary:** build a lightweight reusable settings shell and a General section; do not build search/recipe functionality or add speculative UI screens.
+
+The exact Blizzard/Forever font objects and frame templates SHALL be verified in the actual client, not guessed from other WoW versions. Screenshot acceptance evidence must be captured at ordinary UI scale.
+
 ## Testing and release validation
 
 Offline Lua tests exercise nil/unknown/known/multi-profession IDs, deterministic ordering, multiple recipe links, invalid settings, locale fallback and idempotent repeated callbacks with adapters mocked. Data validation scripts test source rights/provenance, target coverage, duplicate detection and reproducibility. Include static lint if compatible toolchain available.
