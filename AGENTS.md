@@ -61,7 +61,15 @@ Accepted `openspec/specs/` + approved active change > documented architectural d
 - Apply `docs/CODE_QUALITY.md`: simple functions, clear names, single responsibility, no dead code or speculative abstractions, deterministic tests, explicit failure paths.
 - Data licensing, retrieval date and applicability must be recorded before import. Do not copy unlicensed third-party databases.
 
-## Automated PR traceability gate\n\nSee `docs/SDD_COMPLIANCE.md`. Every PR body must carry exactly one `OpenSpec-Change: <change-id>` or authorized `OpenSpec-Exemption: docs-only|maintenance`. Functional PRs must update their corresponding active change directory; governance changes require specs, except a single PR #1 bootstrap exception. GitHub Actions checks structure; only human review assesses semantic compliance.\n\n## Completion / handoff
+## Automated PR traceability gate
+
+See docs/SDD_COMPLIANCE.md. Behavioral work uses two PRs:
+1. OpenSpec-Phase: proposal: only new OpenSpec artifacts (including sdd-scope.json) and owner merge.
+2. OpenSpec-Phase: implementation: code PR references OpenSpec-Approval-PR pointing to that already merged owner-approved spec PR. Approved specs and scope must remain unchanged; only tasks.md can advance.
+
+The CI tests the relation to main, checks the approver via GitHub and rejects files outside the approved path scope. Documentation-only/maintenance exemptions are restricted; PR #2 alone can use bootstrap. Never assume a passing check proves semantic compliance. All development still requires the official OpenSpec workflow and explicit owner approval.
+
+## Completion / handoff
 
 Before opening a PR: tests, lint and repo validation; relevant enUS/esES, docs and changelog; applicable in-game evidence; verify against acceptance scenarios; update or sync specs as appropriate. Include an explicit list of **not run** checks.
 
