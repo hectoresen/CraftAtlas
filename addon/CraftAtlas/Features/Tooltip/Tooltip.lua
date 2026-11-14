@@ -21,16 +21,23 @@ local function onItemTooltip(tooltip, data)
         return
     end
 
-    local marker = tostring(data.dataInstanceID or itemID)
+    local marker = tostring(itemID) .. ":" .. tostring(data.dataInstanceID or "")
     local count = type(tooltip.NumLines) == "function" and tooltip:NumLines() or nil
-    if tooltip.CraftAtlasLastData == marker and count
-        and tooltip.CraftAtlasLineCount == count then
+    if tooltip.CraftAtlasLastData == marker
+        and (not count or tooltip.CraftAtlasLineCount == count) then
         return
     end
     tooltip:AddLine(ns.L("USED_BY"), 0.9, 0.75, 0.47)
     tooltip:AddLine(formatProfessions(professions), 0.95, 0.90, 0.82, true)
     tooltip.CraftAtlasLastData = marker
     tooltip.CraftAtlasLineCount = count and count + 2 or nil
+    if not tooltip.CraftAtlasHideHooked and type(tooltip.HookScript) == "function" then
+        tooltip:HookScript("OnHide", function(self)
+            self.CraftAtlasLastData = nil
+            self.CraftAtlasLineCount = nil
+        end)
+        tooltip.CraftAtlasHideHooked = true
+    end
     if type(tooltip.Show) == "function" then
         tooltip:Show()
     end
