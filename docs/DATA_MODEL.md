@@ -15,3 +15,20 @@ Recommended durable source format: normalized item/material, profession and even
 Each imported data batch requires source URL/name, license, retrieval timestamp, client/patch applicability and verification method. Third-party database redistribution requires explicit compatible permission. CI should detect duplicate IDs, invalid profession keys, missing relationships and outdated generated output.
 
 Future recipe relationships should support multiple inputs and products with quantities, without reshaping v0.1.0 public domain APIs.
+
+## Implementation preview data pipeline
+
+`addon/CraftAtlas/Data/materials.source.json` is the editable evidence-bearing
+input. `scripts/build_materials.py` deterministically generates
+`addon/CraftAtlas/Data/Materials.lua`; do not edit the generated Lua manually.
+Use `--check` to detect drift and `--release --check` to enforce the minimum
+30 IDs / 5 professions / 2 cross-profession items. Source entries include
+`source`, `reviewed`, `clientScope` and `rights`.
+
+The six starter associations were researched as individual facts from
+Warcraft Wiki pages, not imported as a bulk proprietary data dump.
+**Forever in-game verification is pending**; none of the relationships should
+be described as confirmed for the live client until verified. Recording a
+source URL is evidence of public reference, not automatic redistribution
+permission for an entire database. If the data source rights are unclear,
+do not copy the database.
