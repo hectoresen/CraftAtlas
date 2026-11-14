@@ -32,7 +32,7 @@ or
 OpenSpec-Exemption: maintenance
 ```
 
-`docs-only` allows only `.md` and `.txt` files; both exemptions reject modifications classified as functional or governance. One-time exception: `OpenSpec-Exemption: bootstrap` is accepted **only for PR #1** and only when no functional code is changed, to introduce the governance gate itself. It cannot be reused in subsequent PRs. The owner must review whether the stated exemption is truthful. An unsupported or missing declaration fails.
+`docs-only` allows only `.md` and `.txt` files; both exemptions reject modifications classified as functional or governance. One-time exception: `OpenSpec-Exemption: bootstrap` is accepted **only for PR #2** and only when no functional code is changed, to introduce the governance gate itself. It cannot be reused in subsequent PRs. The owner must review whether the stated exemption is truthful. An unsupported or missing declaration fails.
 
 ## Detection details
 
@@ -67,7 +67,7 @@ The workflow uses `fetch-depth: 0`, fetches the base branch, and uses `github.ev
 - Pull-request jobs use `permissions: contents: read` and never use `pull_request_target` with untrusted code.
 - A PR can edit its own workflow and policy files: **GitHub branch rulesets / required checks / restricted merge permissions are the ultimate enforcement**. CODEOWNERS by itself does not block merges until owner reviews are required by branch rules.
 - The gate does not check when owner approval happened, whether `/opsx:propose` was actually used, or semantic alignment. Require explicit owner review of the proposed change **before** implementation, review tests against SHALL scenarios, and perform real Forever client verification.
-- The initial bootstrap PR #1 is governance work and may use the uniquely scoped `OpenSpec-Exemption: bootstrap` to introduce this gate. All later governance PRs require a real OpenSpec change.
+- The initial bootstrap PR #2 is governance work and may use the uniquely scoped `OpenSpec-Exemption: bootstrap` to introduce this gate. All later governance PRs require a real OpenSpec change.
 - No CI check alone can guarantee only @hectoresen merges; configure branch permissions/ruleset later.
 
 ## How to extend
