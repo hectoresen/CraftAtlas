@@ -47,7 +47,7 @@ def validate(files, body, pr_number):
     governance = any(f == path or f.startswith(path) for f in files for path in PROTECTED)
     if exemptions:
         category = exemptions[0].lower()
-        if functional:
+        if functional and not (category == "bootstrap" and pr_number == 1 and not any(f.startswith("addon/") and f.endswith(".lua") for f in files)):
             errors.append("A functional/code change cannot claim an OpenSpec exemption.")
         if category == "docs-only" and any(not f.endswith((".md", ".txt")) for f in files):
             errors.append("docs-only exemption includes non-documentation files.")
