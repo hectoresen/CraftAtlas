@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose future CraftAtlas behavior
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User problem and desired result
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Suggested acceptance scenarios
+  - type: textarea
+    id: scope
+    attributes:
+      label: In/out scope and target roadmap version
