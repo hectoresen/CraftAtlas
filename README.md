@@ -4,10 +4,24 @@
 
 > **Status: v0.0.0 — repository foundation only, not a playable addon.** The v0.1.0 code and client compatibility verification are pending.
 
+## Work in progress: v0.0.1 (implementation PR)
+
+The v0.0.1 branch introduces a modular Lua implementation, native-style settings
+(`/craftatlas`), locale-aware tooltips and a **six-item research-backed preview
+catalog**. **It is not release-ready:** the approved specification requires
+at least 30 verified items, at least five profession categories, real Forever
+client testing and a reproducible build. Item relationships are documented
+from public crafting references but remain **unverified inside Forever**.
+Do not install this branch expecting full coverage.
+
+The target runtime is provisionally Interface 16001, based on published Forever
+addon documentation; record the current client build before declaring support.
+
 ## Planned functionality and versions
 
 | Milestone | Planned scope |
 | --- | --- |
+| **0.0.1** | First playable proof of concept: inventory item tooltips, local curated catalog, language selector and verified client integration (implementation pending) |
 | **0.0.0** | Agent/human collaboration framework, OpenSpec, documentation, CI and Lua folder scaffold |
 | **0.1.0** | Tooltip profession identification by numeric itemID; multiple professions independent of character skills; local versioned catalog; settings panel; automatic enUS/esES detection and manual language selection; persisted preferences |
 | **0.2.0** | Wider audited materials coverage, diagnostics, optimizations and UX improvements |
