@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CraftAtlas — approved provisional settings prototype</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#e9e4d8;background:#171a1d;font-size:13px}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 50% 10%,#30302b,#171a1d 75%)}
+button,select{font:inherit}
+button{cursor:pointer}
+.wrapper{max-width:620px;margin:0 auto}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:#b2b0a8;font-size:11px}
+.toolbar button,.closed button{background:#292b2c;color:#e9d5aa;border:1px solid #615642;border-radius:3px;padding:8px 11px}
+.panel{background:#181818;border:1px solid #79694b;box-shadow:0 10px 28px #0009;border-radius:4px;overflow:hidden}
+.head{height:51px;background:linear-gradient(#33332f,#242420);display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid #514833}
+.name{font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;color:#eee6d4;letter-spacing:.1px}
+.close{width:26px;height:26px;border:1px solid #5b554b;background:#2b2925;color:#d0c5ad;border-radius:3px;font-size:18px;line-height:20px}
+.main{display:grid;grid-template-columns:116px minmax(0,1fr);min-height:211px}
+.side{background:#1c1c1b;border-right:1px solid #38362e;padding:12px 8px}
+.nav{display:block;width:100%;padding:9px 11px;text-align:left;border:1px solid #6b593d;background:#322d24;color:#e8cb91;border-radius:2px;font-weight:600}
+.content{padding:21px 24px}
+.section{font-size:14px;font-weight:700;color:#e8e0d0;padding-bottom:12px;border-bottom:1px solid #3a362d;margin-bottom:20px}
+.field-label{display:block;margin-bottom:9px;color:#e6d8bd;font-size:12px;font-weight:600}
+select{width:100%;background:#262626;color:#eee8dd;border:1px solid #6b5a40;border-radius:3px;padding:10px}
+.help{margin-top:12px;line-height:1.55;color:#a9a59b;font-size:12px}
+.footer{border-top:1px solid #39352f;padding:9px 14px;display:flex;justify-content:space-between;color:#858176;font-size:11px}
+.closed{border:1px dashed #6c624e;border-radius:4px;padding:65px 20px;text-align:center;color:#c4b59b}
+.closed button{margin-top:15px}
+.sample{margin-top:20px;border:1px solid #363b46;background:#11141b;padding:13px 15px;max-width:265px;border-radius:3px;line-height:1.7}
+.item{color:#22d643;font-weight:bold}
+.usage{color:#e4c58b;border-top:1px solid #30333d;margin-top:7px;padding-top:7px}
+.prof{color:#e4dfd2}
+.note{font-size:11px;color:#aaa08d;margin-top:12px;line-height:1.5}
+[hidden]{display:none!important}
+@media(max-width:440px){body{padding:12px}.main{grid-template-columns:92px minmax(0,1fr)}.content{padding:17px 13px}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+<div class="toolbar"><span>CraftAtlas · Prototype only</span><button type="button" id="toggle">Cerrar panel</button></div>
+<section class="panel" id="panel" aria-label="CraftAtlas settings">
+  <header class="head"><strong class="name">CraftAtlas</strong><button type="button" class="close" id="close" aria-label="Cerrar">×</button></header>
+  <div class="main">
+    <nav class="side" aria-label="Secciones"><button type="button" class="nav" id="nav" aria-current="page">General</button></nav>
+    <main class="content">
+      <div class="section">General</div>
+      <label for="language" class="field-label" id="label">Idioma</label>
+      <select id="language">
+        <option value="auto">Automático</option>
+        <option value="esES">Español</option>
+        <option value="enUS">English</option>
+      </select>
+      <div class="help" id="help">Automático utiliza el idioma del juego. Los cambios se guardan al instante.</div>
+    </main>
+  </div>
+  <footer class="footer"><span>v0.0.1</span><span id="saved">Guardado automático</span></footer>
+</section>
+<div class="closed" id="closed" hidden>Panel de configuración cerrado.<div><button type="button" id="open">Abrir CraftAtlas</button></div></div>
+<aside class="sample" aria-label="Example item tooltip">
+  <div class="item" id="item">Tela de lino</div>
+  <div class="usage" id="usage">Utilizado por profesiones:</div>
+  <div class="prof" id="prof1">Sastrería</div>
+  <div class="prof" id="prof2">Primeros auxilios</div>
+</aside>
+<p class="note">Interactive visual reference, not Lua, not a production WoW UI. Example profession associations are illustrative and must be verified with the catalog. Automatic language mode simulates a Spanish game client.</p>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let visible = true;
+  const copy = {
+    esES: { label: "Idioma", help: "Automático utiliza el idioma del juego. Los cambios se guardan al instante.", auto: "Automático", saved: "Guardado automático", item: "Tela de lino", usage: "Utilizado por profesiones:", prof1: "Sastrería", prof2: "Primeros auxilios", open: "Abrir panel", close: "Cerrar panel" },
+    enUS: { label: "Language", help: "Automatic follows the game language. Changes are saved instantly.", auto: "Automatic", saved: "Automatically saved", item: "Linen Cloth", usage: "Used by professions:", prof1: "Tailoring", prof2: "First Aid", open: "Open panel", close: "Close panel" }
+  };
+  function render() {
+    const value = $("language").value;
+    const t = copy[value === "enUS" ? "enUS" : "esES"];
+    for (const key of ["label", "help", "saved", "item", "usage", "prof1", "prof2"]) $(key).textContent = t[key];
+    $("language").options[0].textContent = t.auto;
+    $("toggle").textContent = visible ? t.close : t.open;
+    $("panel").hidden = !visible;
+    $("closed").hidden = visible;
+  }
+  $("language").addEventListener("change", render);
+  for (const id of ["close", "open", "toggle"]) $(id).addEventListener("click", () => { visible = !visible; render(); });
+  render();
+})();
+</script>
+</body>
+</html>
