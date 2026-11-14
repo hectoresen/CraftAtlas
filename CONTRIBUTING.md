@@ -16,7 +16,20 @@ Read `README.md`, `AGENTS.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md`,
 6. Open a PR with rationale, OpenSpec change ID, tests/results, Forever build, screenshots where appropriate, risks and rollback.
 7. Address review feedback. **Only @hectoresen authorizes merges, tags and releases.** Contributors and agents may not merge or push directly to `main`.
 
-Add a machine-readable `OpenSpec-Change: <change-id>` line in every functional PR; change files in `openspec/changes/<change-id>/` must be part of the PR. Documentation-only and mechanical maintenance PRs may instead carry `OpenSpec-Exemption: docs-only` or `OpenSpec-Exemption: maintenance`, subject to CI classification and owner review. Details: `docs/SDD_COMPLIANCE.md`.\n\nTiny documentation-only/typo changes can skip OpenSpec when the PR states why. A PR is still expected. Follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
+For functional changes, use the two-PR OpenSpec process in docs/SDD_COMPLIANCE.md. The first PR has exactly these lines:
+
+- OpenSpec-Change: your-change-id
+- OpenSpec-Phase: proposal
+
+After that specification PR is merged by @hectoresen, the implementation PR declares:
+
+- OpenSpec-Change: your-change-id
+- OpenSpec-Phase: implementation
+- OpenSpec-Approval-PR: 123 (the actual merged specification PR number)
+
+The spec PR includes an sdd-scope.json file listing explicitly allowed implementation paths. The implementation PR may update tasks.md but must not rewrite the approved proposal, design, specs or scope.
+
+A tiny documentation-only or maintenance PR may use OpenSpec-Exemption: docs-only or OpenSpec-Exemption: maintenance only when eligible, subject to CI and maintainer review. All changes still use a PR. Follow Conventional Commits.
 
 ## Data licensing
 
