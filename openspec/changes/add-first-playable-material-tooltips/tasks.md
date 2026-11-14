@@ -23,6 +23,9 @@
 ## 4. Localization and settings
 - [ ] 4.1 Implement enUS/esES profession/UI labels, locale detection and English fallback.
 - [ ] 4.2 Implement `/craftatlas` panel with auto/enUS/esES choice.
+- [ ] 4.2a Implement native Forever UI styling, falling back to compatible Classic frame/font templates; avoid external fonts, ornate visual assets and clutter.
+- [ ] 4.2b Build compact reusable settings shell with title, close control, navigation region and General content; show no unimplemented future tabs.
+- [ ] 4.2c Check default UI scale, normal text contrast, selected-state clarity and open/close behavior in-game; attach screenshots as verification evidence.
 - [ ] 4.3 Persist account-wide language override with safe defaults and invalid-data recovery.
 - [ ] 4.4 Add locale and persistence tests; verify UI/tooltip updates and reload in-game.
 
