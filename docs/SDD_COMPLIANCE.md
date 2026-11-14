@@ -1,75 +1,101 @@
-# SDD compliance gate
+# CraftAtlas SDD compliance — specification-to-code contract
 
-## Purpose and scope
+The policy in scripts/validate_sdd.py is enforced by .github/workflows/spec-compliance.yml on every pull request. It is **not** an OpenSpec command: OpenSpec generates and validates the specifications; CraftAtlas CI enforces their PR-level provenance.
 
-Every CraftAtlas pull request must provide a **traceable reason** for its changes. This check does **not** prove that a person ran OpenSpec, that the proposed behavior is correct, or that the owner approved the work. It enforces structural evidence and rejects obvious missing or unrelated proposals.
+## Two separate pull requests (mandatory for functional work)
 
-The workflow is `.github/workflows/spec-compliance.yml`; its stdlib-only policy script is `scripts/validate_sdd.py`. It runs on every pull request (no path filters). `main` branch protection is **not yet active**; until an enforceable ruleset requires the `SDD Compliance / traceability` job, CI failure alone cannot prevent merging.
+**Phase A: specification.** Start with the official OpenSpec /opsx:propose command inside OpenCode (or the officially generated equivalent). After review, open a PR changing **only** a new openspec/changes/<id>/ directory. In the PR description, on separate lines:
 
-## Contributor contract
-
-Place **exactly one** machine-readable line in your PR body, outside code fences:
-
-```text
+~~~text
 OpenSpec-Change: add-material-profession-tooltips
-```
+OpenSpec-Phase: proposal
+~~~
 
-The named change must have all of:
-- `openspec/changes/<id>/proposal.md`
-- `openspec/changes/<id>/design.md`
-- `openspec/changes/<id>/tasks.md`
-- At least one `openspec/changes/<id>/specs/**/spec.md`
+The change directory must contain proposal.md, design.md, tasks.md, at least one specs/**/spec.md and an additional project-specific manifest sdd-scope.json. The manifest is NOT an official OpenSpec artifact or command: it is a CraftAtlas CI policy input. Example:
 
-**At least one file inside that very change directory must be modified in this PR.** This avoids accepting an arbitrary, unchanged historical spec as a blanket justification. A spec-only PR is allowed; later implementation PRs should update that same change's tasks as they proceed. Do not archive an unfinished change before implementation.
+~~~json
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/**",
+    "tests/**",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ]
+}
+~~~
 
-For purely documentation or small mechanical maintenance changes, declare instead:
+Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. The owner reviews the requirements, proposed paths, tests and dataset rights, then merges the spec-only PR. Do not implement before owner approval.
 
-```text
-OpenSpec-Exemption: docs-only
-```
-or
-```text
-OpenSpec-Exemption: maintenance
-```
+**Phase B: implementation.** Begin only after the approved specification PR has been merged into main by @hectoresen. Run the official /opsx:apply (or generated equivalent). Create a separate code PR with:
 
-`docs-only` allows only `.md` and `.txt` files; both exemptions reject modifications classified as functional or governance. One-time exception: `OpenSpec-Exemption: bootstrap` is accepted **only for PR #2** and only when no functional code is changed, to introduce the governance gate itself. It cannot be reused in subsequent PRs. The owner must review whether the stated exemption is truthful. An unsupported or missing declaration fails.
+~~~text
+OpenSpec-Change: add-material-profession-tooltips
+OpenSpec-Phase: implementation
+OpenSpec-Approval-PR: 17
+~~~
 
-## Detection details
+Use the REAL number of the earlier merged spec PR. It must target main, have been merged by @hectoresen, and have modified the exact named OpenSpec change. The change's proposal, design, delta specs and scope must already exist in main. Implementation cannot change them; tasks.md may be updated as work progresses. Any changed files outside the pre-approved manifest cause CI failure. A spec needing revision requires a new reviewed specification proposal; do not silently modify its scope in the implementation PR.
 
-The script compares the pull request head to the merge base with `git diff --name-only --diff-filter=ACMRT <base>...<head>`. Changes to `addon/**/*.lua`, `addon/Data/**`, `tests/**`, and project scripts (other than the validator itself) are considered functional; modifying policy files (including `AGENTS.md`, the validator and workflow files) is treated as governance and demands a traceable OpenSpec change. Other changes must still declare an exemption or a change ID.
+## How the validator works, exactly
 
-If the PR contains a change ID, the script checks the files on disk, not merely a name in the description. The official OpenSpec CLI then validates the delta and canonical specs. Passing does not validate the mapping between each altered Lua function and individual SHALL scenarios.
+1. A pull_request event (opened, synchronize, reopened, edited, ready_for_review) triggers the job.
+2. GitHub Actions checks out the PR merge/head, fetches the base branch and uses a three-dot git diff to identify changed paths, including deletions. Only read-only GitHub API access is granted.
+3. Python tests run independently using mocked GitHub responses and temporary OpenSpec fixtures.
+4. The validator parses exactly one set of machine-readable PR metadata, ignores fenced code examples and rejects duplicates.
+5. For phase proposal, it checks the required artifacts, scope syntax, that the proposal is new relative to main, and that there are no other edits.
+6. For phase implementation, it checks the artifacts in main, consults GitHub's API for the referenced merged specification PR and its merging user, and verifies that the actual changed files fit the frozen scope. Previously existing unrelated specs do not authorize new work.
+7. The official OpenSpec CLI runs: openspec validate --all --strict --no-interactive. It checks OpenSpec syntax/requirements; it does not prove the developer followed the process.
+8. CI fails on any policy failure. The owner still reviews the code's semantic match with SHALL scenarios, tests and actual Forever client compatibility.
 
-## Execution / reproduction
+## Small exceptions
 
-On a local branch with fetched `origin/main`, save a GitHub `pull_request` event JSON containing `pull_request.body`, then run:
+- OpenSpec-Exemption: docs-only — only Markdown/text outside governance and runtime directories.
+- OpenSpec-Exemption: maintenance — only .gitignore, .editorconfig or .luacheckrc.
+- OpenSpec-Exemption: bootstrap — **one-time PR #2 only**, restricted to AGENTS.md, CONTRIBUTING.md, PR template, SDD workflow, validator, its tests and this document.
 
-```sh
-python3 scripts/validate_sdd.py --base origin/main --head HEAD --event /path/to/pr-event.json
-```
+Do not combine an exemption with a change/phase/approval declaration. Unlisted files or any gameplay code reject the bootstrap exemption. Any other governance changes should follow the normal spec-first workflow.
 
-The workflow uses `fetch-depth: 0`, fetches the base branch, and uses `github.event_path`. It installs an explicitly pinned OpenSpec major release from the official npm package; update its version separately after checking upstream compatibility. CLI validation is a separate step from policy validation.
+## Examples
 
-## Failure examples
-
-| Example | Outcome |
+| PR change | Result |
 | --- | --- |
-| Lua modified; no `OpenSpec-Change` | Fail |
-| Lua modified; points to existing unrelated, unchanged spec | Fail |
-| Lua modified; change has no delta `spec.md` | Fail |
-| Documentation only; `OpenSpec-Exemption: docs-only` | Pass policy |
-| Lua modified; `OpenSpec-Exemption: maintenance` | Fail |
-| Governance workflow modified; maintenance exemption | Fail |
-| Valid change + delta change in diff | Pass policy; CLI and review still required |
+| Lua only, no OpenSpec metadata | Rejected |
+| Lua plus brand-new spec in same PR | Rejected; two phases must be separate |
+| Lua plus an old unrelated spec ID | Rejected; no matching owner-merged approval PR |
+| Code references unmerged or other person's spec PR | Rejected |
+| Code modifies accepted delta spec or sdd-scope.json | Rejected |
+| Code outside the approved path manifest | Rejected |
+| Valid spec-only PR with new change and no code | Accepted by structural check |
+| Implementation after valid owner-merged spec PR, inside scope | Accepted by structural check; still needs code and human review |
+| README-only with docs-only exemption | Accepted by structural check |
+| Lua with maintenance exemption | Rejected |
 
-## Security model and limitations
+## Testing locally
 
-- Pull-request jobs use `permissions: contents: read` and never use `pull_request_target` with untrusted code.
-- A PR can edit its own workflow and policy files: **GitHub branch rulesets / required checks / restricted merge permissions are the ultimate enforcement**. CODEOWNERS by itself does not block merges until owner reviews are required by branch rules.
-- The gate does not check when owner approval happened, whether `/opsx:propose` was actually used, or semantic alignment. Require explicit owner review of the proposed change **before** implementation, review tests against SHALL scenarios, and perform real Forever client verification.
-- The initial bootstrap PR #2 is governance work and may use the uniquely scoped `OpenSpec-Exemption: bootstrap` to introduce this gate. All later governance PRs require a real OpenSpec change.
-- No CI check alone can guarantee only @hectoresen merges; configure branch permissions/ruleset later.
+From a checkout containing both the base and PR branch:
 
-## How to extend
+~~~bash
+python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v
+python3 scripts/validate_sdd.py --base origin/main --head HEAD --event /path/to/pr-event.json
+openspec validate --all --strict --no-interactive
+~~~
 
-Keep file classification explicit and covered by negative tests. If folders or governance policies change, update this document and the script together, through an owner-reviewed OpenSpec change. Prefer tighter machine-verifiable scope metadata in future versions rather than claiming semantic correctness from file paths.
+The PR event JSON must contain number and pull_request.body. Implementation checks additionally require a read-only GITHUB_TOKEN to consult GitHub; this is available in Actions.
+
+## Threat model and limits
+
+- File paths and explicit approval evidence can be validated; **semantic equivalence of implementation and specs cannot**. The owner must review scenarios and implementation.
+- GitHub confirms the approval PR was merged by the owner. This does not prove the original specification was *read* by a person or that implementation started only afterwards. Human review checks chronology.
+- This workflow runs code from a proposed branch. A malicious contributor with write permissions might change its own validator or workflow, so for hard enforcement configure branch rulesets and protect the required check against bypass. We will do that later with GitHub CLI as requested.
+- Until main is protected, a failing CI does not technically forbid merging or direct pushes. CODEOWNERS and Markdown policies do not enforce owner-only merging.
+- A scope manifest proves only file boundaries, not that every changed line is justified. Broad directory scopes require careful human review.
+- OpenSpec must be installed via the official package; no custom OpenSpec commands are required.
+
+## Troubleshooting
+
+"Missing OpenSpec-Approval-PR": first obtain a merged specification PR.
+"Approved ... not present on main": update/rebase onto main after the spec is merged.
+"Changed files outside approved scope": revise the implementation scope or submit a separate spec review.
+"Governance": propose and approve a dedicated change, never bypass by claiming a docs exception.
+
+Do not merge PR #2 before its tests and both GitHub Actions workflows are green. The future ruleset should require the stable SDD Compliance / traceability and CI / repository-validation checks.
