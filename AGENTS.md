@@ -61,7 +61,7 @@ Accepted `openspec/specs/` + approved active change > documented architectural d
 - Apply `docs/CODE_QUALITY.md`: simple functions, clear names, single responsibility, no dead code or speculative abstractions, deterministic tests, explicit failure paths.
 - Data licensing, retrieval date and applicability must be recorded before import. Do not copy unlicensed third-party databases.
 
-## Completion / handoff
+## Automated PR traceability gate\n\nSee `docs/SDD_COMPLIANCE.md`. Every PR body must carry exactly one `OpenSpec-Change: <change-id>` or authorized `OpenSpec-Exemption: docs-only|maintenance`. Functional PRs must update their corresponding active change directory; governance changes require specs, except a single PR #1 bootstrap exception. GitHub Actions checks structure; only human review assesses semantic compliance.\n\n## Completion / handoff
 
 Before opening a PR: tests, lint and repo validation; relevant enUS/esES, docs and changelog; applicable in-game evidence; verify against acceptance scenarios; update or sync specs as appropriate. Include an explicit list of **not run** checks.
 
