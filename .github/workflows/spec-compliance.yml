@@ -1,8 +1,10 @@
 name: SDD Compliance
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 permissions:
   contents: read
+  pull-requests: read
 jobs:
   traceability:
     name: traceability
@@ -12,16 +14,23 @@ jobs:
         with:
           fetch-depth: 0
       - name: Fetch target branch
-        run: git fetch origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify PR-to-OpenSpec traceability
-        run: python3 scripts/validate_sdd.py --base "origin/${{ github.base_ref }}" --head HEAD --event "$GITHUB_EVENT_PATH"
+      - name: Run SDD policy regression tests
+        run: python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v
+      - name: Verify independent PR-to-OpenSpec traceability
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.base_ref }}
+        run: python3 scripts/validate_sdd.py --base "origin/$BASE_REF" --head HEAD --event "$GITHUB_EVENT_PATH"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install official OpenSpec
+      - name: Install official OpenSpec CLI
         run: npm install -g @fission-ai/openspec@latest
-      - name: Validate OpenSpec artifacts
+      - name: Validate OpenSpec specifications
         run: openspec validate --all --strict --no-interactive
