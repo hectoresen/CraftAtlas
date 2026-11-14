@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*.local.json
+*.swp
+*.tmp
+*.log
+dist/
+build/
+coverage/
+__pycache__/
+.pytest_cache/
+node_modules/

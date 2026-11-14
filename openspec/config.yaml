@@ -1,0 +1,21 @@
+schema: spec-driven
+context: |
+  CraftAtlas is a World of Warcraft: Forever addon written in Lua.
+  v0.0.0 is documentation and folder structure only, not a working addon.
+  itemID is the identity; profession keys are stable and language-neutral.
+  Local catalog, no required runtime dependencies, enUS/esES localization.
+  Validate Forever interface version and available APIs in the actual client.
+  Read AGENTS.md, CONTRIBUTING.md, docs/ARCHITECTURE.md and docs/DATA_MODEL.md.
+rules:
+  proposal:
+    - Define why, in/out scope, target milestone, risks and rollback.
+    - Identify compatibility assumptions, data sources and licenses.
+  specs:
+    - Write testable SHALL requirements and WHEN/THEN scenarios.
+    - Include unknown material, multiple professions and locale fallback cases.
+  design:
+    - Document module boundaries, game API verification and performance.
+    - Specify data provenance and error handling.
+  tasks:
+    - Include automated tests, in-game verification, documentation and localization.
+    - Keep tasks individually verifiable.

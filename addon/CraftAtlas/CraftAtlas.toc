@@ -1,0 +1,7 @@
+## Title: CraftAtlas
+## Notes: Open-source profession material knowledge for WoW Forever (foundation only)
+## Author: CraftAtlas contributors
+## Version: 0.0.0
+## SavedVariables: CraftAtlasDB
+# Interface version is intentionally pending verification on a current Forever client.
+# No Lua files are loaded yet: this is not a playable addon.
