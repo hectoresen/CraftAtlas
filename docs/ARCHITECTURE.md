@@ -32,3 +32,21 @@ Changes to module boundaries, data schema or externally visible behavior require
 - [Data model](DATA_MODEL.md)
 - [Testing](TESTING.md)
 - [Roadmap](ROADMAP.md)
+
+## v0.0.1 implementation notes
+
+`Core/Init.lua` initializes the namespace; `Core/Bootstrap.lua` wires
+initialization after addon load. `Domain/MaterialLookup.lua` is a pure function
+accepting a numeric itemID, table and stable profession order.
+`Infrastructure/TooltipAdapter.lua` contains modern WoW tooltip-specific code,
+where `TooltipDataProcessor.AddTooltipPostCall` is used provisionally;
+`Features/Tooltip/Tooltip.lua` formats verified relations.
+`Infrastructure/Preferences.lua`, `Localization/Locales.lua` and
+`Features/Settings/Settings.lua` implement language selection independently
+of lookup. The native settings panel uses the approved clean CraftAtlas
+header without decorative emblem and a single General category.
+
+The modern item-tooltip callback has a broad surface in Mainline-family WoW.
+**The spec currently guarantees only inventory/bag behavior**; extending
+guaranteed support to other origins needs an approved spec revision and game
+tests. The adapter is not considered compatible until tested on Forever.
