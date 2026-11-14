@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 CHANGE_ID = re.compile(r"^OpenSpec-Change:\s*([a-z0-9]+(?:-[a-z0-9]+)*)\s*$", re.I | re.M)
-EXEMPTION = re.compile(r"^OpenSpec-Exemption:\s*(docs-only|maintenance)\s*$", re.I | re.M)
+EXEMPTION = re.compile(r"^OpenSpec-Exemption:\s*(docs-only|maintenance|bootstrap)\s*$", re.I | re.M)
 PROTECTED = (
     ".github/workflows/", ".github/CODEOWNERS", "AGENTS.md",
     "scripts/validate_sdd.py", "docs/SDD_COMPLIANCE.md",
@@ -20,7 +20,7 @@ def git(*args):
 
 def changed_files(base, head):
     # GitHub workflow fetches the base branch explicitly, so the merge base is valid.
-    return [line for line in git("diff", "--name-only", "--diff-filter=ACMRT", f"{base}...{head}").splitlines() if line]
+    return [line for line in git("diff", "--name-only", "--diff-filter=ACDMRT", f"{base}...{head}").splitlines() if line]
 
 def proposal_artifacts(change_id):
     directory = Path("openspec/changes") / change_id
@@ -28,7 +28,7 @@ def proposal_artifacts(change_id):
     specs = list((directory / "specs").glob("**/spec.md"))
     return directory, [str(p) for p in required if not p.is_file()], specs
 
-def validate(files, body):
+def validate(files, body, pr_number):
     errors = []
     ids = CHANGE_ID.findall(body)
     exemptions = EXEMPTION.findall(body)
@@ -79,7 +79,7 @@ def main():
     event = json.loads(Path(args.event).read_text(encoding="utf-8"))
     body = event.get("pull_request", {}).get("body") or ""
     files = changed_files(args.base, args.head)
-    errors, functional, governance = validate(files, body)
+    errors, functional, governance = validate(files, body, event.get("number"))
     print(f"SDD compliance: {len(files)} changed files; functional={functional}; governance={governance}")
     for error in errors:
         print(f"::error::{error}")
