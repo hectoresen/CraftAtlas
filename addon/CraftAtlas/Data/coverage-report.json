@@ -1,0 +1,25 @@
+{
+  "referenceUniverse": {
+    "clientBuild": "Forever 1.60.x — exact build pending",
+    "sourceSnapshot": null,
+    "eligibleItemIDs": null,
+    "rights": null
+  },
+  "candidateItemIDs": 6,
+  "verifiedItemIDs": 0,
+  "unverifiedItemIDs": 6,
+  "multiProfessionItemIDs": 5,
+  "perProfessionCandidateItems": {
+    "ALCHEMY": 2,
+    "BLACKSMITHING": 5,
+    "COOKING": 0,
+    "ENCHANTING": 0,
+    "ENGINEERING": 5,
+    "FIRST_AID": 3,
+    "LEATHERWORKING": 0,
+    "TAILORING": 3
+  },
+  "coveragePercent": null,
+  "fullCoverageClaimAllowed": false,
+  "note": "Unknown reference denominator means completeness cannot be claimed."
+}

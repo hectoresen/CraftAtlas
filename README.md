@@ -87,3 +87,7 @@ All contributors are welcome to fork and open PRs, but the repository owner **@h
 ## Documentation index
 
 [AGENTS](AGENTS.md) · [Agent workflow](docs/AGENT_WORKFLOW.md) · [OpenSpec](openspec/README.md) · [Development](docs/DEVELOPMENT.md) · [Clean Code](docs/CODE_QUALITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODEL.md) · [Tests](docs/TESTING.md) · [Installation](docs/INSTALLATION.md) · [Roadmap](docs/ROADMAP.md) · [GitHub governance](docs/GITHUB_SETTINGS.md) · [Changelog](CHANGELOG.md)
+
+## v0.1.0 development candidate
+
+The runtime now loads a local, extensible registry of consuming professions and a per-relation evidence catalog. A single structured item-tooltip hook may work across several Forever UI surfaces; each requires a real in-game test before being claimed supported. No remote service is used in game. **Only six researched candidate itemIDs are included**. A complete, legally usable reference universe has not been obtained, so exhaustive coverage cannot be claimed.

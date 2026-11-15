@@ -50,3 +50,7 @@ The modern item-tooltip callback has a broad surface in Mainline-family WoW.
 **The spec currently guarantees only inventory/bag behavior**; extending
 guaranteed support to other origins needs an approved spec revision and game
 tests. The adapter is not considered compatible until tested on Forever.
+
+## v0.1.0 expansion
+
+A generated profession registry provides stable keys and enUS/esES labels before the lookup module loads. The tooltip adapter registers once with the supported structured item-data post-call; this is intended to serve every supported item origin, subject to in-game verification. No unsafe protected-frame modifications or per-hover catalog scanning.

@@ -40,3 +40,7 @@ Use deterministic Lua tests for material lookup, multi-profession resolution, un
 - Screenshots or reproducible evidence attached to PR
 
 Mark each test *passed*, *failed* or *not run*. Never present an unrun game test as passing.
+
+## v0.1.0 development candidate
+
+Run from repository root: `python3 -m unittest discover -s tests -p 'test_material_data.py' -v`, `python3 scripts/build_materials.py --check`, and `texlua tests/test_addon.lua`. The release gate `python3 scripts/build_materials.py --release --check` is deliberately failing while 30 verified items are unavailable. Test bank, guild bank, inventory, chat item links, auction, vendors, mail, crafting and quest rewards individually in a real Forever build; report each as passed/failed/not run. Existing client testing covered only initial v0.0.1. Do not claim all origins tested or all professions catalogued.

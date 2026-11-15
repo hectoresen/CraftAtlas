@@ -1,3 +1,10 @@
+## Unreleased — v0.1.0 development candidate
+
+- Extensible localized profession registry and relation-level catalog evidence.
+- Reproducible coverage report without unjustified completeness claims.
+- Centralized modern item tooltip adapter with localization-aware refresh and nil/zero enum support.
+- Offline data/Lua tests; expansion and client compatibility still require verification.
+
 ## Unreleased — v0.0.1 implementation candidate
 
 - Added an offline Lua material-profession lookup and a small evidence-linked

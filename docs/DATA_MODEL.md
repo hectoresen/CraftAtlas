@@ -32,3 +32,7 @@ be described as confirmed for the live client until verified. Recording a
 source URL is evidence of public reference, not automatic redistribution
 permission for an entire database. If the data source rights are unclear,
 do not copy the database.
+
+## v0.1.0 auditable relations
+
+The catalog schema version 2 in `addon/CraftAtlas/Data/materials.source.json` stores individual itemID-to-profession relationships. Each has `professionKey`, `usageKind`, `source`, `reviewedAt`, `clientBuild`, `rights`, and `status` (researched or verified). `professions.source.json` supplies a reviewed extensible registry, including language names. Build via `python3 scripts/build_materials.py`; verify drift with `--check` and review `coverage-report.json`. Without a legally permitted bounded reference universe, the coverage denominator remains unknown and no full-coverage claim is allowed.

@@ -37,3 +37,7 @@
 - [ ] 5.3 Add data/adapter tests and large-data benchmarks; execute offline and in Forever, capturing exact client version/screenshots.
 - [ ] 5.4 Update README, roadmap, data model, testing, installation, changelog and coverage report with precise claims.
 - [ ] 5.5 Submit separate implementation PR with approved spec PR reference; do not merge without owner review.
+
+## Implementation checkpoint
+
+Initial architecture implemented: dynamic profession registry, per-relation provenance, deterministic generator/coverage report, central tooltip adapter, localized labels and offline tests. **Not accepted:** only six candidate items, no complete licensed Forever reference universe, and no real in-game tests for the additional tooltip origins. Leave unverified tasks unchecked; this PR must stay DRAFT.

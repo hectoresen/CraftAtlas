@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "professions": [
+    {
+      "key": "ALCHEMY",
+      "enUS": "Alchemy",
+      "esES": "Alquimia",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "BLACKSMITHING",
+      "enUS": "Blacksmithing",
+      "esES": "Herrería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "COOKING",
+      "enUS": "Cooking",
+      "esES": "Cocina",
+      "role": "consumer",
+      "source": "WoW Classic secondary profession"
+    },
+    {
+      "key": "ENCHANTING",
+      "enUS": "Enchanting",
+      "esES": "Encantamiento",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "ENGINEERING",
+      "enUS": "Engineering",
+      "esES": "Ingeniería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "FIRST_AID",
+      "enUS": "First Aid",
+      "esES": "Primeros auxilios",
+      "role": "consumer",
+      "source": "WoW Classic secondary profession"
+    },
+    {
+      "key": "LEATHERWORKING",
+      "enUS": "Leatherworking",
+      "esES": "Peletería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "TAILORING",
+      "enUS": "Tailoring",
+      "esES": "Sastrería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    }
+  ]
+}
