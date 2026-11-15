@@ -17,6 +17,12 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - Imported a pinned MIT-licensed LibProfessionDB beta snapshot (Forever 1.60.1.69977), retaining recipe IDs, rights metadata and attribution.
 - Added a deterministic source importer and coverage report. This data is **not independently reconciled with the current Forever live server**; complete coverage is not claimed.
 
+### Distribution tooling (not a tagged release)
+
+- Added a manually triggered GitHub Actions release workflow restricted to repository owner `hectoresen` and branch `main`.
+- Added SemVer release selection, an installable runtime-only ZIP, .toc version injection during packaging, package unit tests, and GitHub prerelease handling for 0.x.
+- No release is published merely by merging this tooling; real-client and catalog accuracy limitations remain.
+
 ### Maintenance
 
 - Removed an accidentally committed Git conflict marker from `Infrastructure/MinimapButton.lua`.
