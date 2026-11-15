@@ -9,10 +9,12 @@
 Core/Init.lua
 Data/Professions.lua
 Domain/MaterialLookup.lua
+Domain/MaterialSearch.lua
 Data/Materials.lua
 Localization/Locales.lua
 Infrastructure/Preferences.lua
 Localization/ProfessionLabels.lua
+Infrastructure/ItemInfo.lua
 Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua
