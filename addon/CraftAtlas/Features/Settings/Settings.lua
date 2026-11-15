@@ -11,10 +11,10 @@ local function text(parent, font, x, y)
     return label
 end
 
-local function createSearchAffordance()
-    local search = CreateFrame("Button", nil, panel)
-    search:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -12)
-    search:SetSize(220, 30)
+local function createSearchAffordance(header)
+    local search = CreateFrame("Button", nil, header)
+    search:SetPoint("TOPLEFT", header, "TOPLEFT", 8, -7)
+    search:SetSize(190, 28)
     search:EnableMouse(true)
     search:SetScript("OnEnter", function()
         if ns.SetSearchUnavailableCursor then
@@ -69,11 +69,14 @@ local function createPanel()
     end
 
     local header = CreateFrame("Frame", nil, panel)
-    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -8)
-    header:SetSize(544, 40)
+    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -40)
+    header:SetSize(536, 42)
+    local headerBackground = header:CreateTexture(nil, "BACKGROUND")
+    headerBackground:SetAllPoints()
+    headerBackground:SetColorTexture(0.06, 0.06, 0.06, 0.72)
     elements.header = header
 
-    elements.search = createSearchAffordance()
+    elements.search = createSearchAffordance(header)
 
     elements.title = header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     elements.title:SetPoint("CENTER", header, "CENTER", 0, 0)
@@ -84,13 +87,13 @@ local function createPanel()
     end
 
     local selector = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
-    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -4, -2)
-    selector:SetSize(128, 26)
+    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -8, -8)
+    selector:SetSize(118, 26)
     elements.selector = selector
 
     local menu = CreateFrame("Frame", nil, panel)
     menu:SetPoint("TOPRIGHT", selector, "BOTTOMRIGHT", 0, -3)
-    menu:SetSize(128, 87)
+    menu:SetSize(118, 87)
     menu:SetFrameLevel(selector:GetFrameLevel() + 2)
     local surface = menu:CreateTexture(nil, "BACKGROUND")
     surface:SetAllPoints()
@@ -106,7 +109,7 @@ local function createPanel()
     for index, value in ipairs(options) do
         local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
         choice:SetPoint("TOPLEFT", 2, -2 - (index - 1) * 28)
-        choice:SetSize(124, 27)
+        choice:SetSize(114, 27)
         choice:SetScript("OnClick", function()
             ns.SetLanguage(value)
             menu:Hide()
@@ -115,18 +118,18 @@ local function createPanel()
     end
 
     local sidebar = CreateFrame("Frame", nil, panel)
-    sidebar:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -58)
-    sidebar:SetSize(120, 220)
+    sidebar:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -98)
+    sidebar:SetSize(120, 180)
     local divider = sidebar:CreateTexture(nil, "ARTWORK")
     divider:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, 0)
-    divider:SetSize(1, 220)
+    divider:SetSize(1, 180)
     divider:SetColorTexture(0.4, 0.35, 0.26, 0.55)
     elements.navigation = text(sidebar, "GameFontNormal", 9, -12)
 
-    elements.heading = text(panel, "GameFontNormalLarge", 160, -74)
+    elements.heading = text(panel, "GameFontNormalLarge", 160, -114)
     elements.heading:SetWidth(360)
     elements.heading:SetJustifyH("CENTER")
-    elements.comingSoon = text(panel, "GameFontHighlight", 160, -150)
+    elements.comingSoon = text(panel, "GameFontHighlight", 160, -190)
     elements.comingSoon:SetWidth(360)
     elements.comingSoon:SetJustifyH("CENTER")
 
@@ -145,7 +148,8 @@ function ns.RefreshSettings()
     elements.comingSoon:SetText(ns.L("COMING_SOON"))
 
     local selected = ns.GetLanguage()
-    elements.selector:SetText(ns.L(labels[selected]))
+    local effectiveLanguage = ns.ResolveLocale(selected, ns.GetClientLocale())
+    elements.selector:SetText(ns.L(labels[effectiveLanguage]))
     for _, option in ipairs(options) do
         local prefix = option == selected and "> " or "   "
         elements.choices[option]:SetText(prefix .. ns.L(labels[option]))

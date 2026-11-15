@@ -25,7 +25,7 @@ local function createButton()
     button = CreateFrame("Button", "CraftAtlasMinimapButton", Minimap)
     button:SetSize(32, 32)
     button:SetFrameStrata("MEDIUM")
-    button:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 4, 4)
+    button:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -2, -2)
     button:RegisterForClicks("LeftButtonUp")
 
     local icon = button:CreateTexture(nil, "ARTWORK")
