@@ -54,3 +54,8 @@
 - Final installation ZIP, release and owner acceptance.
 
 Do not mark a release, archive this change or merge implementation while these gates remain open.
+
+
+## Lifecycle evidence checkpoint — 2026-11-15
+
+**Historical implementation PR #4 and specification PR #3 are merged.** The maintainer has reported a working playable addon since then, and subsequent PRs expanded the source to 593 reagent IDs and added functional Materiales/Fabricables exploration. These later implementations do **not** retroactively prove the initial 30 individually live-verified item requirement or establish an exact Forever client build for PR #4. Core current requirements for numeric material lookup and localization have been synchronized to canonical specs, but this historical change remains **OPEN / not archived** with the original unmet acceptance tasks and evidence gaps above unchanged. See `docs/OPENSPEC_STATUS.md`.
