@@ -2,7 +2,9 @@
   "allowed_paths": [
     "addon/CraftAtlas/**",
     "tests/**",
-    "scripts/build_materials.py",
+    "scripts/validate_sdd.py",
+    "docs/SDD_COMPLIANCE.md",
+    "AGENTS.md",
     "docs/ARCHITECTURE.md",
     "docs/DATA_MODEL.md",
     "docs/ROADMAP.md",
