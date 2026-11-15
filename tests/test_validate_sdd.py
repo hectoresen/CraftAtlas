@@ -149,5 +149,47 @@ class SddPolicyTests(unittest.TestCase):
                                    self.implementation, present=True,
                                    created="2026-10-01T00:00:00Z"))
 
+    def set_scope(self, paths):
+        (self.root / self.prefix / "sdd-scope.json").write_text(
+            json.dumps({"allowed_paths": paths}), encoding="utf-8")
+
+    def test_explicit_workflow_scope_is_accepted(self):
+        self.set_scope([".github/workflows/publish-release.yml"])
+        self.assertEqual(self.check({self.prefix + "proposal.md"}, self.proposal), [])
+        self.assertEqual(
+            self.check({".github/workflows/publish-release.yml"},
+                       self.implementation, present=True), [])
+
+    def test_unapproved_workflow_is_rejected(self):
+        self.set_scope(["README.md"])
+        self.assertTrue(self.check({".github/workflows/publish-release.yml"},
+                                   self.implementation, present=True))
+
+    def test_other_workflow_is_rejected_even_if_one_is_approved(self):
+        self.set_scope([".github/workflows/publish-release.yml"])
+        self.assertTrue(self.check({".github/workflows/ci.yml"},
+                                   self.implementation, present=True))
+
+    def test_workflow_wildcards_are_rejected(self):
+        for unsafe in (".github/workflows/**", ".github/**",
+                       ".github/workflows/*.yml",
+                       ".github/workflows/../ci.yml",
+                       ".github/CODEOWNERS"):
+            with self.subTest(path=unsafe):
+                self.set_scope([unsafe])
+                self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal))
+
+    def test_hidden_file_cannot_be_whitelisted_via_broad_scope(self):
+        self.set_scope([".github/workflows/publish-release.yml", "docs/**"])
+        self.assertTrue(self.check({".github/CODEOWNERS"}, self.implementation, present=True))
+
+    def test_approval_gates_apply_to_workflow_changes(self):
+        self.set_scope([".github/workflows/publish-release.yaml"])
+        self.assertTrue(self.check({".github/workflows/publish-release.yaml"},
+                                   self.implementation, present=False))
+        self.assertTrue(self.check({".github/workflows/publish-release.yaml"},
+                                   self.implementation, present=True,
+                                   created="2026-10-01T00:00:00Z"))
+
 if __name__ == "__main__":
     unittest.main()
