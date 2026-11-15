@@ -38,7 +38,7 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - This initial milestone was non-playable.
 
 
-## Unreleased — PR #14 candidate (not merged / game QA pending)
+## Unreleased — material explorer (PR #14; game QA pending)
 
 - Added functional local material search, profession filters, result list and detail pane to native CraftAtlas settings frame.
 - Added localized name/icon cache handling with numeric itemID fallbacks, and `/craftatlas <itemID>` entry.
