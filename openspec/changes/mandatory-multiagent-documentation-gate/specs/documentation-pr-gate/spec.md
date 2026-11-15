@@ -23,11 +23,11 @@ Functional PRs SHALL include a truthful documentation review attestation in PR m
 - **AND** human owner review remains required rather than falsely certifying truth
 
 ### Requirement: Keep owner-protected governance
-Changes to AGENTS.md, OpenSpec config and CI enforcement SHALL require the original owner-merged spec approval and a narrow, verified allowlist for this exact governance change.
+Changes to AGENTS.md and CI enforcement SHALL require the original owner-merged spec approval and a narrow, verified allowlist for this exact governance change.
 
 #### Scenario: This approved implementation
 - **WHEN** the implementation references the real merged governance spec PR and touches only approved paths
-- **THEN** SDD may accept its AGENTS.md, OpenSpec config and explicitly named CI workflow updates
+- **THEN** SDD may accept its AGENTS.md and explicitly named CI workflow updates
 
 #### Scenario: Other implementation tries to edit governance
 - **WHEN** any unrelated change attempts to modify AGENTS.md without its own approved governance allowance
