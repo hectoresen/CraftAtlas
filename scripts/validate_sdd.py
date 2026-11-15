@@ -230,10 +230,14 @@ def context_regression_errors(current_config, baseline_config):
     stale = "v0.0.0 is documentation and folder structure only"
     if stale in current_config and stale not in baseline_config:
         return ["OpenSpec context regressed to non-playable v0.0.0 scaffold"]
-    if stale not in baseline_config and (
-            "schema: spec-driven" not in current_config or
-            "README.md" not in current_config):
-        return ["OpenSpec context must remain spec-driven and refer to README.md"]
+    if stale not in baseline_config:
+        if ("schema: spec-driven" not in current_config or
+                "README.md" not in current_config):
+            return ["OpenSpec context must remain spec-driven and refer to README.md"]
+        # Context is a stable agent briefing, not a second changelog. References
+        # to version-stamped product state would inevitably become obsolete.
+        if re.search(r"\\bv[0-9]+\\.[0-9]+(?:\\.[0-9]+)?(?:-dev)?\\b", current_config, re.I):
+            return ["OpenSpec config must not pin product versions; point to README.md"]
     return []
 
 
