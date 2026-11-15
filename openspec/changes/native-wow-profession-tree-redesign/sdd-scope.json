@@ -2,6 +2,7 @@
   "allowed_paths": [
     "addon/CraftAtlas/Features/Settings/**",
     "addon/CraftAtlas/Domain/**",
+    "addon/CraftAtlas/Core/Init.lua",
     "addon/CraftAtlas/Infrastructure/ItemInfo.lua",
     "addon/CraftAtlas/Infrastructure/RecipeInfo.lua",
     "addon/CraftAtlas/Localization/Locales.lua",
