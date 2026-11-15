@@ -9,13 +9,14 @@ local function contains(haystack, needle)
     return string.find(normalize(haystack), needle, 1, true) ~= nil
 end
 
-function ns.FilterMaterials(materials, professionOrder, query, profession, names, namedOnly, professionLabels)
+function ns.FilterMaterials(materials, professionOrder, query, profession, names, namedOnly, professionLabels, recipeUses)
     local ids = {}
     local unresolved = 0
     local needle = normalize(query)
     local numberQuery = needle ~= "" and string.match(needle, "^%d+$") ~= nil
     for itemID, professions in pairs(materials or {}) do
-        if type(itemID) == "number" and type(professions) == "table" then
+        if type(itemID) == "number" and type(professions) == "table"
+            and (not recipeUses or (recipeUses[itemID] and #recipeUses[itemID] > 0)) then
             local accepted = not profession or profession == ""
             if not accepted then
                 for _, key in ipairs(professions) do
