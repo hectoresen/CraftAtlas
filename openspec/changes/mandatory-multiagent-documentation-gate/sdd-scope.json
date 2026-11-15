@@ -1,0 +1,15 @@
+{
+  "allowed_paths": [
+    "skills/documentation-sync/**",
+    ".github/workflows/ci.yml",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/DOCUMENTATION_PROTOCOL.md",
+    "scripts/validate_documentation.py",
+    "scripts/validate_sdd.py",
+    "tests/test_validate_documentation.py",
+    "tests/test_validate_sdd.py",
+    "README.md"
+  ]
+}
