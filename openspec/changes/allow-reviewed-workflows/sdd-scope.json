@@ -1,0 +1,7 @@
+{
+  "allowed_paths": [
+    "scripts/validate_sdd.py",
+    "tests/test_validate_sdd.py",
+    "docs/SDD_COMPLIANCE.md"
+  ]
+}
