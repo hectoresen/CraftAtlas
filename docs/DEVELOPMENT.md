@@ -1,23 +1,38 @@
-# Developer setup
+# Developer setup and repository conventions
 
-CraftAtlas is currently implemented as `0.1.0-dev` and reported working in WoW Forever by the maintainer. Requirements for offline checks: Git, Python 3.11+, an optional Lua/texlua interpreter, and Node.js 22.12+ if using the official OpenSpec CLI.
+CraftAtlas is a **Lua World of Warcraft: Forever addon**, source version `0.1.0-dev`. Source code, PRs, agent instructions and engineering documentation use English; user-facing strings support enUS/esES. The maintainer has accepted the Materiales/Fabricables UI in-game, but dataset completeness, every tooltip origin and exact game-build compatibility remain separate QA tasks.
+
+## Local environment
+
+Use Git, Python 3.11+, and a Lua/texlua interpreter for offline Lua tests. The official OpenSpec CLI requires its supported Node.js version (currently documented as Node 22.12+ in project governance). Start by reading [AGENTS.md](../AGENTS.md), [OpenSpec](../openspec/README.md), [architecture](ARCHITECTURE.md) and [data model](DATA_MODEL.md).
 
 ```sh
 git clone https://github.com/hectoresen/CraftAtlas.git
 cd CraftAtlas
-python3 scripts/validate_repo.py
-python3 -m unittest discover -s tests -p 'test_material_data.py' -v
+bash scripts/validate_release_checks.sh
 python3 scripts/build_materials.py --check
 python3 scripts/coverage_report.py
 texlua tests/test_addon.lua
+texlua tests/test_recipe_catalog.lua
+texlua tests/test_explorer_layout.lua
 ```
 
-To prepare approved changes: `npm install -g @fission-ai/openspec@latest`, `openspec init`, then use the official proposal → owner approval → implementation → test → PR sequence. Read [AGENTS.md](../AGENTS.md) and [SDD compliance](SDD_COMPLIANCE.md). Never push directly to `main` or merge without explicit owner permission.
+The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. For the full matrix see [testing](TESTING.md).
 
-Code/docs are written in English; user-facing strings are localized enUS/esES. Lua modules are loaded in dependency order in `addon/CraftAtlas/CraftAtlas.toc`. Edit `Data/materials.source.json` and regenerate with `python3 scripts/build_materials.py`, not by editing `Materials.lua` directly.
+## Implementation boundaries
 
-`python3 scripts/build_materials.py --release --check` is a stronger catalog acceptance gate requiring live-client validation; a functional addon alone is not proof of complete live mapping accuracy. Record each test command and the exact Forever build for game-facing PRs. [Testing matrix](TESTING.md).
+- `Core/`: initialization, wiring and lifecycle.
+- `Data/`: pinned source/license evidence and deterministic generated runtime indices.
+- `Domain/`: pure material lookup, filtering and recipe identity/ingredient logic, no WoW globals.
+- `Infrastructure/`: guarded client APIs, asynchronous names/icons/tooltips, minimap and preferences.
+- `Features/`: native Materiales and Fabricables UI and tooltip annotation.
+- `Features/Settings/Shared/ExplorerWidgets.lua`: reusable native search, filter, rows, pager and layout; avoid duplicating a separate explorer implementation.
+- `Localization/`: enUS/esES client-facing text and fallbacks.
 
-## Shared native explorer development
+Use `scripts/build_materials.py` to regenerate source-backed data; never edit `Materials.lua`, `RecipeUses.lua` or `Recipes.lua` by hand. Recipe identity is profession+spellID, not output itemID. Never infer recipe availability/quality or learned-status from the imported dataset.
 
-Modify reusable UI behavior via `Features/Settings/Shared/ExplorerWidgets.lua` rather than duplicating Material and Recipe controls. Keep per-view state inside the shell and pure catalog filtering in `Domain/`. Recipe identity is always profession+spellID, even when two recipes produce an identical item. `scripts/build_materials.py` compiles both reagent→recipe and recipe→all-input indices from one pinned licensed JSON source; do not manually update generated Lua files. Run its `--check` mode and both Python/Lua tests, then verify tooltip and UI behavior in the actual Forever client before releases.
+## Spec-first workflow and PR quality
+
+For behavior or source changes, propose an OpenSpec change, obtain its **owner-merged specification PR**, then implement in a separate PR within the approved `sdd-scope.json`. An implementation PR may update the change's `tasks.md`, but not silently change its approved spec/design/scope. The single PR #14 combined exception is historical and nonreusable. Only @hectoresen may decide merges, release publication, repository permissions or protected settings.
+
+Before opening any PR, compare new behavior with README, architecture, data model, installation, testing, roadmap, changelog and relevant specs. Reconcile only factual updates; do not call unrun tests passed. Each PR must declare exact test commands/results, unrun Forever checks, relevant source rights, rollback and a clear review request. More precise rules live in [AGENTS.md](../AGENTS.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [SDD compliance](SDD_COMPLIANCE.md).
