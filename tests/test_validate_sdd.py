@@ -144,6 +144,29 @@ class SddPolicyTests(unittest.TestCase):
         self.assertTrue(self.check({"docs/CODE_QUALITY.md"},
                                    "OpenSpec-Exemption: docs-only\n"))
 
+    def test_combined_only_authorized_pr_and_change(self):
+        body = "OpenSpec-Change: improve-material-explorer-ui\nOpenSpec-Phase: combined\n"
+        files = {self.prefix + "proposal.md", "addon/CraftAtlas/Core/Init.lua"}
+        self.assertTrue(self.check(files, body, number=14))
+        self.assertTrue(self.check(files, body, number=15))
+
+    def test_combined_valid_authorization(self):
+        change = "improve-material-explorer-ui"
+        prefix = "openspec/changes/" + change + "/"
+        folder = self.root / prefix
+        (folder / "specs" / "material-explorer").mkdir(parents=True)
+        for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
+            (folder / name).write_text("# example" if name.endswith(".md")
+                else '{"allowed_paths":["addon/CraftAtlas/**","tests/**"]}', encoding="utf-8")
+        (folder / "specs/material-explorer/spec.md").write_text("## ADDED Requirements\n")
+        body = "OpenSpec-Change: " + change + "\nOpenSpec-Phase: combined\n"
+        paths = {prefix + "proposal.md", "addon/CraftAtlas/Core/Init.lua"}
+        self.assertEqual(self.check(paths, body, number=14), [])
+        self.assertTrue(self.check(paths, body, number=16))
+        self.assertTrue(self.check(paths | {"private/secret"}, body, number=14))
+        self.assertTrue(self.check(paths | {".github/workflows/ci.yml"}, body, number=14))
+        self.assertTrue(self.check(paths, body + "OpenSpec-Approval-PR: 9\n", number=14))
+
     def test_implementation_cannot_precede_spec_approval(self):
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True,
