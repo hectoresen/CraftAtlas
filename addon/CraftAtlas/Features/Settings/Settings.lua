@@ -128,18 +128,24 @@ local function updateRows()
     end
     ui.count:SetText(string.format(ns.L("RESULT_COUNT"), count))
     if unresolved > 0 then
-        local loaded, pending = ns.GetMaterialLoadProgress()
-        if pending > 0 or loaded < 1 then
-            ui.incomplete:SetText(string.format(ns.L("LOADING_ITEMS"), loaded))
+        if currentView == "recipes" then
+            ui.incomplete:SetText(ns.L("RECIPE_NAME_RESULTS_INCOMPLETE"))
         else
-            ui.incomplete:SetText(ns.L("NAME_RESULTS_INCOMPLETE"))
+            local loaded, pending = ns.GetMaterialLoadProgress()
+            if pending > 0 or loaded < 1 then
+                ui.incomplete:SetText(string.format(ns.L("LOADING_ITEMS"), loaded))
+            else
+                ui.incomplete:SetText(ns.L("NAME_RESULTS_INCOMPLETE"))
+            end
         end
         ui.incomplete:Show()
     else
         ui.incomplete:Hide()
     end
     if count == 0 then
-        ui.empty:SetText(unresolved > 0 and ns.L("LOADING_ITEM_NAMES") or ns.L("NO_RESULTS"))
+        ui.empty:SetText(currentView == "recipes"
+            and (unresolved > 0 and ns.L("LOADING_RECIPE_NAMES") or ns.L("NO_RECIPES_FOUND"))
+            or (unresolved > 0 and ns.L("LOADING_ITEM_NAMES") or ns.L("NO_RESULTS")))
         ui.empty:Show()
     else
         ui.empty:Hide()
@@ -534,6 +540,7 @@ end
 
 function ns.OpenSettings(itemID)
     createPanel()
+    if currentView ~= "materials" then switchView("materials") end
     if ns.IsVerifiedReagent(itemID) then
         currentView = "materials"
         forcedSelection = true
