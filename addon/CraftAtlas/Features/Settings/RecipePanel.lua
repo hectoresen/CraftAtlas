@@ -91,11 +91,7 @@ local function renderPage()
 
     state.heading:SetText(ns.L("RECIPES_HEADING"))
     state.count:SetText(string.format(ns.L("RECIPE_USE_COUNT"), total))
-    state.pageLabel:SetText(string.format(ns.L("RECIPE_PAGE_STATUS"), page, pages))
-    state.previous:SetText(ns.L("PREVIOUS_PAGE"))
-    state.next:SetText(ns.L("NEXT_PAGE"))
-    state.previous:SetEnabled(page > 1)
-    state.next:SetEnabled(page > 0 and page < pages)
+    ns.UpdateExplorerPager(state.pager, page, pages)
     if total == 0 then
         state.empty:SetText(ns.L("NO_VERIFIED_RECIPES"))
         state.empty:Show()
@@ -177,39 +173,43 @@ function ns.InitRecipePanel(parent, availableHeight)
             end
         end)
         card:SetScript("OnLeave", clearHover)
+        card:SetScript("OnClick", function(self)
+            if self.use and ns.NavigateToRecipe then ns.NavigateToRecipe(self.use) end
+        end)
         state.cards[index] = card
     end
 
-    local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    previous:SetSize(76, 24)
-    previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
-    previous:SetScript("OnClick", function()
-        if state.page > 1 then
-            state.page = state.page - 1
-            renderPage()
-        end
+    local pager = ns.CreateExplorerPager(parent, function()
+        if state.page > 1 then state.page = state.page - 1 renderPage() end
+    end, function()
+        local pages = math.ceil(#state.uses / PAGE_SIZE)
+        if state.page < pages then state.page = state.page + 1 renderPage() end
     end)
-    state.previous = previous
-
-    local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    nextButton:SetSize(76, 24)
-    nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
-    nextButton:SetScript("OnClick", function()
-        local totalPages = math.ceil(#state.uses / PAGE_SIZE)
-        if state.page < totalPages then
-            state.page = state.page + 1
-            renderPage()
-        end
-    end)
-    state.next = nextButton
-
-    state.pageLabel = font(parent, "GameFontHighlightSmall")
-    state.pageLabel:SetPoint("CENTER", parent, "BOTTOM", 0, 21)
-    state.pageLabel:SetJustifyH("CENTER")
+    state.pager = pager
+    state.previous, state.next, state.pageLabel = pager.previous, pager.next, pager.label
 
     grid:SetScript("OnSizeChanged", function()
         layoutCards()
     end)
     layoutCards()
     ns.RefreshRecipePanel(nil)
+end
+
+function ns.SetRecipePanelVisible(visible)
+    if not state.grid then return end
+    local method = visible and "Show" or "Hide"
+    for _, frame in ipairs({state.grid, state.heading, state.count,
+        state.previous, state.next, state.pageLabel}) do
+        frame[method](frame)
+    end
+    if not visible then clearHover() end
+end
+
+function ns.GetRecipePanelPage()
+    return state.page
+end
+
+function ns.SetRecipePanelPage(page)
+    state.page = page or 1
+    renderPage()
 end
