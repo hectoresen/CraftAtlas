@@ -32,6 +32,40 @@ The Fabricables view SHALL retain searchable/filterable recipe browsing with uni
 - **THEN** the detail shows an honest non-item/unresolved label
 - **AND** a fake physical item, rarity, learned-recipe or craftability state is not created
 
+### Requirement: Replace textual clear control with native broom icon
+The search-clear control SHALL use a WoW-native, recognizable **broom icon** matching the provided visual reference rather than the current textual `X`. The icon SHALL preserve the already functional search-clear behavior and be distinct from the window-close button.
+
+#### Scenario: Clearing populated material or craftable search
+- **WHEN** the user types a query in either Materiales or Fabricables and clicks the broom
+- **THEN** only that view's active search query is cleared and its matching results are refreshed
+- **AND** the other view's stored search, profession filter and Back history remain intact
+
+#### Scenario: Empty search and tooltip
+- **WHEN** the active query is empty
+- **THEN** the broom control is visually disabled or harmlessly inert
+- **AND** hovering over it provides an enUS/esES localized clear-search tooltip where the Forever client supports tooltips
+
+#### Scenario: Native broom asset unavailable
+- **WHEN** the target client does not expose the proposed broom icon path/template
+- **THEN** a safe native clear/action icon is used instead of missing artwork or Lua errors
+- **AND** the control still clears the search without showing a textual `X`
+
+### Requirement: Display only an installed official release version
+The explorer SHALL never show the development-only `-dev` version caption. For an official packaged addon it SHALL display only the installed, locally stamped numeric release version; the source checkout SHALL not claim to be a published release.
+
+#### Scenario: Official v0.1.0 package installed
+- **WHEN** the installed addon manifest contains `## Version: 0.1.0` from the official release packager
+- **THEN** any version indicator reads `v0.1.0` with no `-dev` suffix
+
+#### Scenario: Newer or older official release package
+- **WHEN** the installed addon manifest contains another valid release SemVer
+- **THEN** the UI displays that installed version rather than a hardcoded or remotely assumed latest tag
+
+#### Scenario: Development or unverifiable build
+- **WHEN** the local manifest version contains `-dev` or metadata cannot safely be read
+- **THEN** the version footer is hidden or contains no numeric release claim
+- **AND** the addon performs no network request to resolve GitHub Releases
+
 ### Requirement: Preserve current navigation and controls
 The redesigned native shell SHALL preserve functional search, clear, profession filter, language choice, Materiales/Fabricables tabs, Back history, mouse-wheel scrolling, slash/minimap opening and close/reopen behavior across supported Forever UI scales.
 
