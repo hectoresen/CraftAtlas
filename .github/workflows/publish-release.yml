@@ -1,0 +1,116 @@
+name: Publish CraftAtlas Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: Semantic version increment (first release is always v0.1.0)
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+
+concurrency:
+  group: craftatlas-releases
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: >-
+      github.repository == 'hectoresen/CraftAtlas' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hectoresen' &&
+      github.triggering_actor == 'hectoresen'
+    runs-on: ubuntu-latest
+    outputs:
+      main_sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Record validated main SHA
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate repository
+        run: python3 scripts/validate_repo.py
+      - name: Validate material-data tests
+        run: python3 -m unittest discover -s tests -p 'test_material_data.py' -v
+      - name: Validate generated catalog
+        run: python3 scripts/build_materials.py --check
+      - name: Validate package tests
+        run: python3 -m unittest discover -s tests -p 'test_package_release.py' -v
+
+  publish:
+    needs: validate
+    if: >-
+      github.repository == 'hectoresen/CraftAtlas' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hectoresen' &&
+      github.triggering_actor == 'hectoresen'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.main_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure validated commit is still main
+        env:
+          VALIDATED_SHA: ${{ needs.validate.outputs.main_sha }}
+        run: |
+          git fetch origin main --tags
+          test "$(git rev-parse origin/main)" = "$VALIDATED_SHA"
+          test "$(git rev-parse HEAD)" = "$VALIDATED_SHA"
+      - name: Compute release version
+        id: version
+        env:
+          INCREMENT: ${{ inputs.increment }}
+        run: |
+          git tag --list > "$RUNNER_TEMP/release-tags.txt"
+          VERSION="$(python3 scripts/package_release.py --bump "$INCREMENT" --tags-file "$RUNNER_TEMP/release-tags.txt")"
+          TAG="v$VERSION"
+          if git rev-parse --verify --quiet "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag already exists: $TAG"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Create and verify installable ZIP
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 scripts/package_release.py --version "$VERSION" --output "CraftAtlas-v$VERSION.zip"
+          unzip -t "CraftAtlas-v$VERSION.zip"
+          unzip -Z1 "CraftAtlas-v$VERSION.zip" | grep -Fx 'CraftAtlas/CraftAtlas.toc'
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VALIDATED_SHA: ${{ needs.validate.outputs.main_sha }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release already exists: $TAG"
+            exit 1
+          fi
+          ARGS=(--target "$VALIDATED_SHA" --title "CraftAtlas $TAG" --generate-notes)
+          if [[ "${VERSION%%.*}" == "0" ]]; then
+            ARGS+=(--prerelease)
+          fi
+          gh release create "$TAG" "CraftAtlas-v$VERSION.zip" "${ARGS[@]}"
