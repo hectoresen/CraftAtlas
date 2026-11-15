@@ -265,7 +265,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
     changed = set(files)
     own = {p for p in changed if p.startswith(base_path)}
     outside = changed - own
-    if any(p.startswith("openspec/changes/") for p in outside):
+    if phase != "lifecycle" and any(p.startswith("openspec/changes/") for p in outside):
         errors.append("Cannot change unrelated OpenSpec work")
     if exists_in_base is None:
         def exists_in_base(path):
