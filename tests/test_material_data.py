@@ -13,6 +13,7 @@ spec.loader.exec_module(g)
 class MaterialsTests(unittest.TestCase):
     def setUp(self):
         self.data, self.registry = g.load()
+        self.recipes = json.loads(g.RECIPE_SOURCE.read_text(encoding="utf-8"))
 
     def test_valid_source(self):
         self.assertEqual(g.validate_catalog(self.data, self.registry), [])
@@ -63,6 +64,42 @@ class MaterialsTests(unittest.TestCase):
         )
         self.assertEqual(g.extract_reagent_facts(fixture),
                          [(2329, 765), (2329, 2449), (2331, 785)])
+
+    def test_recipe_source_has_valid_reagent_relationships(self):
+        self.assertEqual(g.validate_recipe_uses(self.recipes, self.data, self.registry), [])
+        self.assertEqual(len(self.recipes["uses"]), 8455)
+        self.assertEqual(len({row[0] for row in self.recipes["uses"]}), 593)
+
+    def test_recipe_index_is_deterministic(self):
+        expected = g.generate_recipe_uses(self.recipes, self.registry)
+        self.assertEqual(g.RECIPE_TARGET.read_text(encoding="utf-8"), expected)
+        self.recipes["uses"].reverse()
+        self.assertEqual(g.generate_recipe_uses(self.recipes, self.registry), expected)
+
+    def test_cloak_is_valid_second_stage_reagent(self):
+        cloak = [r for r in self.recipes["uses"] if r[0] == 14044]
+        self.assertEqual(cloak, [[14044, 19093, "LEATHERWORKING", 1, 15138, "item"]])
+        self.assertNotIn(15138, {r[0] for r in self.recipes["uses"]},
+                         "crafted output alone does not make an item a reagent")
+
+    def test_output_only_cannot_become_reagent(self):
+        clone = dict(self.recipes)
+        clone["uses"] = self.recipes["uses"] + [[15138, 19093, "LEATHERWORKING", 1, 15138, "item"]]
+        self.assertTrue(g.validate_recipe_uses(clone, self.data, self.registry))
+
+    def test_reject_bad_recipe_count_and_duplicate(self):
+        clone = dict(self.recipes)
+        clone["uses"] = [list(x) for x in self.recipes["uses"]]
+        clone["uses"][0][3] = 0
+        self.assertTrue(g.validate_recipe_uses(clone, self.data, self.registry))
+        clone["uses"][0][3] = 2
+        clone["uses"].append(list(clone["uses"][0]))
+        self.assertTrue(g.validate_recipe_uses(clone, self.data, self.registry))
+
+    def test_non_item_recipe_is_not_fabricated(self):
+        enchanted = [x for x in self.recipes["uses"] if x[5] == "enchant"]
+        self.assertTrue(enchanted)
+        self.assertTrue(all(x[4] == 0 for x in enchanted))
 
     def test_imported_source_is_substantial(self):
         self.assertGreaterEqual(len(self.data["materials"]), 500)

@@ -6,21 +6,23 @@ CraftAtlas is an installable Lua addon with a pragmatic separation of domain, cl
 | --- | --- |
 | `Core/Init.lua` / `Core/Bootstrap.lua` | Namespace, lifecycle, initialization after `ADDON_LOADED` |
 | `Domain/MaterialLookup.lua` | Pure numeric itemID → ordered consuming-profession keys; no WoW API calls |
-| `Domain/MaterialSearch.lua` | Pure local material filtering by itemID/name and consuming profession; no WoW APIs |
-| `Infrastructure/ItemInfo.lua` | Client item-name and icon adapter with bounded one-time background requests and cache-miss fallbacks |
-| `Data/Professions.lua` / `Data/Materials.lua` | Compact, generated offline profession registry and 593-material map |
+| `Domain/MaterialSearch.lua` | Pure local material filtering by itemID/name, consuming profession and source-backed reagent eligibility |
+| `Domain/RecipeUsage.lua` | Pure source-verified reagent → sorted distinct recipe uses, grouped by profession |
+| `Infrastructure/ItemInfo.lua` | Native asynchronous item names/icons for both reagents and crafted outputs |
+| `Infrastructure/RecipeInfo.lua` | Spell/recipe info adapter and native item/spell tooltip adapters with factual fallbacks |
+| `Data/Professions.lua` / `Data/Materials.lua` / `Data/RecipeUses.lua` | Generated registry, 593-item catalog and 8,455 reverse recipe-use entries |
 | `Infrastructure/TooltipAdapter.lua` | Single `TooltipDataProcessor.AddTooltipPostCall` item hook and numeric itemID extraction |
 | `Features/Tooltip/Tooltip.lua` | Localized two-line profession annotation and refresh deduplication |
 | `Infrastructure/Preferences.lua` | Saved language choice and minimap angle in account-wide `CraftAtlasDB` |
 | `Infrastructure/MinimapButton.lua` | Draggable minimap entry point to settings |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | English/Spanish labels and fallback |
-| `Features/Settings/Settings.lua` | Native frame material explorer, search/list/detail UI, language selector and `/craftatlas [itemID]` command |
+| `Features/Settings/Settings.lua` / `RecipePanel.lua` | Native material explorer and scrollable grouped recipe-use panel; no automatic crafting |
 
 ## Runtime flow
 
 WoW item tooltip → numeric itemID from structured tooltip data → pure map lookup → ordered consuming professions → locale-aware tooltip lines. Missing IDs produce no annotation. Tooltip registration is guarded for unsupported APIs and callback errors. The UI panel is available via slash command and minimap.
 
-**New material explorer implementation (Forever game QA pending):** Settings search uses an EditBox, instant itemID/name filtering, profession dropdown, recycled item rows, icon/name fallbacks, material detail and unavailable-recipes state. Search depends on client-cached names; an itemID fallback remains. Recipe graph, recipe quantities and clickable tooltip navigation are not implemented. Direct command entry `/craftatlas 2447` selects a known material by itemID, as a safe alternative.
+**New material explorer implementation (Forever game QA pending):** Settings search uses an EditBox, instant itemID/name filtering, profession dropdown, recycled item rows, icon/name fallbacks, material detail and the source-backed reverse recipe list. Search depends on client-cached names; an itemID fallback remains. Source-proven recipe reagent quantities and crafted output items are now included in the implementation candidate. Full dependency graphs and clickable game-item tooltip navigation are not implemented. Direct command entry `/craftatlas 2447` selects a known material by itemID, as a safe alternative.
 
 ## Data architecture
 

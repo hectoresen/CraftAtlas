@@ -10,9 +10,9 @@
 - **Offline catalog:** **593 distinct reagent IDs**, **10 consuming profession categories**, and **237 multi-profession items**, compiled from a pinned MIT-licensed LibProfessionDB Forever beta snapshot. Counts describe imported data, **not complete coverage of the current Forever server**.
 - **Settings:** `/craftatlas` opens the in-game panel. Language choices: Auto, Español (esES), and English (enUS), saved account-wide.
 - **Minimap:** a profession-themed button opens the same panel on left click; its position is draggable and persisted.
-- **Settings search:** **visual placeholder only**. It cannot accept queries, filter materials, or display search results. The General page is the only available settings category.
+- **Material explorer:** functional name/itemID search, profession filters, source-backed reagent selection and a reverse recipe-use panel (candidate under PR #21; client QA pending).
 
-There is **no standalone material search, recipe browser, ingredient quantities UI, crafting graph, or remote sync** in the current version.
+There is **no crafting automation, full dependency graph, or remote sync**. The reverse recipe-use browser is a development candidate and still needs Forever-client QA.
 
 ## Install
 
@@ -67,4 +67,9 @@ Further information: [Roadmap](docs/ROADMAP.md) · [Installation](docs/INSTALLAT
 
 ## Material explorer (implemented in source; client QA pending)
 
-A native-frame material explorer with instant search by cached item name or numeric itemID, profession filtering, a scrollable list, and a selected material detail view is implemented in [PR #14](https://github.com/hectoresen/CraftAtlas/pull/14). It reads the **existing local catalog** and shows known consuming professions only; no recipe/quantity lookup is included. `/craftatlas 2447` is a safe itemID deep-link alternative. Client-cache misses show item IDs and partial-result warnings. **Not game-verified; release support depends on the owner's Forever smoke tests.** Clickable tooltips are pending verified Forever API support.
+A native-frame material explorer with instant search by cached item name or numeric itemID, profession filtering, a scrollable list, and a selected material detail view is implemented in [PR #14](https://github.com/hectoresen/CraftAtlas/pull/14). It reads the **existing local catalog** and shows known consuming professions. The follow-up PR adds a pinned MIT reverse recipe-use index, source-proven reagent quantities and crafted outputs. `/craftatlas 2447` is a safe itemID deep-link alternative. Client-cache misses show item IDs and partial-result warnings. **Not game-verified; release support depends on the owner's Forever smoke tests.** Clickable tooltips are pending verified Forever API support.
+
+
+## Reagent → recipe usage (unreleased, client QA pending)
+
+The reverse lookup source contains **8,455 source-backed recipe reagent uses** over **593 reagent itemIDs**, from the pinned MIT LibProfessionDB Forever beta snapshot. The right pane groups uses by consuming profession, shows source-proven ingredient quantity and crafted output item when known, and uses native item/spell tooltips when supported. Actual live-realm recipe availability and tooltip API compatibility are **not claimed**. A crafted/equippable item remains listed if another recipe consumes it: item `14044` (Cindercloth Cloak) is an ingredient of Leatherworking recipe `19093` (Onyxia Scale Cloak, output item `15138`). Output-only items do not enter the reagent list. Run `python3 scripts/build_materials.py --check` and the new recipe tests before release.

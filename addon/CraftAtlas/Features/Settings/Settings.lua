@@ -36,15 +36,14 @@ end
 local function showDetail()
     if not ui.detailTitle then return end
     local itemID = selectedID
-    local valid = itemID and ns.materials and ns.materials[itemID]
+    local valid = itemID and ns.IsVerifiedReagent(itemID)
     ui.detailIcon:Hide()
     if not valid then
         ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
         ui.detailID:SetText("")
         ui.detailProfessions:SetText("")
         ui.detailHeading:SetText("")
-        ui.recipeHeading:SetText("")
-        ui.recipeUnavailable:SetText("")
+        ns.RefreshRecipePanel(nil)
         return
     end
     local name, icon = ns.GetMaterialDisplay(itemID)
@@ -60,9 +59,8 @@ local function showDetail()
     for _, key in ipairs(keys) do
         professions[#professions + 1] = labelProfession(key)
     end
-    ui.detailProfessions:SetText(table.concat(professions, "\n"))
-    ui.recipeHeading:SetText(ns.L("RECIPES_HEADING"))
-    ui.recipeUnavailable:SetText(ns.L("RECIPES_UNAVAILABLE"))
+    ui.detailProfessions:SetText(table.concat(professions, ", "))
+    ns.RefreshRecipePanel(itemID)
 end
 
 local function updateRows()
@@ -127,7 +125,7 @@ local function refreshResults(resetOffset)
     local numberQuery = string.match(searchQuery, "^%d+$") ~= nil and searchQuery ~= ""
     results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
         searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
-        not numberQuery, labels)
+        not numberQuery, labels, ns.recipeUses)
     local index = containsSelected()
     if not index then
         selectedID = results[1]
@@ -400,19 +398,12 @@ local function createPanel()
     local heading = font(right, "GameFontNormal")
     heading:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -91)
     ui.detailHeading = heading
-    local professions = font(right, "GameFontHighlight")
+    local professions = font(right, "GameFontHighlightSmall")
     professions:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -115)
     professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
     professions:SetJustifyH("LEFT")
     ui.detailProfessions = professions
-    local recipes = font(right, "GameFontNormal")
-    recipes:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -296)
-    ui.recipeHeading = recipes
-    local unavailable = font(right, "GameFontDisable")
-    unavailable:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -321)
-    unavailable:SetPoint("TOPRIGHT", right, "TOPRIGHT", -17, -321)
-    unavailable:SetJustifyH("LEFT")
-    ui.recipeUnavailable = unavailable
+    ns.InitRecipePanel(right, panel:GetHeight() - 132)
 
     local version = font(panel, "GameFontDisableSmall")
     version:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
@@ -459,7 +450,7 @@ end
 
 function ns.OpenSettings(itemID)
     createPanel()
-    if type(itemID) == "number" and ns.materials[itemID] then
+    if ns.IsVerifiedReagent(itemID) then
         searchQuery = ""
         selectedProfession = ""
         ui.search:SetText("")

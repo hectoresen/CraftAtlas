@@ -37,10 +37,21 @@ python3 scripts/build_materials.py --release --check
 
 The release check requires accepted live-client data evidence, not merely the minimum 30 IDs / 5 professions / 2 overlaps from the approved starter specification. Do not manually edit generated Lua files. Missing provenance, invalid keys, duplicates and generated/source drift must fail validation.
 
-The original six-item research preview is **historical**: it was superseded by the bundled 593-item snapshot. Future versions may add recipe/output quantities and dependency search, but those views are **not implemented**.
+The original six-item research preview is **historical**: it was superseded by the bundled 593-item snapshot. The approved recipe-use follow-up generates an **unreleased** source-backed recipe index from `recipe-uses.source.json`, preserving recipe IDs, exact input quantities and available crafted output IDs. A full dependency graph remains out of scope.
 
 For a licensed local source refresh (after reviewing the new data):
 
 ```sh
 python3 scripts/build_materials.py --import-libprofessiondb /path/to/Forever/_core --source-url <pinned-source-url> --client-build 1.60.1.70938 --reviewed-at YYYY-MM-DD
 ```
+
+
+## Reverse recipe-use source (implementation candidate)
+
+- `recipe-uses.source.json`: pinned MIT source-derived records `[reagentItemID, recipeSpellID, professionKey, quantity, outputItemID, recipeKind]`. `outputItemID=0` indicates unavailable/non-item output and is never shown as an item. Includes source URL/build/license and `liveClientValidated=false`.
+- `RecipeUses.lua`: generated compact runtime index, grouped by reagent itemID. Profession indices use the generated stable `professionOrder`. Kind: 1 item, 2 enchant, 3 unknown.
+- **8,455** source-verified input records, **593** distinct reagent itemIDs, compiled from the MIT beta 1.60.1.69977 `reagents` blocks. The compiler verifies every record against the existing relation's recipeIDs; output-only IDs are not promoted into inputs.
+- Example: `14044` Cindercloth Cloak is legitimately consumed by Leatherworking spell `19093`, 1 unit, producing item `15138`. Its being equipable is irrelevant to input eligibility.
+- The pinned source is not independently verified against the latest live Forever realm. Names/tooltips come from the client and may remain unavailable; there is no claim of complete live-realm coverage.
+
+When importing another LibProfessionDB snapshot, **regenerate and reconcile both** material relations and recipe-use records before building; mismatched source relations intentionally fail validation to prevent stale reverse lookups.

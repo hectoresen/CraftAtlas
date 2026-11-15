@@ -33,8 +33,8 @@ local function readItem(itemID)
     end
 end
 
-function ns.GetMaterialDisplay(itemID)
-    if not (ns.materials and ns.materials[itemID]) then return nil, nil end
+function ns.GetItemDisplay(itemID)
+    if type(itemID) ~= "number" or itemID < 1 then return nil, nil end
     readItem(itemID)
     if not names[itemID] and not requested[itemID] and not failed[itemID] then
         local api = itemAPI()
@@ -48,13 +48,18 @@ function ns.GetMaterialDisplay(itemID)
     return names[itemID], icons[itemID]
 end
 
+function ns.GetMaterialDisplay(itemID)
+    if not (ns.IsVerifiedReagent and ns.IsVerifiedReagent(itemID)) then return nil, nil end
+    return ns.GetItemDisplay(itemID)
+end
+
 function ns.GetKnownMaterialNames()
     return names
 end
 
 function ns.GetMaterialLoadProgress()
     local loaded, pending, unavailable = 0, 0, 0
-    for itemID in pairs(ns.materials or {}) do
+    for itemID in pairs(ns.recipeUses or {}) do
         if names[itemID] then loaded = loaded + 1
         elseif requested[itemID] then pending = pending + 1
         elseif failed[itemID] then unavailable = unavailable + 1 end
@@ -63,7 +68,7 @@ function ns.GetMaterialLoadProgress()
 end
 
 function ns.UpdateMaterialInfo(itemID, success)
-    if not (ns.materials and ns.materials[itemID]) then return false end
+    if not requested[itemID] then return false end
     requested[itemID] = nil
     if success == false then
         failed[itemID] = true
