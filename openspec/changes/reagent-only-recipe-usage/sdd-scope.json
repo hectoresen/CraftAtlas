@@ -1,0 +1,16 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/**",
+    "scripts/build_materials.py",
+    "scripts/validate_data.py",
+    "scripts/coverage_report.py",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA_MODEL.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md",
+    "docs/DEVELOPMENT.md"
+  ]
+}
