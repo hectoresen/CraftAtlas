@@ -1,0 +1,19 @@
+{
+  "allowed_paths": [
+    ".agents/skills/documentation-sync/**",
+    ".claude/skills/documentation-sync/**",
+    ".github/skills/documentation-sync/**",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/workflows/ci.yml",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/DOCUMENTATION_PROTOCOL.md",
+    "openspec/config.yaml",
+    "scripts/validate_documentation.py",
+    "scripts/validate_sdd.py",
+    "tests/test_validate_documentation.py",
+    "tests/test_validate_sdd.py",
+    "README.md"
+  ]
+}
