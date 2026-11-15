@@ -3,7 +3,7 @@ local _, ns = ...
 local button
 local iconTexture = "Interface\\Icons\\Trade_BlackSmithing"
 local borderTexture = "Interface\\Minimap\\MiniMap-TrackingBorder"
-local unavailableCursor = "Interface\\Cursor\\UI-Cursor-NoMop"
+local unavailableCursor = "Interface\\Cursor\\UnablePoint"
 local buttonSize = 31
 local iconSize = 20
 local borderSize = 53
@@ -51,13 +51,13 @@ end
 
 local function setUnavailableCursor()
     if type(SetCursor) == "function" then
-        SetCursor(unavailableCursor)
+        pcall(SetCursor, unavailableCursor)
     end
 end
 
 local function clearCursor()
     if type(SetCursor) == "function" then
-        SetCursor(nil)
+        pcall(SetCursor, nil)
     end
 end
 
