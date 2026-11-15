@@ -44,3 +44,5 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - Added localized name/icon cache handling with numeric itemID fallbacks, and `/craftatlas <itemID>` entry.
 - Added search regression tests and a one-time, owner-authorized combined spec/implementation SDD exception specific to PR #14.
 - Tooltip-to-detail click remains gated pending safe Forever-client API verification; no recipe database was added.
+
+- Follow-up fix for PR #14 after in-game screenshot: corrected names and native icons via Forever `C_Item` APIs and asynchronous data requests; suppressed placeholder-only browse rows, added loading states and visually separated rows. Added adapter regression test. Game retest pending.
