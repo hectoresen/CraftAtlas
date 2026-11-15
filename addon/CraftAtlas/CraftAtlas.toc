@@ -1,7 +1,16 @@
+## Interface: 16001
 ## Title: CraftAtlas
-## Notes: Open-source profession material knowledge for WoW Forever (foundation only)
+## Notes: Offline profession usage for materials; first playable preview
 ## Author: CraftAtlas contributors
-## Version: 0.0.0
+## Version: 0.0.1
 ## SavedVariables: CraftAtlasDB
-# Interface version is intentionally pending verification on a current Forever client.
-# No Lua files are loaded yet: this is not a playable addon.
+
+Core/Init.lua
+Domain/MaterialLookup.lua
+Data/Materials.lua
+Localization/Locales.lua
+Infrastructure/Preferences.lua
+Infrastructure/TooltipAdapter.lua
+Features/Tooltip/Tooltip.lua
+Features/Settings/Settings.lua
+Core/Bootstrap.lua

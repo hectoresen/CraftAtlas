@@ -2,7 +2,9 @@
 
 **v0.0.0 (foundation):** repository documentation, OpenSpec config, agent protocol, templates, CI and folder skeleton. No working gameplay.
 
-**v0.1.0 (first playable):** numeric itemID profession identification in inventory/bank tooltips; all related professions regardless of character training; local audited dataset; enUS/esES language auto detection and persisted override; settings panel; no duplicates, no guessed associations; real Forever client validation. Do not declare *all material coverage* without an audited coverage report.
+**v0.0.1 (first playable baseline — pending):** itemID-based profession tooltip for player inventory/bags, local vetted starter catalog (at least 30 itemIDs, five professions, two cross-profession items), enUS/esES and persisted language selection, minimalist native Forever/Classic-style settings. Current implementation branch is a preview, not a released addon; game-client acceptance and catalog completion remain gates.
+
+**v0.1.0 (wider tooltip coverage and improvements):** numeric itemID profession identification in inventory/bank and wider supported item tooltips; all related professions regardless of character training; local audited dataset; enUS/esES language auto detection and persisted override; settings panel; no duplicates, no guessed associations; real Forever client validation. Do not declare *all material coverage* without an audited coverage report.
 
 **v0.2.0:** improve dataset coverage and attribution; diagnose unknown IDs; optimize performance; usability fixes.
 
