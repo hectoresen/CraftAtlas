@@ -59,7 +59,7 @@ local function showDetail()
     for _, key in ipairs(keys) do
         professions[#professions + 1] = labelProfession(key)
     end
-    ui.detailProfessions:SetText(table.concat(professions, "\n"))
+    ui.detailProfessions:SetText(table.concat(professions, ", "))
     ns.RefreshRecipePanel(itemID)
 end
 
@@ -398,7 +398,7 @@ local function createPanel()
     local heading = font(right, "GameFontNormal")
     heading:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -91)
     ui.detailHeading = heading
-    local professions = font(right, "GameFontHighlight")
+    local professions = font(right, "GameFontHighlightSmall")
     professions:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -115)
     professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
     professions:SetJustifyH("LEFT")
