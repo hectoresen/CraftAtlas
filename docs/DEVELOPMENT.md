@@ -17,3 +17,7 @@ To prepare approved changes: `npm install -g @fission-ai/openspec@latest`, `open
 Code/docs are written in English; user-facing strings are localized enUS/esES. Lua modules are loaded in dependency order in `addon/CraftAtlas/CraftAtlas.toc`. Edit `Data/materials.source.json` and regenerate with `python3 scripts/build_materials.py`, not by editing `Materials.lua` directly.
 
 `python3 scripts/build_materials.py --release --check` is a stronger catalog acceptance gate requiring live-client validation; a functional addon alone is not proof of complete live mapping accuracy. Record each test command and the exact Forever build for game-facing PRs. [Testing matrix](TESTING.md).
+
+## Shared native explorer development
+
+Modify reusable UI behavior via `Features/Settings/Shared/ExplorerWidgets.lua` rather than duplicating Material and Recipe controls. Keep per-view state inside the shell and pure catalog filtering in `Domain/`. Recipe identity is always profession+spellID, even when two recipes produce an identical item. `scripts/build_materials.py` compiles both reagent→recipe and recipe→all-input indices from one pinned licensed JSON source; do not manually update generated Lua files. Run its `--check` mode and both Python/Lua tests, then verify tooltip and UI behavior in the actual Forever client before releases.
