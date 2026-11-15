@@ -89,8 +89,8 @@ local function renderPage()
         end
     end
 
-    state.heading:SetText(ns.L("RECIPES_HEADING"))
-    state.count:SetText(string.format(ns.L("RECIPE_USE_COUNT"), total))
+    state.heading:SetText(ns.L("CRAFTABLE_USES_HEADING"))
+    state.count:SetText(string.format(ns.L("CRAFTABLE_USE_COUNT"), total))
     ns.UpdateExplorerPager(state.pager, page, pages)
     if total == 0 then
         state.empty:SetText(ns.L("NO_VERIFIED_RECIPES"))
@@ -117,9 +117,11 @@ end
 function ns.InitRecipePanel(parent, availableHeight)
     if state.grid then return end
 
-    local compact = availableHeight < 370
-    local headingY = compact and -119 or -142
-    local gridY = compact and -141 or -164
+    -- Reserve a dedicated gap after the profession labels at Y=-115.
+    -- The former compact Y=-119 overlapped those labels on the new tabbed window.
+    local compact = availableHeight < 270
+    local headingY = compact and -138 or -151
+    local gridY = compact and -160 or -174
 
     state.heading = font(parent, "GameFontNormal")
     state.heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, headingY)
