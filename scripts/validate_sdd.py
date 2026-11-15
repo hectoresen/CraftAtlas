@@ -236,7 +236,7 @@ def context_regression_errors(current_config, baseline_config):
             return ["OpenSpec context must remain spec-driven and refer to README.md"]
         # Context is a stable agent briefing, not a second changelog. References
         # to version-stamped product state would inevitably become obsolete.
-        if re.search(r"\\bv[0-9]+\\.[0-9]+(?:\\.[0-9]+)?(?:-dev)?\\b", current_config, re.I):
+        if re.search(r"\bv[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-dev)?\b", current_config, re.I):
             return ["OpenSpec config must not pin product versions; point to README.md"]
     return []
 
