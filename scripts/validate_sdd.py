@@ -37,7 +37,7 @@ BOOTSTRAP_ALLOWED = {
 }
 METADATA = {
     "change": re.compile(r"^OpenSpec-Change: ([a-z0-9]+(?:-[a-z0-9]+)*)$", re.M),
-    "phase": re.compile(r"^OpenSpec-Phase: (proposal|implementation|combined)$", re.M),
+    "phase": re.compile(r"^OpenSpec-Phase: (proposal|implementation|combined|lifecycle)$", re.M),
     "approval": re.compile(r"^OpenSpec-Approval-PR: ([1-9][0-9]*)$", re.M),
     "exemption": EXEMPTION,
 }
@@ -107,9 +107,154 @@ def verify_approval(pr_number, change_id, token, api=github_api, implementation_
         return ["Cannot check approval: " + str(exc)]
 
 
+# Historical governance reconciliation is a separately approved lifecycle operation.
+# The allowlist is intentionally fixed in this validator, not a user-supplied glob.
+LIFECYCLE_CHANGE = "reconcile-openspec-lifecycle-and-status"
+LIFECYCLE_APPROVAL_PR = "13"
+LIFECYCLE_LEGACY_IDS = {
+    "add-first-playable-material-tooltips",
+    "enhance-addon-icon-minimap-settings",
+    "expand-all-profession-material-coverage",
+}
+LIFECYCLE_FIXED_PATHS = {
+    "AGENTS.md", "openspec/config.yaml", "openspec/README.md",
+    "docs/AGENT_WORKFLOW.md", "docs/OPENSPEC_STATUS.md",
+    "docs/ROADMAP.md", "docs/TESTING.md", "README.md", "CHANGELOG.md",
+}
+LIFECYCLE_CANONICAL_PATH = re.compile(r"^openspec/specs/[a-z0-9-]+/spec\.md$")
+LIFECYCLE_ARCHIVE_PATH = re.compile(
+    r"^openspec/changes/archive/[0-9]{4}-[0-9]{2}-[0-9]{2}-"
+    r"([a-z0-9-]+)/(.+)$"
+)
+
+
+def validate_lifecycle(paths, approval, change, root, base, exists_in_base):
+    """Restrict a one-time, explicitly approved archival/sync operation."""
+    errors = []
+    if change != LIFECYCLE_CHANGE or approval != LIFECYCLE_APPROVAL_PR:
+        errors.append("Lifecycle phase is restricted to approved change/PR #13")
+        return errors
+
+    outside_scope = set()
+    archived = {}
+    deleted = set()
+    for path in paths:
+        if path in LIFECYCLE_FIXED_PATHS:
+            continue
+        if LIFECYCLE_CANONICAL_PATH.fullmatch(path):
+            # Canonical capability name must correspond to an accepted legacy delta.
+            capability = path.split("/")[2]
+            expected = any(
+                (root / "openspec/changes" / legacy / "specs" / capability / "spec.md").is_file()
+                for legacy in LIFECYCLE_LEGACY_IDS
+            )
+            if not expected:
+                errors.append("Canonical spec not supported by approved legacy deltas: " + path)
+            continue
+        match = LIFECYCLE_ARCHIVE_PATH.fullmatch(path)
+        if match:
+            legacy = match.group(1)
+            if legacy not in LIFECYCLE_LEGACY_IDS:
+                errors.append("Cannot archive unrelated change: " + path)
+                continue
+            relative = match.group(2)
+            if relative.startswith("/") or ".." in relative.split("/"):
+                errors.append("Unsafe archive path: " + path)
+                continue
+            archived.setdefault(legacy, []).append((path, relative))
+            continue
+        for legacy in LIFECYCLE_LEGACY_IDS:
+            prefix = "openspec/changes/" + legacy + "/"
+            if path.startswith(prefix):
+                if path == prefix + "tasks.md":
+                    break
+                # Archive moves may delete legacy source artifacts, but not edit
+                # existing immutable proposal/design/delta/spec/scope contents.
+                if (root / path).exists():
+                    errors.append("Historical OpenSpec artifacts are immutable: " + path)
+                else:
+                    deleted.add(path)
+                break
+        else:
+            outside_scope.add(path)
+
+    if outside_scope:
+        errors.append("Lifecycle changed unapproved paths: " + ", ".join(sorted(outside_scope)))
+
+    if archived or deleted:
+        if not (root / "docs/OPENSPEC_STATUS.md").is_file():
+            errors.append("Archiving requires an OpenSpec evidence/status ledger")
+        # Each archived file must match its original in the base, byte-for-byte.
+        for legacy, entries in archived.items():
+            for dest, relative in entries:
+                original = "openspec/changes/" + legacy + "/" + relative
+                if not exists_in_base(original):
+                    errors.append("Archive has no approved original: " + dest)
+                    continue
+                try:
+                    original_bytes = subprocess.check_output(
+                        ["git", "show", base + ":" + original])
+                    if (root / dest).read_bytes() != original_bytes:
+                        errors.append("Archive copy differs from accepted original: " + dest)
+                except (OSError, subprocess.CalledProcessError) as exc:
+                    errors.append("Cannot verify archive source: " + str(exc))
+        # An original artifact may only be deleted once its exact dated archive
+        # counterpart is provided in the same PR and verified above.
+        for original in deleted:
+            if not any(
+                "openspec/changes/" + legacy + "/" + relative == original
+                for legacy, entries in archived.items()
+                for _, relative in entries
+            ):
+                errors.append("Historical artifact deleted without matching archive: " + original)
+
+    if "openspec/config.yaml" in paths:
+        current = (root / "openspec/config.yaml")
+        if not current.exists():
+            errors.append("OpenSpec config must not be deleted")
+        else:
+            content = current.read_text(encoding="utf-8")
+            if "schema: spec-driven" not in content:
+                errors.append("OpenSpec schema must remain spec-driven")
+            if "v0.0.0 is documentation and folder structure only" in content:
+                errors.append("OpenSpec configuration still declares a non-playable scaffold")
+    return errors
+
+
+def context_regression_errors(current_config, baseline_config):
+    """Reject obsolete version claims once the parent branch has been repaired.
+
+    A preexisting inconsistency on main is grandfathered only during this
+    transitional governance PR; it cannot be reintroduced after lifecycle sync.
+    """
+    stale = "v0.0.0 is documentation and folder structure only"
+    if stale in current_config and stale not in baseline_config:
+        return ["OpenSpec context regressed to non-playable v0.0.0 scaffold"]
+    if stale not in baseline_config:
+        if ("schema: spec-driven" not in current_config or
+                "README.md" not in current_config):
+            return ["OpenSpec context must remain spec-driven and refer to README.md"]
+        # Context is a stable agent briefing, not a second changelog. References
+        # to version-stamped product state would inevitably become obsolete.
+        if re.search(r"\bv[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-dev)?\b", current_config, re.I):
+            return ["OpenSpec config must not pin product versions; point to README.md"]
+    return []
+
+
 def validate(files, body, pr_number, root=Path("."), base="origin/main",
              token=None, api=github_api, exists_in_base=None, implementation_created=None):
     errors = []
+    # Existing stale main context is a tracked debt; once removed via the
+    # approved lifecycle PR, fail every PR trying to reintroduce it.
+    current_config = root / "openspec/config.yaml"
+    if current_config.is_file():
+        try:
+            baseline_config = subprocess.check_output(
+                ["git", "show", base + ":openspec/config.yaml"], text=True)
+        except (OSError, subprocess.CalledProcessError):
+            baseline_config = current_config.read_text(encoding="utf-8")
+        errors.extend(context_regression_errors(
+            current_config.read_text(encoding="utf-8"), baseline_config))
     info = parse_metadata(body)
     if any(len(x) > 1 for x in info.values()):
         errors.append("Duplicate PR OpenSpec metadata")
@@ -151,7 +296,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
     changed = set(files)
     own = {p for p in changed if p.startswith(base_path)}
     outside = changed - own
-    if any(p.startswith("openspec/changes/") for p in outside):
+    if phase != "lifecycle" and any(p.startswith("openspec/changes/") for p in outside):
         errors.append("Cannot change unrelated OpenSpec work")
     if exists_in_base is None:
         def exists_in_base(path):
@@ -191,6 +336,14 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 errors.append("Combined PR changed file outside its approved sdd-scope.json: " + path)
         if any(path.startswith(".github/") for path in outside):
             errors.append("Combined PR cannot modify workflow enforcement")
+    elif phase == "lifecycle":
+        if not approval:
+            errors.append("Lifecycle requires OpenSpec-Approval-PR")
+        else:
+            errors.extend(verify_approval(
+                approval, change, token, api, implementation_created))
+        errors.extend(validate_lifecycle(
+            changed, approval, change, root, base, exists_in_base))
     elif phase == "implementation":
         if not approval:
             errors.append("Implementation requires OpenSpec-Approval-PR")

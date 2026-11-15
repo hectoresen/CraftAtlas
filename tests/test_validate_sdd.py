@@ -251,5 +251,125 @@ class SddPolicyTests(unittest.TestCase):
         self.set_scope([".github/**", "AGENTS.md"])
         self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal))
 
+
+    def lifecycle_fixture(self):
+        change = "reconcile-openspec-lifecycle-and-status"
+        folder = self.root / "openspec/changes" / change
+        (folder / "specs/lifecycle-governance").mkdir(parents=True)
+        for name in ("proposal.md", "design.md", "tasks.md"):
+            (folder / name).write_text("# approved\n")
+        (folder / "specs/lifecycle-governance/spec.md").write_text("## ADDED Requirements\n")
+        (folder / "sdd-scope.json").write_text(json.dumps({"allowed_paths": [
+            "scripts/validate_sdd.py", "tests/test_validate_sdd.py", "docs/SDD_COMPLIANCE.md"
+        ]}))
+        (self.root / "openspec/config.yaml").write_text(
+            "schema: spec-driven\ncontext: Implemented addon, read README.md\n")
+        (self.root / "docs").mkdir(exist_ok=True)
+        (self.root / "docs/OPENSPEC_STATUS.md").write_text("# Verified status\n")
+        body = ("OpenSpec-Change: reconcile-openspec-lifecycle-and-status\n"
+                "OpenSpec-Phase: lifecycle\nOpenSpec-Approval-PR: 13\n")
+        return body
+
+    @staticmethod
+    def lifecycle_api(path, token):
+        if path == "pulls/13":
+            return {"merged_at": "2026-11-15T12:31:03Z",
+                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+        if path.startswith("pulls/13/files"):
+            return [{"filename": "openspec/changes/reconcile-openspec-lifecycle-and-status/proposal.md"}]
+        raise AssertionError(path)
+
+    def test_lifecycle_accepts_owner_approved_config_repair(self):
+        body = self.lifecycle_fixture()
+        self.assertEqual(self.check({"openspec/config.yaml", "docs/OPENSPEC_STATUS.md"},
+                                    body, present=True, api=self.lifecycle_api), [])
+
+    def test_lifecycle_rejects_other_change_and_approval(self):
+        body = self.lifecycle_fixture()
+        self.assertTrue(self.check({"openspec/config.yaml"}, body.replace(
+            "reconcile-openspec-lifecycle-and-status", "add-material-tooltip"),
+            present=True, api=self.lifecycle_api))
+        self.assertTrue(self.check({"openspec/config.yaml"}, body.replace(
+            "OpenSpec-Approval-PR: 13", "OpenSpec-Approval-PR: 9"),
+            present=True, api=self.api))
+
+    def test_lifecycle_rejects_unrelated_and_tampered_changes(self):
+        body = self.lifecycle_fixture()
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   body, present=True, api=self.lifecycle_api))
+        path = "openspec/changes/add-first-playable-material-tooltips/proposal.md"
+        (self.root / path).parent.mkdir(parents=True)
+        (self.root / path).write_text("tampered")
+        self.assertTrue(self.check({path}, body, present=True, api=self.lifecycle_api))
+
+    def test_lifecycle_limits_canonical_specs(self):
+        body = self.lifecycle_fixture()
+        self.assertTrue(self.check({"openspec/specs/new-feature/spec.md"},
+                                   body, present=True, api=self.lifecycle_api))
+        accepted = self.root / "openspec/changes/add-first-playable-material-tooltips/specs/material-lookup"
+        accepted.mkdir(parents=True)
+        (accepted / "spec.md").write_text("## ADDED Requirements\n")
+        self.assertEqual(self.check({"openspec/specs/material-lookup/spec.md"},
+                                    body, present=True, api=self.lifecycle_api), [])
+
+    def test_lifecycle_requires_current_context_and_schema(self):
+        body = self.lifecycle_fixture()
+        path = self.root / "openspec/config.yaml"
+        path.write_text("schema: spec-driven\n  v0.0.0 is documentation and folder structure only\n")
+        self.assertTrue(self.check({"openspec/config.yaml"}, body,
+                                   present=True, api=self.lifecycle_api))
+        path.write_text("schema: invalid\n")
+        self.assertTrue(self.check({"openspec/config.yaml"}, body,
+                                   present=True, api=self.lifecycle_api))
+
+    def test_lifecycle_preserves_owner_and_chronology(self):
+        body = self.lifecycle_fixture()
+        def other(path, token):
+            if path == "pulls/13":
+                return {"merged_at": "2026-11-15T12:31:03Z",
+                        "merged_by": {"login": "someone"}, "base": {"ref": "main"}}
+            return self.lifecycle_api(path, token)
+        self.assertTrue(self.check({"openspec/config.yaml"}, body,
+                                   present=True, api=other))
+        self.assertTrue(self.check({"openspec/config.yaml"}, body,
+                                   present=True, api=self.lifecycle_api,
+                                   created="2026-11-01T00:00:00Z"))
+
+    def test_lifecycle_cannot_delete_history_without_archive(self):
+        body = self.lifecycle_fixture()
+        self.assertTrue(self.check({
+            "openspec/changes/add-first-playable-material-tooltips/design.md"},
+            body, present=True, api=self.lifecycle_api))
+        destination = ("openspec/changes/archive/2026-11-15-"
+                       "add-first-playable-material-tooltips/design.md")
+        (self.root / destination).parent.mkdir(parents=True)
+        (self.root / destination).write_text("unverified")
+        self.assertTrue(self.check({destination}, body,
+                                   present=False, api=self.lifecycle_api))
+
+    def test_lifecycle_does_not_weaken_normal_implementation(self):
+        self.set_scope(["AGENTS.md", "addon/CraftAtlas/**"])
+        self.assertTrue(self.check({"openspec/config.yaml"}, self.implementation,
+                                   present=True))
+        self.assertTrue(self.check({
+            "openspec/changes/add-first-playable-material-tooltips/tasks.md"},
+            self.implementation, present=True))
+
+
+    def test_context_regression_cannot_reintroduce_historical_scaffold(self):
+        old = ("schema: spec-driven\n"
+               "  v0.0.0 is documentation and folder structure only, not a working addon.\n")
+        current = ("schema: spec-driven\n"
+                   "context: |\n  Current capability described in README.md.\n")
+        self.assertEqual(gate.context_regression_errors(current, old), [])
+        self.assertEqual(gate.context_regression_errors(old, old), [])
+        self.assertTrue(gate.context_regression_errors(old, current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: spec-driven\ncontext: no reference\n", current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: unexpected\ncontext: README.md\n", current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: spec-driven\ncontext: README.md, current version v0.1.0-dev\n", current))
+
 if __name__ == "__main__":
     unittest.main()

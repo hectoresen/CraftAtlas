@@ -1,15 +1,15 @@
 # Lifecycle reconciliation tasks
 
 ## A. Owner approval
-- [ ] A1 Review and merge this spec-only proposal PR as @hectoresen.
+- [x] A1 Spec PR #13 was owner-merged on 2026-11-15.
 - [ ] A2 Confirm original spec SHOULD/SHALL exceptions explicitly when required (not inferred from client smoke tests).
 
 ## B. Implement safe lifecycle validation (separate implementation PR)
-- [ ] B1 Add owner-approved, allowlisted lifecycle phase with approval PR linkage and distinct allowed path rules.
-- [ ] B2 Reject changed historical proposal/design/delta specs, incomplete archives, unauthorized scope, unverified closure and wrong owner.
-- [ ] B3 Add regression tests for old proposal/implementation behavior and new lifecycle cases.
-- [ ] B4 Update docs/SDD_COMPLIANCE.md and run SDD tests/CI.
-- [ ] B5 Open implementation PR, pass checks and wait for owner merge.
+- [x] B1 Implemented restricted lifecycle phase with exact PR #13 owner approval and fixed allowed paths.
+- [x] B2 Added immutable historical artifact checks, archive-source exact copy checks, scope and owner approval validation; acceptance ledger remains required and semantic review remains human.
+- [x] B3 Added new lifecycle, archive, owner, canonical scope, stale-context and ordinary PR regression cases; CI execution pending.
+- [ ] B4 Updated docs/SDD_COMPLIANCE.md; CI/tests must pass on implementation PR before checking complete.
+- [ ] B5 Governance implementation PR to be opened; owner merge required.
 
 ## C. Reconcile records (separate lifecycle PR after B)
 - [ ] C1 Update AGENTS.md and openspec/config.yaml to current dev reality.
