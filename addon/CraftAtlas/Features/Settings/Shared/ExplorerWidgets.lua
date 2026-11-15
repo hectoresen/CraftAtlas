@@ -59,3 +59,48 @@ function ns.UpdateExplorerPager(pager, page, pages)
     pager.previous:SetEnabled(page > 1)
     pager.next:SetEnabled(page > 0 and page < pages)
 end
+
+-- Same search widget is reused by each active view, with state owned by its adapter.
+function ns.CreateExplorerSearchBox(header, onChange)
+    local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
+    search:SetPoint("LEFT", header, "LEFT", 13, 0)
+    search:SetSize(185, 28)
+    search:SetAutoFocus(false)
+    search:SetMaxLetters(120)
+    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    search:SetScript("OnTextChanged", function(self)
+        if onChange then onChange(self:GetText()) end
+    end)
+    return search
+end
+
+function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
+    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 8, -9)
+    button:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -8, -9)
+    button:SetHeight(28)
+    local menu = CreateFrame("Frame", nil, parent)
+    menu:SetSize(225, (#(ns.professionOrder or {}) + 1) * 25 + 8)
+    menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -3)
+    menu:SetFrameLevel(anchor:GetFrameLevel() + 10)
+    local background = menu:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetColorTexture(0.08, 0.08, 0.07, 0.99)
+    menu:Hide()
+    local choices = {[""] = nil}
+    for index = 0, #(ns.professionOrder or {}) do
+        local key = index == 0 and "" or ns.professionOrder[index]
+        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - index * 25)
+        choice:SetSize(217, 24)
+        choice:SetScript("OnClick", function()
+            menu:Hide()
+            if onSelect then onSelect(key) end
+        end)
+        choices[key] = choice
+    end
+    button:SetScript("OnClick", function()
+        if menu:IsShown() then menu:Hide() else menu:Show() end
+    end)
+    return button, menu, choices
+end
