@@ -21,5 +21,6 @@ Infrastructure/RecipeInfo.lua
 Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua
+Features/Settings/RecipePanel.lua
 Features/Settings/Settings.lua
 Core/Bootstrap.lua
