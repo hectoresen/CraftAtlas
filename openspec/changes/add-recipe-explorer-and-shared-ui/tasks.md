@@ -29,3 +29,10 @@
 - [ ] Test in WoW Forever using owner-provided actual client version, screenshots and navigation scenarios; do not claim tests if not run.
 - [x] Update README, DATA_MODEL, ARCHITECTURE, TESTING, ROADMAP, DEVELOPMENT and CHANGELOG to reflect actual implementation.
 - [ ] Open one scoped implementation PR after the approved spec; no direct changes to main or automatic merge.
+
+## PR #25 owner screenshot iteration (same approved implementation scope)
+- [x] Reposition the material-detail crafting-use heading and card grid below profession metadata; no overlapping headers.
+- [x] Use the available left-pane height for seven compact recycled rows at standard 510px shell height.
+- [x] Place Back in the navigation toolbar and hide it when no history exists.
+- [x] Label the new UI view Fabricables / Craftables, keeping internal recipe spell/profession identities and explicit non-item enchantments.
+- [x] Add a pure Lua layout geometry regression; game-client visual recheck remains pending.
