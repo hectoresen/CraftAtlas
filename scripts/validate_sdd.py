@@ -49,6 +49,11 @@ def parse_metadata(body):
     return {k: pattern.findall(body) for k, pattern in METADATA.items()}
 
 
+def is_explicit_workflow_path(path):
+    """Permit only individually named YAML workflows, never directory globs."""
+    return bool(re.fullmatch(r"\.github/workflows/[A-Za-z0-9_-]+\.ya?ml", path))
+
+
 def scope_patterns(directory):
     try:
         patterns = json.loads((directory / "sdd-scope.json").read_text())["allowed_paths"]
@@ -58,7 +63,7 @@ def scope_patterns(directory):
         return [], ["allowed_paths must be a nonempty array"]
     errors = []
     for p in patterns:
-        if (not isinstance(p, str) or p.startswith(("/", ".", "openspec/"))
+        if (not isinstance(p, str) or (p.startswith(("/", ".", "openspec/")) and not is_explicit_workflow_path(p))
                 or ".." in p or p in ("*", "**")
                 or ("*" in p and not p.endswith("/**")) or "?" in p):
             errors.append("Unsafe scope pattern: " + repr(p))
@@ -180,7 +185,8 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 x.endswith("/**") and p.startswith(x[:-2]) for x in allowed))
                 for p in outside):
             errors.append("Changed files outside approved sdd-scope.json")
-        if any(p.startswith(".github/") or p == "AGENTS.md" for p in outside):
+        if any((p.startswith(".github/") and not (is_explicit_workflow_path(p) and p in allowed))
+               or p == "AGENTS.md" for p in outside):
             errors.append("Governance changes require a separate spec proposal")
     return errors
 
