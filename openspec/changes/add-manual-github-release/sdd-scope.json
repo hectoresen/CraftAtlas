@@ -1,0 +1,9 @@
+{
+  "allowed_paths": [
+    "scripts/package_release.py",
+    "tests/test_package_release.py",
+    "README.md",
+    "docs/INSTALLATION.md",
+    "CHANGELOG.md"
+  ]
+}
