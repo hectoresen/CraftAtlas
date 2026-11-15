@@ -1,49 +1,39 @@
-# Architecture — current implementation
+# Architecture — current source
 
-CraftAtlas is an installable Lua addon with a pragmatic separation of domain, client APIs and UI. It **is implemented and reported working in Forever by the maintainer**, not an empty scaffold. It uses no runtime networking, telemetry or required third-party addon.
+CraftAtlas is an offline WoW Forever Lua addon. User-visible functionality has been accepted in-game by the maintainer; current data completeness and per-client compatibility are independent validation concerns.
 
-| Module | Runtime responsibility |
+## Module boundaries
+
+| Runtime module | Responsibility |
 | --- | --- |
-| `Core/Init.lua` / `Core/Bootstrap.lua` | Namespace, lifecycle, initialization after `ADDON_LOADED` |
-| `Domain/MaterialLookup.lua` | Pure numeric itemID → ordered consuming-profession keys; no WoW API calls |
-| `Domain/MaterialSearch.lua` | Pure local material filtering by itemID/name, consuming profession and source-backed reagent eligibility |
-| `Domain/RecipeUsage.lua` | Pure source-verified reagent → sorted distinct recipe uses, grouped by profession |
-| `Infrastructure/ItemInfo.lua` | Native asynchronous item names/icons for both reagents and crafted outputs |
-| `Infrastructure/RecipeInfo.lua` | Spell/recipe info adapter and native item/spell tooltip adapters with factual fallbacks |
-| `Data/Professions.lua` / `Data/Materials.lua` / `Data/RecipeUses.lua` | Generated registry, 593-item catalog and 8,455 reverse recipe-use entries |
-| `Infrastructure/TooltipAdapter.lua` | Single `TooltipDataProcessor.AddTooltipPostCall` item hook and numeric itemID extraction |
-| `Features/Tooltip/Tooltip.lua` | Localized two-line profession annotation and refresh deduplication |
-| `Infrastructure/Preferences.lua` | Saved language choice and minimap angle in account-wide `CraftAtlasDB` |
-| `Infrastructure/MinimapButton.lua` | Draggable minimap entry point to settings |
-| `Localization/Locales.lua`, `ProfessionLabels.lua` | English/Spanish labels and fallback |
-| `Features/Settings/Settings.lua` / `RecipePanel.lua` | Native material explorer and six-card paginated recipe-use detail; no automatic crafting |
+| `Core/Init.lua`, `Core/Bootstrap.lua` | Namespace, SavedVariables lifecycle and addon bootstrap |
+| `Data/Professions.lua`, `Materials.lua`, `RecipeUses.lua`, `Recipes.lua` | Generated profession, reagent, reverse-use and **2,506-recipe** local indices |
+| `Domain/MaterialLookup.lua`, `MaterialSearch.lua` | Source-backed itemID → consuming professions and material filtering |
+| `Domain/RecipeUsage.lua` | Material → actual recipe uses and pure pagination |
+| `Domain/RecipeCatalog.lua` | Unique profession+spellID recipe identity, ingredient detail and recipe search |
+| `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua`, `RecipeNameCache.lua` | Guarded asynchronous client item/spell names/icons and native tooltips |
+| `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and localized profession annotations |
+| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference and movable minimap access |
+| `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |
+| `Features/Settings/Settings.lua` | Single native window, tabs, state, selected details, cross-view navigation, working close |
+| `Features/Settings/Shared/ExplorerWidgets.lua` | Reusable native search box, profession selector, result row, pager and layout helpers |
+| `Features/Settings/RecipePanel.lua` | Material-detail six-card fabrication-use grid |
+| `Features/Settings/RecipesView.lua` | Fabricables detail with complete known inputs, item hover and ingredient pagination |
 
-## Runtime flow
+The loading order is declared in `addon/CraftAtlas/CraftAtlas.toc`; all addon runtime files belong under `addon/CraftAtlas/`, not in `docs/`.
 
-WoW item tooltip → numeric itemID from structured tooltip data → pure map lookup → ordered consuming professions → locale-aware tooltip lines. Missing IDs produce no annotation. Tooltip registration is guarded for unsupported APIs and callback errors. The UI panel is available via slash command and minimap.
+## Behavior and UI
 
-**New material explorer implementation (Forever game QA pending):** Settings search uses an EditBox, instant itemID/name filtering, profession dropdown, recycled item rows, icon/name fallbacks, material detail and the source-backed reverse recipe list. Search depends on client-cached names; an itemID fallback remains. Source-proven recipe quantities and outputs are shown in a compact six-card paginated native grid, with a single output icon or recipe fallback. The explorer's X has an explicit standalone-window close handler. Full dependency graphs and clickable game-item tooltip navigation are not implemented. Direct command entry `/craftatlas 2447` selects a known material by itemID, as a safe alternative.
+`/craftatlas` and the minimap button open the **Materiales** tab. It filters only items known to be actual recipe **inputs**, by itemID/name and consuming profession. The right pane shows the selected item's profession list and its source-backed uses as six cards per page; hover relies on the game client, click opens the corresponding **Fabricables** detail.
 
-## Data architecture
+**Fabricables** browses unique recipe keys (`professionKey:spellID`) with client-resolved spell/output names, profession filter and numeric spellID search. The detail presents its consuming profession, actual output where known, and all recorded ingredient itemIDs with exact quantities. Enchantments/non-item actions are identified rather than invented as physical items. Clicking an ingredient navigates back to Materiales. Cross-navigation keeps view-local query/filter and a bounded Back history. Some spell/item names can be unavailable in the client cache; this limits text searches and is surfaced as incomplete results.
 
-A 593-item, ten-profession local index is generated from a provenance-bearing source file. The large JSON (~678 KB) is build evidence; the small Lua runtime map (~25 KB) is what the client loads. This snapshot comes from an MIT-licensed LibProfessionDB Forever beta build 69977; it is not a full live server catalog. See [Data model](DATA_MODEL.md).
+UI uses WoW-native frames, no CSS framework or external runtime API. The shared controls are factored out of a single shell, not duplicated between Materiales and Fabricables. The window's X explicitly hides the standalone frame. Native tooltips, not CraftAtlas, supply equipment statistics/rarity.
 
-## Compatibility and acceptance
+## Data integrity and limits
 
-The maintainer reported successful in-game operation of the pre-PR-14 addon on **15 November 2026**. The new material explorer has **not** been verified in the Forever client. The exact tested Forever build and separate bank/auction/chat/vendor origin results have not been recorded. The approved original [v0.0.1 inventory spec](../openspec/changes/add-first-playable-material-tooltips/specs/inventory-tooltips/spec.md) formally guarantees inventory/bag behavior only; avoid silently extending its documented acceptance scope.
+A deterministic offline generator `scripts/build_materials.py` compiles `Materials.lua`, `Professions.lua`, `RecipeUses.lua`, `Recipes.lua` and coverage evidence from licensed pinned JSON source records. **593** distinct inputs, **8,455** reagent-use rows and **2,506** unique recipes are source-snapshot counts. Do not conflate source verification with testing each recipe on the current Forever server. A recipe may produce an item that itself is an ingredient. A full dependency graph, crafting automation, player-known recipes and inventory stock calculations are outside the current implementation.
 
-The tooltip API belongs at the infrastructure edge; pure lookup stays testable with Lua fixtures. Do not infer mappings from localized names or add speculative modules. Source/code/spec changes follow [OpenSpec governance](../openspec/README.md) and [code quality standards](CODE_QUALITY.md).
+## Validation and change control
 
-### Recipe presentation and pagination
-
-`Domain/RecipeUsage.lua` provides a pure deterministic six-use pagination helper, independent of visual profession headings. `Features/Settings/RecipePanel.lua` keeps a fixed pool of six WoW Button cards, draws one icon/name and profession/quantity per recipe, retains a valid page when item-info refreshes, and resets when the material changes. The existing native item/spell tooltip adapters are reused. The main `Settings.lua` binds native `CloseButton` explicitly to `panel:Hide()`, raises it over decorative frames, and clears owned tooltips on hide. No recipe data or material mappings change.
-
-## Shared Recipes/Materials explorer (unreleased candidate)
-
-The native shell in `Features/Settings/Settings.lua` now exposes two view modes with view-local query, profession selection, selected identity and scroll offset. A single physical search input, profession selector and recycled result list are reused by both. `Features/Settings/Shared/ExplorerWidgets.lua` owns reusable native row/search/filter/pager factories; both `Features/Settings/RecipePanel.lua` (material-consuming recipe cards) and `Features/Settings/RecipesView.lua` (selected recipe's full ingredient list) use the pager. `Domain/RecipeCatalog.lua` is a pure recipe identity/ingredient and filter adapter; `Infrastructure/RecipeNameCache.lua` bounds asynchronous client spell/output resolution, independently of character-known professions. `Data/Recipes.lua` contains **2,506** generated distinct records from the same source-backed **8,455** reagent uses. Native client tooltips still own rarity/equipment statistics; no external UI framework or runtime networking is used.
-
-Materials remains the default on `/craftatlas`, and `/craftatlas <itemID>` still deep-links to a valid source-backed reagent. Clicking a consuming recipe opens Recipes and clicking a recipe ingredient opens Materials. An eight-entry maximum history keeps Back bounded. Each view retains its filters and selection. Actual UI scale behavior, async spell cache coverage and tooltip compatibility are **not yet verified in Forever**.
-
-### In-PR layout and terminology correction
-
-The Recipes domain remains keyed by spellID+profession. The **user-facing** second view is **Fabricables / Craftables** because it explores crafted outputs and the inputs needed to make them; non-item enchantment actions remain explicitly labeled. `Shared/ExplorerWidgets.lua` exposes pure `ExplorerVisibleRowCount` and `MaterialDetailSectionOffsets` helpers, used by the existing native shell and material-recipe grid. Standard window height 510px → seven 34px rows. The material metadata ends before the usage section begins, and Back anchors into the top navigation, not the detail cards.
+`bash scripts/validate_release_checks.sh` is the common PR/release gate. `.github/workflows/spec-compliance.yml` separately enforces the OpenSpec approval chain. Python and Lua fixtures supplement these; exact Forever build/manual acceptance and untested item-tooltip origins should be recorded in `docs/TESTING.md`. See [data model](DATA_MODEL.md), [development](DEVELOPMENT.md) and [SDD policy](SDD_COMPLIANCE.md).
