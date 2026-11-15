@@ -456,7 +456,8 @@ switchView = function(target, direct, fromBack)
     viewState[currentView] = {
         query = searchQuery, profession = selectedProfession,
         selected = currentView == "recipes" and selectedRecipe or selectedID,
-        offset = scrollOffset
+        offset = scrollOffset,
+        recipePage = currentView == "materials" and ns.GetRecipePanelPage() or nil
     }
     currentView = target
     local state = viewState[target]
@@ -477,8 +478,9 @@ switchView = function(target, direct, fromBack)
         showDetail()
     end
     if target == "recipes" then ns.PreloadRecipeNames() end
-    if not fromBack then
-        -- Navigating by the tab does not invalidate earlier Back entries.
+    if fromBack and target == "materials" and ns.SetRecipePanelPage then
+        local entry = viewState.materials
+        if entry.recipePage then ns.SetRecipePanelPage(entry.recipePage) end
     end
 end
 
@@ -534,6 +536,7 @@ function ns.OpenSettings(itemID)
     createPanel()
     if ns.IsVerifiedReagent(itemID) then
         currentView = "materials"
+        forcedSelection = true
         searchQuery = ""
         selectedProfession = ""
         ui.search:SetText("")
