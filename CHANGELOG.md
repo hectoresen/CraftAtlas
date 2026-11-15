@@ -52,3 +52,11 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - Tooltip-to-detail click remains gated pending safe Forever-client API verification; no recipe database was added.
 
 - Follow-up fix for PR #14 after in-game screenshot: corrected names and native icons via Forever `C_Item` APIs and asynchronous data requests; suppressed placeholder-only browse rows, added loading states and visually separated rows. Added adapter regression test. Game retest pending.
+
+
+## Unreleased — reagent-only reverse recipe-use explorer (implementation candidate)
+
+- Compiled 8,455 MIT-source-backed recipe input relations across the 593 reagent catalog, preserving spell IDs, profession, exact quantities and available crafted outputs.
+- Constrained browse/search to catalog entries with verified input uses; kept crafted item 14044 because Leatherworking genuinely consumes it for recipe 19093.
+- Added a native grouped/scrollable recipe section in the material details; native item and spell/recipe tooltip support with compatibility fallbacks, no fabricated rarity.
+- Added Python provenance/consistency tests, pure Lua recipe lookup tests and game-tooltip mocks. Forever-client QA pending; no stable release claim.
