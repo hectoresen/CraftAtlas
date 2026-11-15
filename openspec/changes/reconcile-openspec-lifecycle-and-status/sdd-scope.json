@@ -1,0 +1,14 @@
+{
+  "allowed_paths": [
+    "scripts/validate_sdd.py",
+    "tests/test_validate_sdd.py",
+    "docs/SDD_COMPLIANCE.md",
+    "docs/OPENSPEC_STATUS.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md",
+    "README.md",
+    "CHANGELOG.md",
+    "AGENTS.md"
+  ]
+}
