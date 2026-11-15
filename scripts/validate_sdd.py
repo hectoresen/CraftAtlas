@@ -121,7 +121,7 @@ LIFECYCLE_FIXED_PATHS = {
     "docs/AGENT_WORKFLOW.md", "docs/OPENSPEC_STATUS.md",
     "docs/ROADMAP.md", "docs/TESTING.md", "README.md", "CHANGELOG.md",
 }
-LIFECYCLE_CANONICAL_PATH = re.compile(r"^openspec/specs/[a-z0-9-]+/spec\\.md$")
+LIFECYCLE_CANONICAL_PATH = re.compile(r"^openspec/specs/[a-z0-9-]+/spec\.md$")
 LIFECYCLE_ARCHIVE_PATH = re.compile(
     r"^openspec/changes/archive/[0-9]{4}-[0-9]{2}-[0-9]{2}-"
     r"([a-z0-9-]+)/(.+)$"
