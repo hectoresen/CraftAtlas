@@ -13,7 +13,8 @@ Create a cohesive **native WoW Forever** visual shell with the look and informat
 ### In scope
 
 - A restrained dark Blizzard/Classic-style frame with native supported fonts, accents, buttons, scrollbars, icon borders and section dividers. Keep it responsive at the game's supported UI scales; use client-bundled textures where available and a clean native fallback where not.
-- Persistent header with **CraftAtlas** title, real search field/clear action, language choice, explicit **Materiales / Fabricables** tabs and Back/history. Preserve minimap and slash-command entry.
+- Persistent header with **CraftAtlas** title, real search field, an **icon-based broom clear action** matching the reference instead of the current textual `X`, language choice, explicit **Materiales / Fabricables** tabs and Back/history. Preserve minimap and slash-command entry. The broom is visually distinct from the window-close `X`.
+- Remove the current bottom-left development-version caption (`v0.1.0-dev`). When running an official release package, show **only its actual release version** (currently `v0.1.0`), without `-dev`, by reading the locally packaged addon metadata rather than hardcoding a version in the UI or fetching GitHub at runtime. For an unpackaged development checkout with a `-dev` manifest, omit the footer version rather than falsely presenting it as an official release.
 - Replace the flat left-hand Materiales list with a **profession-grouped, collapsible tree** whose group headers show source-backed matching material counts. Users can expand/collapse groups, select an item and use the global profession filter.
 - A material used by multiple professions may appear under more than one expanded profession; selection remains keyed by **numeric itemID** and the detail is identical in every group. Group counts refer to per-group distinct materials, never the global deduplicated total. Search/filter apply **before** grouping; expand matching groups deterministically, while respecting explicit user collapses.
 - Right-hand **material detail** based on the reference: native icon and client-provided item name, itemID, a profession-uses section, a separate **Se utiliza para fabricar** section with **vertical, clickable recipe rows** (not the reference's hardcoded demo names/counts), and optional item metadata ONLY when provided by supported WoW APIs. Use paging/scrolling for large recipe lists; retain exact per-material quantities, output fallback, hover and navigation.
@@ -26,7 +27,7 @@ Create a cohesive **native WoW Forever** visual shell with the look and informat
 
 - Importing new item/recipe data, claiming full current-live realm coverage, character recipes or craftability, inventory counts, auction prices, auto-crafting and new dependencies.
 - Bundling screenshots, proprietary game artwork or external fonts as runtime assets. The supplied visual reference guides layout only; use game-provided UI resources, not redistributed extracted textures.
-- Changing `openspec/config.yaml`, `AGENTS.md`, protected governance/CI workflows, release policy, or data-generator semantics.
+- Changing `openspec/config.yaml`, `AGENTS.md`, protected governance/CI workflows, release policy, or data-generator semantics. Preserve the release packager's existing behavior of stamping an official SemVer into the distributed `.toc`.
 - Shipping hardcoded profession counts, item level, item type or quality colors when the game API does not provide those facts.
 - Removing the Fabricables tab because the concept image shows only the Materiales detail.
 
