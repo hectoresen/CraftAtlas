@@ -355,5 +355,19 @@ class SddPolicyTests(unittest.TestCase):
             "openspec/changes/add-first-playable-material-tooltips/tasks.md"},
             self.implementation, present=True))
 
+
+    def test_context_regression_cannot_reintroduce_historical_scaffold(self):
+        old = ("schema: spec-driven\n"
+               "  v0.0.0 is documentation and folder structure only, not a working addon.\n")
+        current = ("schema: spec-driven\n"
+                   "context: |\n  Current capability described in README.md.\n")
+        self.assertEqual(gate.context_regression_errors(current, old), [])
+        self.assertEqual(gate.context_regression_errors(old, old), [])
+        self.assertTrue(gate.context_regression_errors(old, current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: spec-driven\ncontext: no reference\n", current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: unexpected\ncontext: README.md\n", current))
+
 if __name__ == "__main__":
     unittest.main()
