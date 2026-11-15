@@ -1,97 +1,56 @@
 # CraftAtlas
 
-**CraftAtlas** is an open-source, MIT-licensed addon for **World of Warcraft: Forever** that helps players understand which professions use an item and, in future releases, how recipes and crafting dependencies connect.
+**CraftAtlas** is an MIT-licensed, offline addon for **World of Warcraft: Forever**. When hovering a catalogued ingredient, it shows which professions use that item, independently of the character's learned professions.
 
-> **Status: v0.0.0 — repository foundation only, not a playable addon.** The v0.1.0 code and client compatibility verification are pending.
+**Current state: v0.1.0-dev, implemented and tested in-game by the maintainer (15 November 2026).** It is development software, not a tagged stable release. The maintainer reports that the current addon functions in Forever; the complete tooltip-origin matrix and exact game build have not been supplied as reproducible test evidence.
 
-## Work in progress: v0.0.1 (implementation PR)
+## Working features
 
-The v0.0.1 branch introduces a modular Lua implementation, native-style settings
-(`/craftatlas`), locale-aware tooltips and a **six-item research-backed preview
-catalog**. **It is not release-ready:** the approved specification requires
-at least 30 verified items, at least five profession categories, real Forever
-client testing and a reproducible build. Item relationships are documented
-from public crafting references but remain **unverified inside Forever**.
-Do not install this branch expecting full coverage.
+- **Item tooltips:** a localized **Used by** annotation lists all known consuming professions for the numeric itemID. Multiple professions are supported; unknown items are left unchanged. Uses a modern structured-item tooltip hook, which may cover multiple UI origins; only claim individual origins tested after recording their results.
+- **Offline catalog:** **593 distinct reagent IDs**, **10 consuming profession categories**, and **237 multi-profession items**, compiled from a pinned MIT-licensed LibProfessionDB Forever beta snapshot. Counts describe imported data, **not complete coverage of the current Forever server**.
+- **Settings:** `/craftatlas` opens the in-game panel. Language choices: Auto, Español (esES), and English (enUS), saved account-wide.
+- **Minimap:** a profession-themed button opens the same panel on left click; its position is draggable and persisted.
+- **Settings search:** **visual placeholder only**. It cannot accept queries, filter materials, or display search results. The General page is the only available settings category.
 
-The target runtime is provisionally Interface 16001, based on published Forever
-addon documentation; record the current client build before declaring support.
+There is **no standalone material search, recipe browser, ingredient quantities UI, crafting graph, or remote sync** in the current version.
 
-## Planned functionality and versions
+## Install
 
-| Milestone | Planned scope |
-| --- | --- |
-| **0.0.1** | First playable proof of concept: inventory item tooltips, local curated catalog, language selector and verified client integration (implementation pending) |
-| **0.0.0** | Agent/human collaboration framework, OpenSpec, documentation, CI and Lua folder scaffold |
-| **0.1.0** | Tooltip profession identification by numeric itemID; multiple professions independent of character skills; local versioned catalog; settings panel; automatic enUS/esES detection and manual language selection; persisted preferences |
-| **0.2.0** | Wider audited materials coverage, diagnostics, optimizations and UX improvements |
-| **0.3.0** | Offline material search and profession filters |
-| **0.4.0** | Recipes, ingredients, quantities and resulting crafted items |
-| **0.5.0** | Reverse crafting/dependency explorer |
-| **1.0.0** | Stable, documented and client-validated release |
+1. Copy **only** `addon/CraftAtlas/` to the Forever installation at `Interface/AddOns/CraftAtlas/`.
+2. Check that `CraftAtlas.toc` is directly inside the installed folder; enable the addon and launch the game.
+3. Hover a known crafting material or type `/craftatlas` to open settings. Alternatively click the minimap button.
+4. If something fails, use `/console scriptErrors 1` followed by `/reload` and include the client build in the report.
 
-No dates are promised. Data must not be presented as comprehensive unless coverage is audited. Full release gates: [Roadmap](docs/ROADMAP.md).
+See [installation](docs/INSTALLATION.md) and [testing](docs/TESTING.md). The .toc currently declares `Interface: 16001`; document the exact tested client build before making a specific compatibility guarantee.
 
-## New developer or AI agent: start here
+## Catalog provenance and limitations
 
-1. Read [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [Agent workflow](docs/AGENT_WORKFLOW.md).
-2. Understand [Architecture](docs/ARCHITECTURE.md), [Code quality rules](docs/CODE_QUALITY.md), [Data model](docs/DATA_MODEL.md) and [Testing](docs/TESTING.md).
-3. Inspect [OpenSpec workflow](openspec/README.md), accepted specs and outstanding changes before changing code.
-4. Install OpenSpec (current npm package requires Node.js 22.12+), then initialize OpenCode skills where absent:
+The bundled generated Lua lookup is created from `addon/CraftAtlas/Data/materials.source.json` by `scripts/build_materials.py`. The 593-item index was transformed from the MIT-licensed **LibProfessionDB**, by Pimptasty, from Forever beta client **1.60.1.69977**, vendored in [detok/ChalkBox](https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0). Attribution/license: `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`. The newer Forever 1.60.1.70938 data has not yet been reconciled. `coverage-report.json` explicitly marks `liveClientValidated: false` for **catalog accuracy**, which is distinct from the maintainer's confirmation that the addon runs in-game.
 
-```sh
-npm install -g @fission-ai/openspec@latest
-openspec init
-openspec list
-python3 scripts/validate_repo.py
-```
-
-5. **Mandatory development workflow:** `/opsx:explore` (optional) → `/opsx:propose <change>` → **@hectoresen approval** → `/opsx:apply` → verify/tests → `/opsx:sync` → PR → owner review/merge → archive after acceptance. For documentation-only typo fixes, explain the OpenSpec exemption in the PR. Commands vary by coding agent; consult the initialization output.
-6. **No agents or contributors may directly push to `main`, merge PRs or create releases without explicit owner authorization.** GitHub-side enforcement is pending ruleset configuration; see [GitHub governance](docs/GITHUB_SETTINGS.md).
-
-## Repository layout
+## Repository structure
 
 ```text
-addon/CraftAtlas/       WoW-installable Lua folder (currently stub, not functional)
+addon/CraftAtlas/       Installable Lua addon
   Core/                Bootstrap and lifecycle
-  Domain/              Pure lookup logic
-  Data/                Local offline catalog and future recipes
-  Infrastructure/      WoW client API adapters and saved preferences
-  Features/            Tooltip and settings presentation
-  Localization/        enUS and esES
-openspec/               Canonical specs, proposed changes and config
-docs/                   Onboarding, code quality, architecture, testing, roadmap
-scripts/                Repository and later dataset validation
-tests/                  Future offline Lua tests
-.github/                CI, CODEOWNERS and contributor templates
+  Domain/              Pure itemID → profession lookup
+  Data/                Generated offline catalog, source evidence, profession registry
+  Infrastructure/      Tooltip API, minimap and SavedVariables
+  Features/            Tooltip display and settings window
+  Localization/        enUS/esES strings
+openspec/               Approved requirements and changes
+docs/                   Functional, technical and contributor documentation
+scripts/                Dataset compilation and quality checks
+tests/                  Offline regression tests
 ```
 
-## Intended installation and support
+## Development and governance
 
-See [Installation and real-client verification](docs/INSTALLATION.md). **Do not install v0.0.0 expecting tooltip features:** it is a foundation scaffold only. Final Forever interface metadata, supported hooks and full item dataset require verification before releasing v0.1.0.
+Start with [AGENTS.md](AGENTS.md), [contribution rules](CONTRIBUTING.md), [OpenSpec](openspec/README.md), [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md) and [testing](docs/TESTING.md). Behavioral changes follow a reviewed OpenSpec proposal and implementation PR. **Only @hectoresen authorizes merges/releases.** Run repository checks from the repository root:
 
-## Engineering principles
+```sh
+python3 scripts/validate_repo.py
+python3 -m unittest discover -s tests -p 'test_material_data.py' -v
+python3 scripts/build_materials.py --check
+```
 
-- Lua runtime, minimal required dependencies, no telemetry or runtime network services.
-- Numeric `itemID` for identification; never rely on localized item names or tooltip text.
-- Pure domain logic distinct from game client APIs; simple modules, meaningful names, deterministic tests.
-- Material → professions is many-to-many, unaffected by current character profession training.
-- Unknown mapping stays unknown; externally sourced data needs provenance and compatible rights.
-- enUS/esES with English fallback and saved manual override.
-- Tests, manual in-game evidence, docs and specs accompany behavior changes.
-
-## Collaboration
-
-All contributors are welcome to fork and open PRs, but the repository owner **@hectoresen** retains the final merge/release decision. Review [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md) and the [MIT License](LICENSE). The project is independent of Blizzard and Forever operators.
-
-## Documentation index
-
-[AGENTS](AGENTS.md) · [Agent workflow](docs/AGENT_WORKFLOW.md) · [OpenSpec](openspec/README.md) · [Development](docs/DEVELOPMENT.md) · [Clean Code](docs/CODE_QUALITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODEL.md) · [Tests](docs/TESTING.md) · [Installation](docs/INSTALLATION.md) · [Roadmap](docs/ROADMAP.md) · [GitHub governance](docs/GITHUB_SETTINGS.md) · [Changelog](CHANGELOG.md)
-
-## v0.1.0 development candidate
-
-The runtime now loads a local, extensible registry of consuming professions and a per-relation evidence catalog. A single structured item-tooltip hook may work across several Forever UI surfaces; each requires a real in-game test before being claimed supported. No remote service is used in game. **593 reagent itemIDs from 10 profession recipe sources** are bundled from a pinned MIT-licensed LibProfessionDB Forever beta-client snapshot. This is NOT full current-server coverage; the live 1.60.1.70938 dataset and additional profession sources still require reconciliation.
-
-### Third-party data provenance
-
-CraftAtlas includes a transformed, offline reagent-to-profession index derived from **LibProfessionDB** (MIT, Copyright © 2026 Pimptasty), using a vendored copy in [detok/ChalkBox](https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0). Its MIT license is retained at `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`. Source build: **WoW Forever beta client 1.60.1.69977**. Every catalog relation preserves its recipe spell IDs, source reference, review date and client build. Material and profession counts are not a claim of live server availability. No dependency on the original addon is required at runtime.
+Further information: [Roadmap](docs/ROADMAP.md) · [Installation](docs/INSTALLATION.md) · [Changelog](CHANGELOG.md) · [Agent workflow](docs/AGENT_WORKFLOW.md) · [SDD compliance](docs/SDD_COMPLIANCE.md). The project is independent of Blizzard and Forever operators.
