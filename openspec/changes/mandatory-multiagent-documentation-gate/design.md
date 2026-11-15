@@ -7,7 +7,7 @@
 - **CHANGELOG.md**: source change history separated from future roadmap.
 - **openspec/changes/<id>/**: accepted requirement deltas and source of approvals. Implementation can tick tasks.md but cannot rewrite accepted specs or scope.
 - **docs/AGENT_WORKFLOW.md / DOCUMENTATION_PROTOCOL.md**: portable protocol lifecycle and review guidance.
-- **.agents/skills/documentation-sync/SKILL.md**: the **canonical skill**, with frontmatter+instructions; aliases/discovery under Claude/Copilot where supported, no duplicated instruction body.
+- **.agents/skills/documentation-sync/SKILL.md**: the **canonical skill**, with frontmatter+instructions; the universally readable canonical Markdown file; automatic vendor discovery is not assumed.
 
 ## Execution order
 ```text
@@ -35,7 +35,7 @@ For a proposal-only PR, still review docs impact but no premature feature claim.
 
 ## SDD governance exception
 The current `scripts/validate_sdd.py` rejects `AGENTS.md` from every implementation PR. To implement this approved governance update, permit the file *only* when
-`change_id == mandatory-multiagent-documentation-gate`, `OpenSpec-Phase: implementation`, the actual owner-merged proposal PR is referenced and `AGENTS.md` is listed in the approved sdd-scope.json. All other changes retain existing protected-path restriction. Treat `openspec/config.yaml` and CI workflow edits with the same exact allowlisted scope and existing explicit-workflow pattern. Regression test unauthorized changes, fake approvals and non-owner mergers. Do not create another combined-phase exception.
+`change_id == mandatory-multiagent-documentation-gate`, `OpenSpec-Phase: implementation`, the actual owner-merged proposal PR is referenced and `AGENTS.md` is listed in the approved sdd-scope.json. All other changes retain existing protected-path restriction. The OpenSpec config file remains protected outside this approved scope; the explicit CI workflow is allowed by the existing validator. Regression test unauthorized changes, fake approvals and non-owner mergers. Do not create another combined-phase exception.
 
 ## Documentation truth and OpenSpec lifecycle
 This feature's governance update does **not** silently close unrelated historical OpenSpec changes or rewrite their approved delta specs. The separately proposed `reconcile-openspec-lifecycle-and-status` change owns historical archive/status migration; maintain accurate pending markers until approved evidence and authorized lifecycle sync are available.
