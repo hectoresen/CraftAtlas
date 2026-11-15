@@ -44,3 +44,19 @@ Mark each test *passed*, *failed* or *not run*. Never present an unrun game test
 ## v0.1.0 development candidate
 
 Run from repository root: `python3 -m unittest discover -s tests -p 'test_material_data.py' -v`, `python3 scripts/build_materials.py --check`, and `texlua tests/test_addon.lua`. The release gate `python3 scripts/build_materials.py --release --check` is deliberately failing while 30 verified items are unavailable. Test bank, guild bank, inventory, chat item links, auction, vendors, mail, crafting and quest rewards individually in a real Forever build; report each as passed/failed/not run. Existing client testing covered only initial v0.0.1. Do not claim all origins tested or all professions catalogued.
+
+## MIT catalog expansion QA (pending real client)
+
+Imported dataset: 593 item IDs, 10 consuming professions, 237 shared materials, indexed by numeric itemID. The source is the **beta Forever 1.60.1.69977 LibProfessionDB** core data (MIT, Pimptasty), not a live-server capture. The current published LibProfessionDB v1.10.0 uses live build 1.60.1.70938 and includes Herbalism/Skinning; obtaining and comparing that snapshot remains open.
+
+Execute the following against the candidate branch:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_material_data.py' -v
+python3 scripts/build_materials.py --check
+python3 scripts/coverage_report.py
+texlua tests/test_addon.lua
+python3 scripts/build_materials.py --release --check  # MUST fail until Forever QA recorded
+```
+
+The in-game matrix must test **new materials beyond the six prototype entries**, multi-profession overlaps, Mining smelting, Fishing crafts, displayed enUS/esES names, item tooltips in bag/bank/chat/AH/merchant, unknown items, reload and rapid hover. At present these checks are not reported as passed. A 593-material import does **not** imply a release-ready build.

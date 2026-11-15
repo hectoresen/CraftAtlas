@@ -54,3 +54,7 @@ tests. The adapter is not considered compatible until tested on Forever.
 ## v0.1.0 expansion
 
 A generated profession registry provides stable keys and enUS/esES labels before the lookup module loads. The tooltip adapter registers once with the supported structured item-data post-call; this is intended to serve every supported item origin, subject to in-game verification. No unsafe protected-frame modifications or per-hover catalog scanning.
+
+## Pinned MIT reagent corpus
+
+The offline runtime table groups the 593 material IDs by consuming professions, deduped across recipes. The editable source is 677 KB JSON because it also carries evidence `recipeIDs`, while the runtime Lua index is compact (~25 KB). `scripts/build_materials.py` converts evidence to generated tables and enforces licensing and release QA gates. Original LibProfessionDB library is not loaded or required at runtime. The current snapshot came from client beta build 69977; reconcile against a newer verified live build before stable release.

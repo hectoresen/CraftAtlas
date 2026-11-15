@@ -13,3 +13,7 @@
 The implementation branch currently sets provisional `## Interface: 16001` based on third-party Forever API reports, not direct testing. Verify it with `/dump select(4, GetBuildInfo())` and record the build. Game UI APIs are Mainline-family in Forever; do not assume Classic Era's legacy `OnTooltipSetItem` works. See docs/TESTING.md.
 
 The minimum release catalog contains 30 verified itemIDs; the preview currently contains only six externally researched ones. Unknown IDs deliberately produce no annotation.
+
+## Development candidate v0.1.0
+
+Download the implementation branch ZIP (not the entire folder structure into AddOns). Copy **only** `addon/CraftAtlas/` into the game's `Interface/AddOns/CraftAtlas/`, preserving `CraftAtlas.toc` directly inside it. The new runtime has **no dependency on LibProfessionDB**: its transformed reagent index is bundled under `Data/`. This is a DRAFT and still requires live Forever validation, particularly when using newer client builds than the imported beta snapshot.

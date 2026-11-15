@@ -2,6 +2,7 @@
 """Deterministic offline itemID -> profession compiler; no runtime network."""
 import argparse
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -80,6 +81,8 @@ def validate_catalog(data, registry, release=False):
         if len(local) > 1:
             multi += 1
     if release:
+        if not (data.get("referenceUniverse") or {}).get("liveClientValidated"):
+            errors.append("release requires owner-confirmed live Forever client validation")
         if len(seen) < 30: errors.append(f"release needs 30 verified itemIDs; got {len(seen)}")
         if len(used) < 5: errors.append(f"release needs 5 professions; got {len(used)}")
         if multi < 2: errors.append(f"release needs 2 multi-profession items; got {multi}")
@@ -120,8 +123,10 @@ def coverage_report(data, registry):
     for item in items:
         for r in item["relations"]:
             counts[r["professionKey"]] += 1
-    allowed = (type(denominator) is int and verified == denominator and
-               all(universe.get(f) for f in ("clientBuild", "sourceSnapshot", "rights")))
+    allowed = (type(denominator) is int and verified == denominator
+               and universe.get("completeReferenceUniverse") is True
+               and universe.get("liveClientValidated") is True
+               and all(universe.get(f) for f in ("clientBuild", "sourceSnapshot", "rights")))
     return {
         "referenceUniverse": universe,
         "candidateItemIDs": len(items),
@@ -136,12 +141,108 @@ def coverage_report(data, registry):
     }
 
 
+
+# Core Lua data import is OFFLINE and is limited to the MIT-licensed
+# LibProfessionDB Forever recipe files that a contributor obtained themselves.
+# Do not infer actual live realm recipe availability from these DBC records.
+PROFESSION_FILES = {
+    "alchemy": "ALCHEMY", "blacksmithing": "BLACKSMITHING",
+    "cooking": "COOKING", "enchanting": "ENCHANTING",
+    "engineering": "ENGINEERING", "firstaid": "FIRST_AID",
+    "fishing": "FISHING", "herbalism": "HERBALISM",
+    "leatherworking": "LEATHERWORKING", "mining": "MINING",
+    "skinning": "SKINNING", "tailoring": "TAILORING",
+}
+RECIPE_START = re.compile(r"(?m)^\t\t\[(\d+)\] = \{")
+REAGENT_BLOCK = re.compile(r'\["reagents"\]\s*=\s*\{([^}]*)\}')
+REAGENT_PAIR = re.compile(r"\[(\d+)\]\s*=\s*(\d+)")
+
+
+def extract_reagent_facts(lua_source):
+    """Return [(recipe_spell_id, reagent_item_id)] from Lua recipe blocks.
+
+    Split at two-tab recipe boundaries so data from consecutive recipes cannot
+    accidentally mix. No arbitrary Lua code is executed.
+    """
+    starts = list(RECIPE_START.finditer(lua_source))
+    relations = set()
+    for index, match in enumerate(starts):
+        end = starts[index + 1].start() if index + 1 < len(starts) else len(lua_source)
+        block = lua_source[match.end():end]
+        reagent_block = REAGENT_BLOCK.search(block)
+        if not reagent_block:
+            continue
+        spell = int(match.group(1))
+        for item_match in REAGENT_PAIR.finditer(reagent_block.group(1)):
+            item_id, count = int(item_match.group(1)), int(item_match.group(2))
+            if item_id > 0 and count > 0:
+                relations.add((spell, item_id))
+    return sorted(relations)
+
+
+def import_libprofessiondb(directory, reference_url, client_build, review_date, registry):
+    """Create a snapshot using reviewed MIT LibProfessionDB core files.
+
+    The source data rights and exact version remain contributor responsibilities.
+    This import deliberately does not assert live build parity or completeness.
+    """
+    folder = Path(directory)
+    if not folder.is_dir():
+        raise ValueError("LibProfessionDB core directory does not exist")
+    approved = {p["key"] for p in registry["professions"]}
+    grouped = {}
+    imported = 0
+    for path in sorted(folder.glob("*.lua")):
+        profession = PROFESSION_FILES.get(path.stem.lower())
+        if not profession:
+            continue
+        if profession not in approved:
+            raise ValueError(f"Register profession {profession} before importing {path.name}")
+        for spell, item_id in extract_reagent_facts(path.read_text(encoding="utf-8")):
+            grouped.setdefault(item_id, {}).setdefault(profession, set()).add(spell)
+            imported += 1
+    if not imported:
+        raise ValueError("No recognized reagent relationships in source files")
+    materials = []
+    for item_id, jobs in sorted(grouped.items()):
+        relations = []
+        for job, spells in sorted(jobs.items()):
+            relations.append({
+                "professionKey": job, "usageKind": "ingredient",
+                "source": reference_url, "recipeIDs": sorted(spells),
+                "reviewedAt": review_date, "clientBuild": client_build,
+                "rights": "compatible-licensed-source", "status": "verified",
+            })
+        materials.append({"itemID": item_id, "relations": relations})
+    return materials
+
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--release", action="store_true")
+    parser.add_argument("--import-libprofessiondb", metavar="DIR")
+    parser.add_argument("--source-url")
+    parser.add_argument("--client-build")
+    parser.add_argument("--reviewed-at")
     args = parser.parse_args(argv)
     data, registry = load()
+    if args.import_libprofessiondb:
+        if not (args.source_url and args.client_build and args.reviewed_at):
+            parser.error("import requires --source-url, --client-build and --reviewed-at")
+        try:
+            data["materials"] = import_libprofessiondb(
+                args.import_libprofessiondb, args.source_url,
+                args.client_build, args.reviewed_at, registry)
+        except ValueError as exc:
+            parser.error(str(exc))
+        data["referenceUniverse"] = {
+            "clientBuild": args.client_build, "sourceSnapshot": args.source_url,
+            "eligibleItemIDs": None, "rights": "MIT; retain upstream LICENSE",
+            "liveClientValidated": False, "completeReferenceUniverse": False
+        }
+        SOURCE.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     errors = validate_catalog(data, registry, release=args.release)
     if errors:
         parser.error("; ".join(errors))

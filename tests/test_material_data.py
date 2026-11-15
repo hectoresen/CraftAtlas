@@ -50,6 +50,33 @@ class MaterialsTests(unittest.TestCase):
     def test_release_gate_blocks_unverified_catalog(self):
         self.assertTrue(g.validate_catalog(self.data, self.registry, release=True))
 
+    def test_importer_keeps_recipe_boundaries(self):
+        fixture = (
+            'lib:LoadCore(171, {\n'
+            '\t\t[2329] = {\n'
+            '\t\t\t["reagents"] = { [765] = 1, [2449] = 2 },\n'
+            '\t\t},\n'
+            '\t\t[2331] = {\n'
+            '\t\t\t["reagents"] = { [785] = 1 },\n'
+            '\t\t},\n'
+            '})'
+        )
+        self.assertEqual(g.extract_reagent_facts(fixture),
+                         [(2329, 765), (2329, 2449), (2331, 785)])
+
+    def test_imported_source_is_substantial(self):
+        self.assertGreaterEqual(len(self.data["materials"]), 500)
+        self.assertGreaterEqual(len(self.registry["professions"]), 10)
+
+    def test_licensed_source_attribution(self):
+        license_file = g.DATA / "LICENSE-LibProfessionDB.txt"
+        self.assertIn("Pimptasty", license_file.read_text(encoding="utf-8"))
+        for item in self.data["materials"]:
+            for relation in item["relations"]:
+                if relation["rights"] == "compatible-licensed-source":
+                    self.assertTrue(relation["source"])
+                    self.assertTrue(relation.get("recipeIDs"))
+
     def test_unknown_universe_has_no_completeness_claim(self):
         report = g.coverage_report(self.data, self.registry)
         self.assertIsNone(report["coveragePercent"])

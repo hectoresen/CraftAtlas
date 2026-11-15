@@ -8,7 +8,9 @@ ns.professionOrder = {
     "ENCHANTING",
     "ENGINEERING",
     "FIRST_AID",
+    "FISHING",
     "LEATHERWORKING",
+    "MINING",
     "TAILORING",
 }
 ns.professionNames = {
@@ -18,6 +20,8 @@ ns.professionNames = {
     ["ENCHANTING"] = { enUS = "Enchanting", esES = "Encantamiento" },
     ["ENGINEERING"] = { enUS = "Engineering", esES = "Ingeniería" },
     ["FIRST_AID"] = { enUS = "First Aid", esES = "Primeros auxilios" },
+    ["FISHING"] = { enUS = "Fishing", esES = "Pesca" },
     ["LEATHERWORKING"] = { enUS = "Leatherworking", esES = "Peletería" },
+    ["MINING"] = { enUS = "Mining", esES = "Minería" },
     ["TAILORING"] = { enUS = "Tailoring", esES = "Sastrería" },
 }

@@ -36,3 +36,18 @@ do not copy the database.
 ## v0.1.0 auditable relations
 
 The catalog schema version 2 in `addon/CraftAtlas/Data/materials.source.json` stores individual itemID-to-profession relationships. Each has `professionKey`, `usageKind`, `source`, `reviewedAt`, `clientBuild`, `rights`, and `status` (researched or verified). `professions.source.json` supplies a reviewed extensible registry, including language names. Build via `python3 scripts/build_materials.py`; verify drift with `--check` and review `coverage-report.json`. Without a legally permitted bounded reference universe, the coverage denominator remains unknown and no full-coverage claim is allowed.
+
+## LibProfessionDB 1.60.1.69977 MIT snapshot
+
+The seeded six-material prototype was replaced by **593 distinct reagent itemIDs** found across ten recipe-bearing profession files in a pinned, vendored LibProfessionDB snapshot: Alchemy, Blacksmithing, Cooking, Enchanting, Engineering, First Aid, Fishing, Leatherworking, Mining and Tailoring. **237 materials map to two or more professions.** Only reagent-consuming actions are counted; gathering is not counted just because a profession harvests something. Every imported relation includes one or more `recipeIDs` for auditability. This is the **beta client** 69977, not the current live 70938 data. Herbalism/Skinning and later specializations may be missing until the current live snapshot is imported.
+
+Source: https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0/Data . Upstream LibProfessionDB authored by Pimptasty, MIT (license bundled at `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`). The data is transformed and grouped by ingredient itemID, without copying the upstream addon runtime. The `status=verified` flag means verified *against the identified client snapshot*, **not** confirmed craftable on the live server; `referenceUniverse.liveClientValidated=false` preserves that distinction. No full-coverage percentage is emitted because the bounded current-live universe is unknown.
+
+For future refreshes, obtain the locally licensed LibProfessionDB core Lua files and use:
+
+```sh
+python3 scripts/build_materials.py --import-libprofessiondb /path/to/Forever/_core --source-url <pinned-source-url> --client-build 1.60.1.70938 --reviewed-at 2026-11-15
+python3 scripts/build_materials.py --check
+```
+
+The importer executes **no Lua code** and never scrapes at runtime. Review generated changes and keep the upstream attribution. A live build acceptance and owner release approval are still required.

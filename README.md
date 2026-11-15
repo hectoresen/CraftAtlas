@@ -90,4 +90,8 @@ All contributors are welcome to fork and open PRs, but the repository owner **@h
 
 ## v0.1.0 development candidate
 
-The runtime now loads a local, extensible registry of consuming professions and a per-relation evidence catalog. A single structured item-tooltip hook may work across several Forever UI surfaces; each requires a real in-game test before being claimed supported. No remote service is used in game. **Only six researched candidate itemIDs are included**. A complete, legally usable reference universe has not been obtained, so exhaustive coverage cannot be claimed.
+The runtime now loads a local, extensible registry of consuming professions and a per-relation evidence catalog. A single structured item-tooltip hook may work across several Forever UI surfaces; each requires a real in-game test before being claimed supported. No remote service is used in game. **593 reagent itemIDs from 10 profession recipe sources** are bundled from a pinned MIT-licensed LibProfessionDB Forever beta-client snapshot. This is NOT full current-server coverage; the live 1.60.1.70938 dataset and additional profession sources still require reconciliation.
+
+### Third-party data provenance
+
+CraftAtlas includes a transformed, offline reagent-to-profession index derived from **LibProfessionDB** (MIT, Copyright © 2026 Pimptasty), using a vendored copy in [detok/ChalkBox](https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0). Its MIT license is retained at `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`. Source build: **WoW Forever beta client 1.60.1.69977**. Every catalog relation preserves its recipe spell IDs, source reference, review date and client build. Material and profession counts are not a claim of live server availability. No dependency on the original addon is required at runtime.

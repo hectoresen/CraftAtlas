@@ -1,3 +1,10 @@
+## Unreleased — licensed reagent import (DRAFT)
+
+- Imported 593 unique ingredient itemIDs and mappings across 10 profession recipes from MIT-licensed LibProfessionDB beta 1.60.1.69977 (237 multi-profession materials).
+- Preserved recipe spell IDs and per-relation provenance with upstream license attribution.
+- Added an offline source importer, expanded tests and stricter release QA gate.
+- **Not full live coverage**: newest Forever 1.60.1.70938 snapshot and real-game validation remain pending.
+
 ## Unreleased — v0.1.0 development candidate
 
 - Extensible localized profession registry and relation-level catalog evidence.
