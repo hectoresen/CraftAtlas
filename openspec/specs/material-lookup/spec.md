@@ -1,5 +1,9 @@
 # Material lookup
 
+## Purpose
+
+Defines the implemented, offline numeric itemID lookup of source-backed consuming professions, independent of localized names or player skills. Live-server catalog completeness is a separate acceptance concern.
+
 ## Requirements
 
 ### Requirement: Identify materials using numeric item IDs
