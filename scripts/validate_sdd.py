@@ -207,8 +207,13 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 x.endswith("/**") and p.startswith(x[:-2]) for x in allowed))
                 for p in outside):
             errors.append("Changed files outside approved sdd-scope.json")
+        # This one owner-approved governance change may update protected agent
+        # instructions, but only inside its own explicitly scoped implementation.
+        # Every other implementation continues to reject AGENTS.md unconditionally.
+        special_agent_change = change == "mandatory-multiagent-documentation-gate"
         if any((p.startswith(".github/") and not (is_explicit_workflow_path(p) and p in allowed))
-               or p == "AGENTS.md" for p in outside):
+               or (p == "AGENTS.md" and not (special_agent_change and p in allowed))
+               for p in outside):
             errors.append("Governance changes require a separate spec proposal")
     return errors
 
