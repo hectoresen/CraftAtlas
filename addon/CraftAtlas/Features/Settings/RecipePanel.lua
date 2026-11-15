@@ -111,14 +111,17 @@ end
 function ns.InitRecipePanel(parent, availableHeight)
     if state.panel then return end
     local heading = font(parent, "GameFontNormal")
-    heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 17, -152)
+    local compact = availableHeight < 300
+    local headingY = compact and -126 or -152
+    local listY = compact and -149 or -175
+    heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 17, headingY)
     state.heading = heading
     local count = font(parent, "GameFontDisableSmall")
-    count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -18, -153)
+    count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -18, headingY - 1)
     state.count = count
 
     local list = CreateFrame("Frame", nil, parent)
-    list:SetPoint("TOPLEFT", parent, "TOPLEFT", 14, -175)
+    list:SetPoint("TOPLEFT", parent, "TOPLEFT", 14, listY)
     list:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 10)
     state.panel = list
     local empty = font(list, "GameFontDisableSmall")
@@ -128,8 +131,8 @@ function ns.InitRecipePanel(parent, availableHeight)
     state.empty = empty
 
     -- Recycled rows keep frame allocation independent of catalog size.
-    state.visibleRows = math.max(2, math.min(7,
-        math.floor((availableHeight - 188) / ROW_HEIGHT)))
+    state.visibleRows = math.max(1, math.min(7,
+        math.floor((availableHeight + listY - 10) / ROW_HEIGHT)))
     for index = 1, state.visibleRows do
         local row = CreateFrame("Frame", nil, list)
         row:SetHeight(ROW_HEIGHT)
