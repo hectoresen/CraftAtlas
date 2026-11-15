@@ -2,6 +2,13 @@
 
 > Planning only. No implementation before the owner merges the proposal PR and authorizes work.
 
+## 0. Synchronize and archive the accepted first-playable change
+- [ ] 0.1 Confirm PR #4 was owner-merged, record the user's in-game confirmation that /craftatlas and profession annotations work.
+- [ ] 0.2 Explicitly record the **v0.0.1 exception**: six starter materials instead of the original 30, with the catalog expansion transferred to this new approved change. Do not claim the old 30-item acceptance criterion passed.
+- [ ] 0.3 Synchronize the accepted v0.0.1 capability deltas to canonical openspec/specs/ using official OpenSpec sync semantics.
+- [ ] 0.4 Archive openspec/changes/add-first-playable-material-tooltips/ to the supported OpenSpec archive location, preserving proposal, design, tasks, specs, rights and audit history.
+- [ ] 0.5 Execute official OpenSpec validation and repository SDD compliance; archive in a separate reviewable PR authorized by this spec, never directly on main.
+
 ## 1. Reconcile v0.0.1 and client baseline
 - [ ] 1.1 Confirm the old implementation PR #4 is merged or identify explicit outstanding gates; do not mark old spec complete solely from settings working.
 - [ ] 1.2 Record active Forever build and available profession registry/crafting evidence APIs and tooltip sources.
