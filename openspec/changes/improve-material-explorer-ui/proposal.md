@@ -20,7 +20,7 @@ CraftAtlas 0.1.0-dev displays material-consuming professions in tooltips, but it
 
 ## Out of scope
 - Recipe lookup, recipe quantities, production chains, shopping lists, favorites, auction prices, external data services, live-server catalog completeness or broad new material mappings.
-- Changes to the SDD validator, governance lifecycle, historical OpenSpec status, AGENTS.md, or openspec/specs/.
+- Broad changes to the SDD validator, governance lifecycle, historical OpenSpec status or openspec/specs/. A **one-time, owner-authorized exception for this PR #14** is included to allow spec + runtime code in the same PR while keeping all other PRs' two-phase rules unchanged.
 - Invented or redistributed third-party fonts/textures when built-in client resources suffice.
 
 ## Compatibility and data caveats
@@ -34,4 +34,4 @@ The catalog contains 593 distinct itemIDs and known profession relations sourced
 - Rollback: restore previous settings-only shell and placeholder UI while retaining existing tooltip, saved preferences and minimap behavior.
 
 ## Approval gate
-This PR contains specification artifacts only. Implementation requires a separate owner-approved PR that cites this merged proposal. @hectoresen alone decides merge/release.
+@hectoresen explicitly authorized spec and functionality together in existing PR #14 on 2026-11-15. This is a **single-PR combined proposal plus implementation** exception, narrowly restricted to PR #14 and change ID `improve-material-explorer-ui` by the SDD validator. The user also approved the V3 UX layout. Runtime behavior still requires code review, automated checks and real Forever client smoke tests before any release. Only @hectoresen merges or releases.
