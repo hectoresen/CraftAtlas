@@ -131,7 +131,8 @@ def validate_recipe_uses(recipe_data, materials, registry):
             errors.append(f"recipe use {i}: invalid output or kind")
         if kind == "item" and output == 0 or kind != "item" and output != 0:
             errors.append(f"recipe use {i}: inconsistent output status")
-        key = (item, spell, prof)
+        # Match the canonical (itemID, professionKey, recipeSpellID) relation key.
+        key = (item, prof, spell)
         if key in seen:
             errors.append(f"recipe use {i}: duplicate relationship")
         seen.add(key)
