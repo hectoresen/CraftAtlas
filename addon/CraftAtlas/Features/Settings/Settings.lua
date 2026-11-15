@@ -17,7 +17,7 @@ local viewState = {
 }
 local history = {}
 local switchView
-local ROW_HEIGHT = 39
+local ROW_HEIGHT = 36
 local VISIBLE_ROWS = 6
 local languageOptions = {"auto", "esES", "enUS"}
 local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
@@ -231,13 +231,13 @@ local function createRows(left)
             updateRows()
             showDetail()
         end)
-        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -96 - (index - 1) * ROW_HEIGHT)
-        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -96 - (index - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -76 - (index - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -76 - (index - 1) * ROW_HEIGHT)
         ui.rows[index] = row
     end
 
     local scrollbar = CreateFrame("Slider", nil, left, "UIPanelScrollBarTemplate")
-    scrollbar:SetPoint("TOPRIGHT", left, "TOPRIGHT", -3, -96)
+    scrollbar:SetPoint("TOPRIGHT", left, "TOPRIGHT", -3, -76)
     scrollbar:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -3, 18)
     scrollbar:SetWidth(16)
     scrollbar:SetMinMaxValues(0, 0)
@@ -289,7 +289,10 @@ local function createPanel()
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
     local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
     panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
-    VISIBLE_ROWS = math.max(3, math.min(8, math.floor((panel:GetHeight() - 285) / ROW_HEIGHT)))
+    -- The left pane begins 137 px from the top and ends 30 px above the bottom.
+    -- Leave 76 px for its filter/header and 16 px for status; use the rest for rows.
+    VISIBLE_ROWS = math.max(2, math.min(9,
+        math.floor((panel:GetHeight() - 167 - 76 - 16) / ROW_HEIGHT)))
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
@@ -357,7 +360,7 @@ local function createPanel()
     recipesTab:SetSize(130, 27)
     recipesTab:SetScript("OnClick", function() switchView("recipes") end)
     local back = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    back:SetPoint("RIGHT", panel, "RIGHT", -22, -114)
+    back:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -22, -101)
     back:SetSize(76, 26)
     back:SetScript("OnClick", function()
         local entry = table.remove(history)
@@ -414,6 +417,8 @@ local function createPanel()
     professions:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -115)
     professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
     professions:SetJustifyH("LEFT")
+    professions:SetWordWrap(false)
+    professions:SetHeight(18)
     ui.detailProfessions = professions
     ns.InitRecipePanel(right, panel:GetHeight() - 167)
     ns.InitRecipeDetail(right)
@@ -450,10 +455,12 @@ local function showActiveDetail()
     if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
     ns.ShowRecipeDetailView(not material)
     ui.materialsTab:SetText(ns.L("MATERIALS_HEADING"))
-    ui.recipesTab:SetText(ns.L("RECIPES_HEADING"))
+    ui.recipesTab:SetText(ns.L("CRAFTABLES_HEADING"))
     ui.back:SetText(ns.L("BACK"))
     ui.back:SetEnabled(#history > 0)
-    ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "RECIPE_SEARCH_PLACEHOLDER"))
+    if #history > 0 then ui.back:Show() else ui.back:Hide() end
+    ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
+    ui.resultsHeading:SetText(ns.L(material and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
 end
 
 switchView = function(target, direct, fromBack)
@@ -522,8 +529,10 @@ function ns.RefreshSettings()
     if not panel then return end
     ui.title:SetText(ns.L("TITLE"))
     showActiveDetail()
-    ui.searchHint:SetText(ns.L("SEARCH_PLACEHOLDER"))
-    ui.resultsHeading:SetText(ns.L("MATERIALS_HEADING"))
+    ui.searchHint:SetText(ns.L(currentView == "materials"
+        and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
+    ui.resultsHeading:SetText(ns.L(currentView == "materials"
+        and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
     ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
