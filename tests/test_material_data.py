@@ -70,6 +70,15 @@ class MaterialsTests(unittest.TestCase):
         self.assertEqual(len(self.recipes["uses"]), 8455)
         self.assertEqual(len({row[0] for row in self.recipes["uses"]}), 593)
 
+    def test_recipe_relationship_validator_rejects_missing_source_relation(self):
+        clone = dict(self.recipes)
+        clone["uses"] = [list(row) for row in self.recipes["uses"]]
+        clone["uses"].pop()
+        self.assertEqual(
+            g.validate_recipe_uses(clone, self.data, self.registry),
+            ["missing 1 recipe source reagent relationships"],
+        )
+
     def test_recipe_index_is_deterministic(self):
         expected = g.generate_recipe_uses(self.recipes, self.registry)
         self.assertEqual(g.RECIPE_TARGET.read_text(encoding="utf-8"), expected)
