@@ -4,7 +4,6 @@ local ui = {}
 local searchQuery = ""
 local selectedID
 local selectedProfession = ""
-local selectedLanguage
 local results = {}
 local unresolved = 0
 local scrollOffset = 0
@@ -101,14 +100,19 @@ local function updateRows()
         if count > VISIBLE_ROWS then ui.scrollbar:Show() else ui.scrollbar:Hide() end
     end
     ui.count:SetText(string.format(ns.L("RESULT_COUNT"), count))
-    if unresolved > 0 and searchQuery ~= "" then
-        ui.incomplete:SetText(ns.L("NAME_RESULTS_INCOMPLETE"))
+    if unresolved > 0 then
+        local loaded, pending = ns.GetMaterialLoadProgress()
+        if pending > 0 or loaded < 1 then
+            ui.incomplete:SetText(string.format(ns.L("LOADING_ITEMS"), loaded))
+        else
+            ui.incomplete:SetText(ns.L("NAME_RESULTS_INCOMPLETE"))
+        end
         ui.incomplete:Show()
     else
         ui.incomplete:Hide()
     end
     if count == 0 then
-        ui.empty:SetText(ns.L("NO_RESULTS"))
+        ui.empty:SetText(unresolved > 0 and ns.L("LOADING_ITEM_NAMES") or ns.L("NO_RESULTS"))
         ui.empty:Show()
     else
         ui.empty:Hide()
@@ -116,8 +120,14 @@ local function updateRows()
 end
 
 local function refreshResults(resetOffset)
+    local labels = {}
+    for _, key in ipairs(ns.professionOrder or {}) do
+        labels[key] = ns.ProfessionLabel(key)
+    end
+    local numberQuery = string.match(searchQuery, "^%d+$") ~= nil and searchQuery ~= ""
     results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
-        searchQuery, selectedProfession, ns.GetKnownMaterialNames())
+        searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
+        not numberQuery, labels)
     local index = containsSelected()
     if not index then
         selectedID = results[1]
@@ -201,6 +211,22 @@ local function createRows(left)
         row:SetHeight(ROW_HEIGHT)
         row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -96 - (index - 1) * ROW_HEIGHT)
         row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -96 - (index - 1) * ROW_HEIGHT)
+        local surface = row:CreateTexture(nil, "BACKGROUND")
+        surface:SetAllPoints()
+        if index % 2 == 0 then
+            surface:SetColorTexture(0.16, 0.13, 0.10, 0.68)
+        else
+            surface:SetColorTexture(0.10, 0.09, 0.07, 0.75)
+        end
+        local separator = row:CreateTexture(nil, "BORDER")
+        separator:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 0)
+        separator:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 0)
+        separator:SetHeight(1)
+        separator:SetColorTexture(0.49, 0.40, 0.26, 0.80)
+        local hover = row:CreateTexture(nil, "BACKGROUND")
+        hover:SetAllPoints()
+        hover:SetColorTexture(0.32, 0.27, 0.17, 0.55)
+        row:SetHighlightTexture(hover)
         local highlight = row:CreateTexture(nil, "BACKGROUND")
         highlight:SetAllPoints()
         highlight:SetColorTexture(0.45, 0.33, 0.10, 0.65)
@@ -394,6 +420,7 @@ local function createPanel()
 
     ui.itemListener = CreateFrame("Frame", nil, panel)
     ui.itemListener:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+    ui.itemListener:RegisterEvent("ITEM_DATA_LOAD_RESULT")
     ui.itemListener:SetScript("OnEvent", function(_, _, itemID, success)
         if ns.UpdateMaterialInfo(itemID, success) then
             refreshResults(false)
@@ -405,6 +432,10 @@ local function createPanel()
         ui.search:ClearFocus()
     end)
     return panel
+end
+
+function ns.RefreshMaterialResults()
+    if panel and panel:IsShown() then refreshResults(false) end
 end
 
 function ns.RefreshSettings()
