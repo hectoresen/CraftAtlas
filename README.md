@@ -54,3 +54,8 @@ python3 scripts/build_materials.py --check
 ```
 
 Further information: [Roadmap](docs/ROADMAP.md) · [Installation](docs/INSTALLATION.md) · [Changelog](CHANGELOG.md) · [Agent workflow](docs/AGENT_WORKFLOW.md) · [SDD compliance](docs/SDD_COMPLIANCE.md). The project is independent of Blizzard and Forever operators.
+
+
+## Material explorer (PR #14 candidate, not merged)
+
+A native-frame material explorer with instant search by cached item name or numeric itemID, profession filtering, a scrollable list, and a selected material detail view is proposed and implemented on [PR #14](https://github.com/hectoresen/CraftAtlas/pull/14). It reads the **existing local catalog** and shows known consuming professions only; no recipe/quantity lookup is included. `/craftatlas 2447` is a safe itemID deep-link alternative. Client-cache misses show item IDs and partial-result warnings. **Not game-verified; main still has the visual-only search until the owner merges the PR.** Clickable tooltips are pending verified Forever API support.
