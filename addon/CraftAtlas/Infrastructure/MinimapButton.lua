@@ -4,7 +4,9 @@ local button
 local iconTexture = "Interface\\Icons\\Trade_BlackSmithing"
 local borderTexture = "Interface\\Minimap\\MiniMap-TrackingBorder"
 local unavailableCursor = "Interface\\Cursor\\UI-Cursor-NoMop"
-local radiusPadding = 8
+local buttonSize = 36
+local iconSize = 22
+local borderSize = 54
 
 local function getAngleRadians(angle)
     return math.rad(tonumber(angle) or 45)
@@ -15,7 +17,9 @@ local function positionButton()
         return
     end
 
-    local radius = (Minimap:GetWidth() / 2) + radiusPadding
+    -- Put the button's center on the minimap edge. The native border extends
+    -- evenly on both sides of that edge instead of floating outside it.
+    local radius = Minimap:GetWidth() / 2
     local radians = getAngleRadians(ns.GetMinimapAngle and ns.GetMinimapAngle() or 45)
     button:ClearAllPoints()
     button:SetPoint("CENTER", Minimap, "CENTER",
@@ -63,7 +67,7 @@ local function createButton()
     end
 
     button = CreateFrame("Button", "CraftAtlasMinimapButton", Minimap)
-    button:SetSize(32, 32)
+    button:SetSize(buttonSize, buttonSize)
     button:SetFrameStrata("MEDIUM")
     button:SetMovable(true)
     button:SetClampedToScreen(true)
@@ -73,13 +77,14 @@ local function createButton()
 
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetTexture(iconTexture)
-    icon:SetSize(20, 20)
+    icon:SetSize(iconSize, iconSize)
     icon:SetPoint("CENTER")
     button.icon = icon
 
     local border = button:CreateTexture(nil, "OVERLAY")
     border:SetTexture(borderTexture)
-    border:SetAllPoints()
+    border:SetSize(borderSize, borderSize)
+    border:SetPoint("CENTER")
     button.border = border
 
     button:SetScript("OnClick", function(self, mouseButton)

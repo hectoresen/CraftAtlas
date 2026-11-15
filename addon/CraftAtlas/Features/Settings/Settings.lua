@@ -69,17 +69,24 @@ local function createPanel()
     end
 
     local header = CreateFrame("Frame", nil, panel)
-    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -40)
-    header:SetSize(536, 42)
+    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
+    header:SetSize(536, 52)
+    header:SetFrameLevel(panel:GetFrameLevel() + 1)
     local headerBackground = header:CreateTexture(nil, "BACKGROUND")
     headerBackground:SetAllPoints()
-    headerBackground:SetColorTexture(0.06, 0.06, 0.06, 0.72)
+    headerBackground:SetColorTexture(0.12, 0.10, 0.07, 0.98)
+    local headerDivider = header:CreateTexture(nil, "ARTWORK")
+    headerDivider:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 0, 0)
+    headerDivider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 0, 0)
+    headerDivider:SetHeight(2)
+    headerDivider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
     elements.header = header
 
     elements.search = createSearchAffordance(header)
 
     elements.title = header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     elements.title:SetPoint("CENTER", header, "CENTER", 0, 0)
+    elements.title:SetTextColor(1.0, 0.82, 0.30)
 
     if not panel.CloseButton then
         local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
@@ -87,7 +94,7 @@ local function createPanel()
     end
 
     local selector = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
-    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -8, -8)
+    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -8, -13)
     selector:SetSize(118, 26)
     elements.selector = selector
 
