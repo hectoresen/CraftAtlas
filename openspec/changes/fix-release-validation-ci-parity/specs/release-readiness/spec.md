@@ -1,6 +1,6 @@
 # Release-readiness specification
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: consistent recipe-use relationship validation
 The system SHALL compare recipe-use records and source catalog relations using one canonical tuple ordering. It SHALL detect missing relationships without reporting existing relationships as missing.
