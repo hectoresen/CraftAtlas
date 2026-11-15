@@ -13,6 +13,7 @@ function ns.InitPreferences()
     end
     CraftAtlasDB.version = 1
     CraftAtlasDB.language = ns.NormalizeLanguage(CraftAtlasDB.language)
+    CraftAtlasDB.minimapAngle = tonumber(CraftAtlasDB.minimapAngle) or 45
     ns.state.preferences = CraftAtlasDB
     return CraftAtlasDB
 end
@@ -30,6 +31,18 @@ function ns.SetLanguage(value)
     if ns.RefreshSettings then
         ns.RefreshSettings()
     end
+end
+
+function ns.GetMinimapAngle()
+    local preferences = ns.state.preferences
+    return preferences and tonumber(preferences.minimapAngle) or 45
+end
+
+function ns.SetMinimapAngle(value)
+    if not ns.state.preferences then
+        ns.InitPreferences()
+    end
+    ns.state.preferences.minimapAngle = tonumber(value) or 45
 end
 
 function ns.GetClientLocale()
