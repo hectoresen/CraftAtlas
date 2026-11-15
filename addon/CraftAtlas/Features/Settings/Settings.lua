@@ -291,8 +291,7 @@ local function createPanel()
     panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
     -- The left pane begins 137 px from the top and ends 30 px above the bottom.
     -- Leave 76 px for its filter/header and 16 px for status; use the rest for rows.
-    VISIBLE_ROWS = math.max(2, math.min(9,
-        math.floor((panel:GetHeight() - 167 - 76 - 16) / ROW_HEIGHT)))
+    VISIBLE_ROWS = ns.ExplorerVisibleRowCount(panel:GetHeight(), ROW_HEIGHT)
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
