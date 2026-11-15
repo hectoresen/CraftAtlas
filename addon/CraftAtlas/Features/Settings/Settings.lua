@@ -9,7 +9,7 @@ local results = {}
 local unresolved = 0
 local scrollOffset = 0
 local ROW_HEIGHT = 39
-local VISIBLE_ROWS = 8
+local VISIBLE_ROWS = 6
 local languageOptions = {"auto", "esES", "enUS"}
 local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
 
@@ -263,6 +263,7 @@ local function createPanel()
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
     local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
     panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
+    VISIBLE_ROWS = math.max(3, math.min(8, math.floor((panel:GetHeight() - 248) / ROW_HEIGHT)))
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
@@ -296,7 +297,7 @@ local function createPanel()
 
     local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
     search:SetPoint("LEFT", header, "LEFT", 13, 0)
-    search:SetSize(210, 28)
+    search:SetSize(math.max(110, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
     search:SetAutoFocus(false)
     search:SetMaxLetters(120)
     search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
@@ -308,6 +309,17 @@ local function createPanel()
         end
     end)
     ui.search = search
+    local hint = font(header, "GameFontDisableSmall")
+    hint:SetPoint("LEFT", search, "LEFT", 7, 0)
+    hint:SetText(ns.L("SEARCH_PLACEHOLDER"))
+    ui.searchHint = hint
+    search:HookScript("OnTextChanged", function(self)
+        if self:GetText() == "" then hint:Show() else hint:Hide() end
+    end)
+    search:HookScript("OnEditFocusGained", function() hint:Hide() end)
+    search:HookScript("OnEditFocusLost", function()
+        if search:GetText() == "" then hint:Show() end
+    end)
     local clear = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
     clear:SetPoint("LEFT", search, "RIGHT", 4, 0)
     clear:SetSize(28, 28)
@@ -398,6 +410,7 @@ end
 function ns.RefreshSettings()
     if not panel then return end
     ui.title:SetText(ns.L("TITLE"))
+    ui.searchHint:SetText(ns.L("SEARCH_PLACEHOLDER"))
     ui.resultsHeading:SetText(ns.L("MATERIALS_HEADING"))
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
