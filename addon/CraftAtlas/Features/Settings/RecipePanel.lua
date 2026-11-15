@@ -154,7 +154,8 @@ function ns.InitRecipePanel(parent, availableHeight)
         row.recipeButton:SetPoint("TOPRIGHT", row, "TOPRIGHT", -48, -1)
         row.recipeButton:SetHeight(21)
         row.recipeButton:SetNormalFontObject("GameFontHighlightSmall")
-        row.recipeButton:GetFontString():SetJustifyH("LEFT")
+        local recipeText = row.recipeButton:GetFontString()
+        if recipeText then recipeText:SetJustifyH("LEFT") end
         row.recipeButton:SetScript("OnEnter", function()
             if row.recipeUse then ns.ShowRecipeTooltip(row.recipeButton, row.recipeUse) end
         end)
@@ -168,7 +169,8 @@ function ns.InitRecipePanel(parent, availableHeight)
         row.outputButton:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -23)
         row.outputButton:SetHeight(18)
         row.outputButton:SetNormalFontObject("GameFontDisableSmall")
-        row.outputButton:GetFontString():SetJustifyH("LEFT")
+        local outputText = row.outputButton:GetFontString()
+        if outputText then outputText:SetJustifyH("LEFT") end
         row.outputButton:SetScript("OnEnter", function()
             if row.outputItemID then
                 ns.ShowOutputTooltip(row.outputButton, row.outputItemID)
