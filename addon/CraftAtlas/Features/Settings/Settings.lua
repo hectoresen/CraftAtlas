@@ -17,7 +17,7 @@ local viewState = {
 }
 local history = {}
 local switchView
-local ROW_HEIGHT = 36
+local ROW_HEIGHT = 34
 local VISIBLE_ROWS = 6
 local languageOptions = {"auto", "esES", "enUS"}
 local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
