@@ -47,6 +47,31 @@ Use the REAL number of the earlier merged spec PR. It must target main, have bee
 7. The official OpenSpec CLI runs: openspec validate --all --strict --no-interactive. It checks OpenSpec syntax/requirements; it does not prove the developer followed the process.
 8. CI fails on any policy failure. The owner still reviews the code's semantic match with SHALL scenarios, tests and actual Forever client compatibility.
 
+## Owner-approved lifecycle reconciliation (spec PR #13)
+
+This is a **separate, narrowly gated phase**, not a general exemption and not permission to bypass the default two-PR specification → implementation process.
+
+**Stage B (governance implementation):** spec-only PR #13 was merged by @hectoresen on 2026-11-15. The corresponding implementation PR adds the lifecycle validator and regression tests without editing OpenSpec configuration or historical accepted specifications.
+
+**Stage C (reconciliation PR after Stage B is merged):** use exact PR metadata on separate lines:
+
+~~~text
+OpenSpec-Change: reconcile-openspec-lifecycle-and-status
+OpenSpec-Phase: lifecycle
+OpenSpec-Approval-PR: 13
+~~~
+
+In lifecycle mode, the CI checks:
+- The exact lifecycle change ID and spec approval PR **#13**, owner-merged before creation of the lifecycle PR, with no other change ID permitted.
+- An immutable hardcoded allowlist: \`openspec/config.yaml\`, \`openspec/README.md\`, \`AGENTS.md\`, \`docs/OPENSPEC_STATUS.md\`, \`docs/AGENT_WORKFLOW.md\`, \`docs/ROADMAP.md\`, \`docs/TESTING.md\`, \`README.md\`, \`CHANGELOG.md\`, supported canonical \`openspec/specs/<capability>/spec.md\` paths and selected historical \`tasks.md\` files.
+- Canonical capability names must exist in the already approved deltas for the three legacy changes covered by PR #13; new gameplay requirements cannot enter through lifecycle sync.
+- Archived legacy files must match an approved original file byte-for-byte and be supported by an evidence ledger. Deleting an original requires a matching dated archive copy in the same PR. Historical proposals/designs/specs/scopes cannot be rewritten under the lifecycle shortcut.
+- \`openspec/config.yaml\` must keep \`schema: spec-driven\` and must no longer claim the addon is a non-playable v0.0.0 scaffold.
+
+**Context drift protection:** after the approved repair is merged, each subsequent SDD PR validation checks the current \`openspec/config.yaml\` against its base. Reintroducing the v0.0.0 non-playable statement, removing \`schema: spec-driven\`, or losing the \`README.md\` current-state pointer fails. Preexisting stale main context is tolerated **only until** the lifecycle reconciliation so Stage B is not blocked by legacy debt.
+
+No automated check can prove semantic parity between all source code and current prose. Agents must still invoke \`skills/documentation-sync/SKILL.md\` before functional PRs, inspect \`README.md\` and report game-client evidence separately. Archiving incomplete requirements or claiming full live-realm coverage requires explicit owner acceptance and cannot be inferred from the addon merely working.
+
 ## Owner-authorized single-PR exception (PR #14 only)
 
 On 2026-11-15, @hectoresen explicitly approved implementing the V3 visual material explorer and its behavior in the existing specification PR #14. `OpenSpec-Phase: combined` is accepted **only** when the PR number is 14 and the change ID is `improve-material-explorer-ui`. The PR must introduce its own proposal, design, delta specs, tasks and bounded scope, and contain real non-spec implementation changes within that scope. The only additional governance edits permitted here are the validator, its tests, AGENTS.md and this policy document. Any GitHub workflow change, unrelated change ID, different PR number or unrelated file still fails. This exception does not apply to future proposals; the two-PR contract remains in force otherwise.
