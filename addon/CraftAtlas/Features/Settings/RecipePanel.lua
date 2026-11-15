@@ -1,14 +1,13 @@
 local _, ns = ...
 
+local PAGE_SIZE = 6
 local state = {
     selectedID = nil,
-    offset = 0,
-    rows = {},
-    visibleRows = 4,
-    entries = {},
+    page = 1,
+    uses = {},
+    cards = {},
+    columns = 3,
 }
-
-local ROW_HEIGHT = 43
 
 local function font(parent, style)
     return parent:CreateFontString(nil, "OVERLAY", style)
@@ -18,192 +17,199 @@ local function clearHover()
     if ns.HideRecipeTooltip then ns.HideRecipeTooltip() end
 end
 
-local function displayRecipeName(use, info)
+local function cardTitle(use, info)
+    if use.outputItemID then
+        if info.outputName and info.outputName ~= "" then return info.outputName end
+        return ns.L("ITEM_ID") .. " " .. tostring(use.outputItemID)
+    end
     if info.spellName and info.spellName ~= "" then return info.spellName end
-    if info.outputName and info.outputName ~= "" then return info.outputName end
     return ns.L("RECIPE_ID") .. " " .. tostring(use.spellID)
 end
 
-local function drawRows()
-    if not state.panel then return end
-    local maxOffset = math.max(0, #state.entries - state.visibleRows)
-    state.offset = math.min(state.offset, maxOffset)
-    for i, row in ipairs(state.rows) do
-        local entry = state.entries[state.offset + i]
-        row.recipeUse = nil
-        row.outputItemID = nil
-        row.icon:Hide()
-        row.outputIcon:Hide()
-        row.recipeButton:Hide()
-        row.outputButton:Hide()
-        row.heading:Hide()
-        row:Hide()
-        if entry then
-            row:Show()
-            if entry.kind == "heading" then
-                row.heading:SetText(ns.ProfessionLabel(entry.professionKey))
-                row.heading:Show()
-            else
-                local use = entry.use
-                local info = ns.GetRecipePresentation(use)
-                row.recipeUse = use
-                row.recipeButton:SetText(displayRecipeName(use, info))
-                row.recipeButton:Show()
-                if info.spellIcon then
-                    row.icon:SetTexture(info.spellIcon)
-                    row.icon:Show()
-                end
-                row.quantity:SetText(string.format(ns.L("RECIPE_QUANTITY"), use.quantity))
-                row.quantity:Show()
-                if use.outputItemID then
-                    row.outputItemID = use.outputItemID
-                    row.outputButton:SetText(info.outputName or (ns.L("ITEM_ID") .. " " .. use.outputItemID))
-                    if info.outputIcon then row.outputIcon:SetTexture(info.outputIcon) row.outputIcon:Show() end
-                    row.outputButton:Show()
-                elseif use.kind == "enchant" then
-                    row.outputButton:SetText(ns.L("RECIPE_ENCHANT_ACTION"))
-                    row.outputButton:Show()
-                else
-                    row.outputButton:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN"))
-                    row.outputButton:Show()
-                end
-            end
+local function layoutCards()
+    if not state.grid then return end
+    local width = math.max(180, state.grid:GetWidth())
+    local height = math.max(135, state.grid:GetHeight())
+    local columns = width < 330 and 2 or 3
+    local rows = PAGE_SIZE / columns
+    local gap = 6
+    local cardWidth = math.floor((width - (columns - 1) * gap) / columns)
+    local cardHeight = math.floor((height - (rows - 1) * gap) / rows)
+    state.columns = columns
+
+    for index, card in ipairs(state.cards) do
+        local column = (index - 1) % columns
+        local row = math.floor((index - 1) / columns)
+        card:ClearAllPoints()
+        card:SetPoint("TOPLEFT", state.grid, "TOPLEFT",
+            column * (cardWidth + gap), -row * (cardHeight + gap))
+        card:SetSize(cardWidth, cardHeight)
+
+        card.icon:ClearAllPoints()
+        local iconSize = math.min(34, math.max(18, math.floor(cardHeight * 0.37)))
+        card.icon:SetSize(iconSize, iconSize)
+        card.icon:SetPoint("TOP", card, "TOP", 0, -5)
+
+        card.name:ClearAllPoints()
+        card.name:SetPoint("TOPLEFT", card, "TOPLEFT", 4, -(iconSize + 8))
+        card.name:SetPoint("TOPRIGHT", card, "TOPRIGHT", -4, -(iconSize + 8))
+        card.name:SetHeight(math.max(14, math.min(27, cardHeight - iconSize - 27)))
+        card.meta:ClearAllPoints()
+        card.meta:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 3, 5)
+        card.meta:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -3, 5)
+        card.meta:SetHeight(13)
+    end
+end
+
+local function renderPage()
+    if not state.grid then return end
+    local visible, page, pages, total =
+        ns.PaginateRecipeUses(state.uses, state.page, PAGE_SIZE)
+    state.page = page
+    clearHover()
+
+    for index, card in ipairs(state.cards) do
+        local use = visible[index]
+        card.use = use
+        if use then
+            local info = ns.GetRecipePresentation(use)
+            card.name:SetText(cardTitle(use, info))
+            card.meta:SetText(ns.ProfessionLabel(use.professionKey) ..
+                "  " .. string.format(ns.L("RECIPE_QUANTITY"), use.quantity))
+            card.icon:SetTexture(
+                (use.outputItemID and info.outputIcon)
+                or info.spellIcon
+                or "Interface\\Icons\\INV_Misc_QuestionMark")
+            card:Show()
+        else
+            card.name:SetText("")
+            card.meta:SetText("")
+            card.icon:SetTexture(nil)
+            card:Hide()
         end
-        if not entry or entry.kind == "heading" then row.quantity:Hide() end
     end
-    if state.scrollbar then
-        state.scrollbar:SetMinMaxValues(0, maxOffset)
-        state.scrollbar:SetValue(state.offset)
-        if maxOffset > 0 then state.scrollbar:Show() else state.scrollbar:Hide() end
-    end
-end
 
-local function setOffset(offset)
-    local nextOffset = math.max(0, math.min(math.floor(offset), #state.entries - state.visibleRows))
-    if nextOffset ~= state.offset then
-        state.offset = nextOffset
-        clearHover()
-        drawRows()
-    end
-end
-
-function ns.RefreshRecipePanel(itemID)
-    if not state.panel then return end
-    local changed = itemID ~= state.selectedID
-    if changed then
-        state.offset = 0
-        clearHover()
-    end
-    state.selectedID = itemID
-    local count
-    state.entries, count = ns.GetGroupedRecipeRows(itemID)
     state.heading:SetText(ns.L("RECIPES_HEADING"))
-    state.count:SetText(string.format(ns.L("RECIPE_USE_COUNT"), count))
-    if count == 0 then
+    state.count:SetText(string.format(ns.L("RECIPE_USE_COUNT"), total))
+    state.pageLabel:SetText(string.format(ns.L("RECIPE_PAGE_STATUS"), page, pages))
+    state.previous:SetText(ns.L("PREVIOUS_PAGE"))
+    state.next:SetText(ns.L("NEXT_PAGE"))
+    state.previous:SetEnabled(page > 1)
+    state.next:SetEnabled(page > 0 and page < pages)
+    if total == 0 then
         state.empty:SetText(ns.L("NO_VERIFIED_RECIPES"))
         state.empty:Show()
     else
         state.empty:Hide()
     end
-    drawRows()
+end
+
+function ns.RefreshRecipePanel(itemID)
+    if not state.grid then return end
+    if state.selectedID ~= itemID then
+        state.page = 1
+    end
+    state.selectedID = itemID
+    state.uses = ns.GetRecipeUses(itemID)
+    renderPage()
+end
+
+function ns.HideRecipePanelTooltip()
+    clearHover()
 end
 
 function ns.InitRecipePanel(parent, availableHeight)
-    if state.panel then return end
-    local heading = font(parent, "GameFontNormal")
-    local compact = availableHeight < 300
-    local headingY = compact and -126 or -152
-    local listY = compact and -149 or -175
-    heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 17, headingY)
-    state.heading = heading
-    local count = font(parent, "GameFontDisableSmall")
-    count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -18, headingY - 1)
-    state.count = count
+    if state.grid then return end
 
-    local list = CreateFrame("Frame", nil, parent)
-    list:SetPoint("TOPLEFT", parent, "TOPLEFT", 14, listY)
-    list:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 10)
-    state.panel = list
-    local empty = font(list, "GameFontDisableSmall")
-    empty:SetPoint("TOPLEFT", list, "TOPLEFT", 5, -8)
-    empty:SetWidth(260)
-    empty:SetJustifyH("LEFT")
-    state.empty = empty
+    local compact = availableHeight < 270
+    local headingY = compact and -119 or -142
+    local gridY = compact and -141 or -164
 
-    -- Recycled rows keep frame allocation independent of catalog size.
-    state.visibleRows = math.max(1, math.min(7,
-        math.floor((availableHeight + listY - 10) / ROW_HEIGHT)))
-    for index = 1, state.visibleRows do
-        local row = CreateFrame("Frame", nil, list)
-        row:SetHeight(ROW_HEIGHT)
-        row:SetPoint("TOPLEFT", list, "TOPLEFT", 3, -(index - 1) * ROW_HEIGHT)
-        row:SetPoint("TOPRIGHT", list, "TOPRIGHT", -21, -(index - 1) * ROW_HEIGHT)
-        local bg = row:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints()
-        bg:SetColorTexture(0.11, 0.09, 0.06, index % 2 == 0 and 0.65 or 0.43)
-        local rule = row:CreateTexture(nil, "BORDER")
-        rule:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
-        rule:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT")
-        rule:SetHeight(1)
-        rule:SetColorTexture(0.44, 0.36, 0.25, 0.7)
-        row.heading = font(row, "GameFontNormal")
-        row.heading:SetPoint("LEFT", row, "LEFT", 6, 0)
+    state.heading = font(parent, "GameFontNormal")
+    state.heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, headingY)
+    state.count = font(parent, "GameFontDisableSmall")
+    state.count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, headingY - 1)
 
-        row.icon = row:CreateTexture(nil, "ARTWORK")
-        row.icon:SetSize(22, 22)
-        row.icon:SetPoint("TOPLEFT", row, "TOPLEFT", 4, -3)
-        row.recipeButton = CreateFrame("Button", nil, row)
-        row.recipeButton:SetPoint("TOPLEFT", row, "TOPLEFT", 30, -1)
-        row.recipeButton:SetPoint("TOPRIGHT", row, "TOPRIGHT", -48, -1)
-        row.recipeButton:SetHeight(21)
-        row.recipeButton:SetNormalFontObject("GameFontHighlightSmall")
-        local recipeText = row.recipeButton:GetFontString()
-        if recipeText then recipeText:SetJustifyH("LEFT") end
-        row.recipeButton:SetScript("OnEnter", function()
-            if row.recipeUse then ns.ShowRecipeTooltip(row.recipeButton, row.recipeUse) end
-        end)
-        row.recipeButton:SetScript("OnLeave", clearHover)
+    local grid = CreateFrame("Frame", nil, parent)
+    grid:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, gridY)
+    grid:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -15, 39)
+    state.grid = grid
 
-        row.outputIcon = row:CreateTexture(nil, "ARTWORK")
-        row.outputIcon:SetSize(14, 14)
-        row.outputIcon:SetPoint("TOPLEFT", row, "TOPLEFT", 31, -24)
-        row.outputButton = CreateFrame("Button", nil, row)
-        row.outputButton:SetPoint("TOPLEFT", row, "TOPLEFT", 48, -23)
-        row.outputButton:SetPoint("TOPRIGHT", row, "TOPRIGHT", -4, -23)
-        row.outputButton:SetHeight(18)
-        row.outputButton:SetNormalFontObject("GameFontDisableSmall")
-        local outputText = row.outputButton:GetFontString()
-        if outputText then outputText:SetJustifyH("LEFT") end
-        row.outputButton:SetScript("OnEnter", function()
-            if row.outputItemID then
-                ns.ShowOutputTooltip(row.outputButton, row.outputItemID)
-            elseif row.recipeUse then
-                ns.ShowRecipeTooltip(row.outputButton, row.recipeUse)
+    state.empty = font(grid, "GameFontDisableSmall")
+    state.empty:SetPoint("TOPLEFT", grid, "TOPLEFT", 5, -8)
+    state.empty:SetPoint("TOPRIGHT", grid, "TOPRIGHT", -5, -8)
+    state.empty:SetJustifyH("LEFT")
+
+    for index = 1, PAGE_SIZE do
+        local card = CreateFrame("Button", nil, grid)
+        card:EnableMouse(true)
+
+        local surface = card:CreateTexture(nil, "BACKGROUND")
+        surface:SetAllPoints()
+        surface:SetColorTexture(0.12, 0.10, 0.07, 0.90)
+
+        local edge = card:CreateTexture(nil, "BORDER")
+        edge:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 0, 0)
+        edge:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", 0, 0)
+        edge:SetHeight(2)
+        edge:SetColorTexture(0.58, 0.45, 0.26, 0.9)
+        local hover = card:CreateTexture(nil, "BACKGROUND")
+        hover:SetAllPoints()
+        hover:SetColorTexture(0.39, 0.30, 0.15, 0.48)
+        card:SetHighlightTexture(hover)
+
+        card.icon = card:CreateTexture(nil, "ARTWORK")
+        card.name = font(card, "GameFontHighlightSmall")
+        card.name:SetJustifyH("CENTER")
+        card.name:SetWordWrap(false)
+        card.meta = font(card, "GameFontDisableSmall")
+        card.meta:SetJustifyH("CENTER")
+        card.meta:SetWordWrap(false)
+        card:SetScript("OnEnter", function(self)
+            local use = self.use
+            if not use then return end
+            if use.outputItemID then
+                if not ns.ShowOutputTooltip(self, use.outputItemID) then
+                    ns.ShowRecipeTooltip(self, use)
+                end
+            else
+                ns.ShowRecipeTooltip(self, use)
             end
         end)
-        row.outputButton:SetScript("OnLeave", clearHover)
-
-        row.quantity = font(row, "GameFontNormalSmall")
-        row.quantity:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
-        row:Hide()
-        state.rows[index] = row
+        card:SetScript("OnLeave", clearHover)
+        state.cards[index] = card
     end
 
-    local scrollbar = CreateFrame("Slider", nil, list, "UIPanelScrollBarTemplate")
-    scrollbar:SetPoint("TOPRIGHT", list, "TOPRIGHT", -2, -2)
-    scrollbar:SetPoint("BOTTOMRIGHT", list, "BOTTOMRIGHT", -2, 2)
-    scrollbar:SetWidth(15)
-    scrollbar:SetValueStep(1)
-    scrollbar:SetMinMaxValues(0, 0)
-    scrollbar:SetScript("OnValueChanged", function(_, value)
-        local offset = math.floor(value + 0.5)
-        if offset ~= state.offset then setOffset(offset) end
+    local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    previous:SetSize(92, 24)
+    previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
+    previous:SetScript("OnClick", function()
+        if state.page > 1 then
+            state.page = state.page - 1
+            renderPage()
+        end
     end)
-    state.scrollbar = scrollbar
-    list:EnableMouseWheel(true)
-    list:SetScript("OnMouseWheel", function(_, delta)
-        setOffset(state.offset - delta * 2)
+    state.previous = previous
+
+    local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    nextButton:SetSize(92, 24)
+    nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
+    nextButton:SetScript("OnClick", function()
+        local totalPages = math.ceil(#state.uses / PAGE_SIZE)
+        if state.page < totalPages then
+            state.page = state.page + 1
+            renderPage()
+        end
     end)
-    state.entries = {}
+    state.next = nextButton
+
+    state.pageLabel = font(parent, "GameFontHighlightSmall")
+    state.pageLabel:SetPoint("CENTER", parent, "BOTTOM", 0, 21)
+    state.pageLabel:SetJustifyH("CENTER")
+
+    grid:SetScript("OnSizeChanged", function()
+        layoutCards()
+    end)
+    layoutCards()
     ns.RefreshRecipePanel(nil)
 end
