@@ -45,6 +45,11 @@ where `TooltipDataProcessor.AddTooltipPostCall` is used provisionally;
 `Features/Settings/Settings.lua` implement language selection independently
 of lookup. The native settings panel uses the approved clean CraftAtlas
 header without decorative emblem and a single General category.
+`Infrastructure/MinimapButton.lua` provides the always-visible native minimap
+entry point and routes its primary click to the same `ns.OpenSettings` action
+as `/craftatlas`. The addon metadata and minimap button currently use the
+native `Trade_BlackSmithing` icon as a profession/crafting candidate; its
+availability and exact appearance remain subject to Forever client testing.
 
 The modern item-tooltip callback has a broad surface in Mainline-family WoW.
 **The spec currently guarantees only inventory/bag behavior**; extending

@@ -11,13 +11,39 @@ local function text(parent, font, x, y)
     return label
 end
 
+local function createSearchAffordance()
+    local search = CreateFrame("Button", nil, panel)
+    search:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -12)
+    search:SetSize(220, 30)
+    search:EnableMouse(true)
+    search:SetScript("OnEnter", function()
+        if ns.SetSearchUnavailableCursor then
+            ns.SetSearchUnavailableCursor()
+        end
+    end)
+    search:SetScript("OnLeave", function()
+        if ns.ClearSearchUnavailableCursor then
+            ns.ClearSearchUnavailableCursor()
+        end
+    end)
+
+    local background = search:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetColorTexture(0.06, 0.06, 0.06, 0.72)
+
+    local label = search:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("LEFT", search, "LEFT", 10, 0)
+    label:SetJustifyH("LEFT")
+    label:SetText(ns.L("SEARCH_PLACEHOLDER"))
+    search.label = label
+    return search
+end
+
 local function createPanel()
     if panel then
         return panel
     end
 
-    -- Native visual primitives. Template availability is checked at runtime
-    -- because Forever is a modern client with its own frame implementations.
     local ok, window = pcall(CreateFrame, "Frame", "CraftAtlasSettingsFrame",
         UIParent, "BasicFrameTemplateWithInset")
     if not ok or not window then
@@ -28,7 +54,7 @@ local function createPanel()
     end
 
     panel = window
-    panel:SetSize(440, 264)
+    panel:SetSize(560, 340)
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
@@ -39,41 +65,32 @@ local function createPanel()
     panel:Hide()
 
     if panel.TitleText then
-        elements.title = panel.TitleText
-    else
-        elements.title = text(panel, "GameFontNormalLarge", 16, -12)
+        panel.TitleText:Hide()
     end
+
+    local header = CreateFrame("Frame", nil, panel)
+    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -8)
+    header:SetSize(544, 40)
+    elements.header = header
+
+    elements.search = createSearchAffordance()
+
+    elements.title = header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    elements.title:SetPoint("CENTER", header, "CENTER", 0, 0)
 
     if not panel.CloseButton then
         local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
         close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", 0, 0)
-        close:SetScript("OnClick", function() panel:Hide() end)
     end
 
-    local sidebar = CreateFrame("Frame", nil, panel)
-    sidebar:SetPoint("TOPLEFT", 14, -43)
-    sidebar:SetSize(110, 175)
-    local divider = sidebar:CreateTexture(nil, "ARTWORK")
-    divider:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, 0)
-    divider:SetSize(1, 175)
-    divider:SetColorTexture(0.4, 0.35, 0.26, 0.55)
-    elements.navigation = text(sidebar, "GameFontNormal", 9, -12)
-
-    elements.heading = text(panel, "GameFontNormalLarge", 140, -53)
-    elements.language = text(panel, "GameFontNormal", 140, -99)
-    elements.help = text(panel, "GameFontHighlightSmall", 140, -168)
-    elements.help:SetWidth(265)
-    elements.help:SetJustifyH("LEFT")
-    elements.help:SetWordWrap(true)
-
-    local selector = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    selector:SetPoint("TOPLEFT", 140, -118)
-    selector:SetSize(224, 28)
+    local selector = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
+    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -4, -2)
+    selector:SetSize(128, 26)
     elements.selector = selector
 
     local menu = CreateFrame("Frame", nil, panel)
-    menu:SetPoint("TOPLEFT", selector, "BOTTOMLEFT", 0, -3)
-    menu:SetSize(224, 87)
+    menu:SetPoint("TOPRIGHT", selector, "BOTTOMRIGHT", 0, -3)
+    menu:SetSize(128, 87)
     menu:SetFrameLevel(selector:GetFrameLevel() + 2)
     local surface = menu:CreateTexture(nil, "BACKGROUND")
     surface:SetAllPoints()
@@ -89,7 +106,7 @@ local function createPanel()
     for index, value in ipairs(options) do
         local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
         choice:SetPoint("TOPLEFT", 2, -2 - (index - 1) * 28)
-        choice:SetSize(220, 27)
+        choice:SetSize(124, 27)
         choice:SetScript("OnClick", function()
             ns.SetLanguage(value)
             menu:Hide()
@@ -97,7 +114,23 @@ local function createPanel()
         elements.choices[value] = choice
     end
 
-    local version = text(panel, "GameFontDisableSmall", 18, -237)
+    local sidebar = CreateFrame("Frame", nil, panel)
+    sidebar:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -58)
+    sidebar:SetSize(120, 220)
+    local divider = sidebar:CreateTexture(nil, "ARTWORK")
+    divider:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, 0)
+    divider:SetSize(1, 220)
+    divider:SetColorTexture(0.4, 0.35, 0.26, 0.55)
+    elements.navigation = text(sidebar, "GameFontNormal", 9, -12)
+
+    elements.heading = text(panel, "GameFontNormalLarge", 160, -74)
+    elements.heading:SetWidth(360)
+    elements.heading:SetJustifyH("CENTER")
+    elements.comingSoon = text(panel, "GameFontHighlight", 160, -150)
+    elements.comingSoon:SetWidth(360)
+    elements.comingSoon:SetJustifyH("CENTER")
+
+    local version = text(panel, "GameFontDisableSmall", 18, -314)
     version:SetText("v" .. ns.version)
     panel:SetScript("OnHide", function() menu:Hide() end)
     return panel
@@ -106,10 +139,10 @@ end
 function ns.RefreshSettings()
     if not panel then return end
     elements.title:SetText(ns.L("TITLE"))
+    elements.search.label:SetText(ns.L("SEARCH_PLACEHOLDER"))
     elements.navigation:SetText(ns.L("GENERAL"))
     elements.heading:SetText(ns.L("GENERAL"))
-    elements.language:SetText(ns.L("LANGUAGE"))
-    elements.help:SetText(ns.L("LANGUAGE_HELP"))
+    elements.comingSoon:SetText(ns.L("COMING_SOON"))
 
     local selected = ns.GetLanguage()
     elements.selector:SetText(ns.L(labels[selected]))
