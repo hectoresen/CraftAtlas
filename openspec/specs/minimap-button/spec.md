@@ -1,5 +1,9 @@
 # Minimap button
 
+## Purpose
+
+Defines the native minimap entry point and its connection to the same CraftAtlas window opened by /craftatlas. The current view layout evolved in subsequent approved changes.
+
 ## Requirements
 
 ### Requirement: Default minimap entry point
