@@ -276,6 +276,26 @@ local function createRows(left)
     end)
 end
 
+-- WoW's standard close script can expect managed UIPanel registration.
+-- CraftAtlas is standalone: always hide its own frame explicitly.
+function ns.BindExplorerClose(window)
+    local close = window.CloseButton
+    if not close then
+        close = CreateFrame("Button", nil, window, "UIPanelCloseButton")
+        close:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, 0)
+        window.CloseButton = close
+    end
+    close:SetScript("OnClick", function()
+        window:Hide()
+    end)
+    if close.SetFrameLevel and window.GetFrameLevel then
+        close:SetFrameLevel(window:GetFrameLevel() + 30)
+    end
+    if close.Raise then close:Raise() end
+    close:Show()
+    return close
+end
+
 local function createPanel()
     if panel then return panel end
     local ok, window = pcall(CreateFrame, "Frame", "CraftAtlasSettingsFrame", UIParent, "BasicFrameTemplateWithInset")
@@ -297,10 +317,7 @@ local function createPanel()
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:Hide()
     if panel.TitleText then panel.TitleText:Hide() end
-    if not panel.CloseButton then
-        local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
-        close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", 0, 0)
-    end
+    -- Bind the close handler after creating overlays, so it wins the click area.
 
     local header = CreateFrame("Frame", nil, panel)
     header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
@@ -421,7 +438,9 @@ local function createPanel()
         ui.languageMenu:Hide()
         ui.professionMenu:Hide()
         ui.search:ClearFocus()
+        if ns.HideRecipePanelTooltip then ns.HideRecipePanelTooltip() end
     end)
+    ns.BindExplorerClose(panel)
     return panel
 end
 

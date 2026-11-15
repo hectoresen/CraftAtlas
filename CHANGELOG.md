@@ -60,3 +60,10 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - Constrained browse/search to catalog entries with verified input uses; kept crafted item 14044 because Leatherworking genuinely consumes it for recipe 19093.
 - Added a native grouped/scrollable recipe section in the material details; native item and spell/recipe tooltip support with compatibility fallbacks, no fabricated rarity.
 - Added Python provenance/consistency tests, pure Lua recipe lookup tests and game-tooltip mocks. Forever-client QA pending; no stable release claim.
+
+## Unreleased — native paginated recipe cards and close fix
+
+- Replaced duplicated vertical recipe/output rows with **six** compact native-WoW-style icon cards per page; show output icon/name when available, with recipe fallback and profession/required quantity.
+- Added localized Previous/Next controls, page index/total and disabled boundary states. Preserve page during item-info refresh; reset on selecting another material.
+- Rebound native top-right window X to explicitly hide CraftAtlas, raise the button above decorative frames, and clean up search/menu/tooltip state.
+- Added offline domain, native-frame and close-button regressions; **in-game QA remains pending**.

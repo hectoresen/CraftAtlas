@@ -20,3 +20,7 @@ The exact client build and per-origin tooltip test results have not been capture
 | 1.0.0 (planned) | Stable release after acceptance, precise compatibility declaration and audited coverage |
 
 Scope and dates are not commitments. Future behavior changes require reviewed OpenSpec deltas. Releases require owner approval, the applicable tests, updated documentation and release notes. The existing approved [v0.0.1 change](../openspec/changes/add-first-playable-material-tooltips/specs/) guarantees inventory/bag tooltips; other item origins must be separately evidenced before making support guarantees.
+
+### UI refinement after PR #21
+
+The approved follow-up implements six-card recipe pagination (three columns, two rows at typical resolutions), native hover information, and a working close button. It does not implement the separate searchable recipe catalog/tab; that remains a possible future change. Real Forever-client visual/close QA is pending.

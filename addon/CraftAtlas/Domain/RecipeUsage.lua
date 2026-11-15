@@ -47,3 +47,20 @@ function ns.GetGroupedRecipeRows(itemID)
     end
     return rows, #uses
 end
+
+-- Paginate recipes rather than UI heading rows. Pure Lua 5.1, reusable by UI and tests.
+function ns.PaginateRecipeUses(uses, requestedPage, pageSize)
+    uses = type(uses) == "table" and uses or {}
+    pageSize = math.max(1, math.floor(tonumber(pageSize) or 6))
+    local total = #uses
+    local pages = math.ceil(total / pageSize)
+    if total == 0 then return {}, 0, 0, 0 end
+    local page = math.floor(tonumber(requestedPage) or 1)
+    page = math.max(1, math.min(pages, page))
+    local first = (page - 1) * pageSize + 1
+    local visible = {}
+    for index = first, math.min(total, first + pageSize - 1) do
+        visible[#visible + 1] = uses[index]
+    end
+    return visible, page, pages, total
+end

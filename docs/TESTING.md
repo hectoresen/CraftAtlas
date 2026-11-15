@@ -59,3 +59,16 @@ The first in-game screenshot showed 593 rows labeled `ID de objeto`, no icons an
 Run `python3 scripts/build_materials.py --check`, `python3 -m unittest discover -s tests -p 'test_material_data.py' -v`, `texlua tests/test_recipe_usage.lua`, `texlua tests/test_recipe_info.lua`, `texlua tests/test_material_search.lua` and `python3 scripts/validate_repo.py`. Data integrity covers 8,455 source-backed uses, 593 reagent IDs, output-only exclusion, regression item `14044` → `19093` → `15138`, duplicates, unknown outputs, native tooltip mock and deterministic generation.
 
 **Required in-game manual tests (NOT RUN by agent):** identify actual Forever client build; open /craftatlas; inspect Cindercloth Cloak 14044 and verify legitimate input use for Onyxia Scale Cloak; inspect Blackmouth Oil and compare all listed consuming recipes; check a multi-profession reagent, non-item enchantment, recipe with missing output, amounts, tooltip for output item including rarity and stats, native spell tooltip/factual fallback, mouse leaving/scrolling, enUS/esES, list clipping under UI scale, cache misses and existing tooltip/minimap regression. Document pass/fail per scenario with screenshots. The source snapshot remains a beta and cannot establish live server completeness.
+
+## Recipe-card UI and close-control regression (post-PR #22 implementation)
+
+Offline test commands:
+```sh
+texlua tests/test_recipe_pagination.lua
+texlua tests/test_recipe_cards.lua
+texlua tests/test_explorer_close.lua
+```
+
+The `test_toc_modules.py` test is actually **Python**, run it with `python3 -m unittest discover -s tests -p 'test_toc_modules.py' -v` instead of texlua. The added Lua tests exercise page 0/1/6/7/14, duplicate-free boundaries, recycled six-card drawing, default item tooltip vs recipe fallback, tooltip cleanup, and explicitly bound X under both native and fallback template cases.
+
+**Manual Forever client checks required (NOT RUN by implementation agent):** Search/select `Agu(a) de manantial refrescante` (item 159) or another known 14-use reagent, see 6/6/2 cards across pages 1–3 and correct count; verify last-page Next disabled and first-page Previous disabled; hover crafted result and non-item recipe, compare displayed tooltip/rarity to WoW; change material and see page reset while search/filter stay; allow item name/icon to load while on page 2 and confirm no reset; switch language; test window X click, tooltip disappearing, slash/minimap reopening and X again; test different UI scales and window sizes. Record screenshots, build, and PASS/FAIL. Passing CI cannot establish real native UI compatibility.

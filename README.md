@@ -73,3 +73,7 @@ A native-frame material explorer with instant search by cached item name or nume
 ## Reagent → recipe usage (unreleased, client QA pending)
 
 The reverse lookup source contains **8,455 source-backed recipe reagent uses** over **593 reagent itemIDs**, from the pinned MIT LibProfessionDB Forever beta snapshot. The right pane groups uses by consuming profession, shows source-proven ingredient quantity and crafted output item when known, and uses native item/spell tooltips when supported. Actual live-realm recipe availability and tooltip API compatibility are **not claimed**. A crafted/equippable item remains listed if another recipe consumes it: item `14044` (Cindercloth Cloak) is an ingredient of Leatherworking recipe `19093` (Onyxia Scale Cloak, output item `15138`). Output-only items do not enter the reagent list. Run `python3 scripts/build_materials.py --check` and the new recipe tests before release.
+
+## Paginated recipe detail — implementation candidate
+
+The material detail now uses **six native recipe cards per page** (3×2 at normal window width) instead of duplicate recipe/result rows. Each card shows **one** item-output icon/name when available, otherwise its recipe/spell, plus the consuming profession and material quantity. Hover uses the client's ordinary tooltip; previous/next controls show current and total pages (14 uses → 6 + 6 + 2). The top-right X explicitly hides CraftAtlas and clears any active recipe tooltip. **Forever-client layout and close behavior still require an in-game smoke test before release.**
