@@ -2,7 +2,7 @@
 
 ## Current state — v0.1.0-dev (15 November 2026)
 
-**Implemented and reported working in-game by the maintainer:** numeric itemID → consuming professions on supported item tooltips, multiple profession matches, enUS/esES localization, account-wide language preference, `/craftatlas` settings, draggable minimap button and an offline 593-item index. **The search control in settings is a visual placeholder, not a functional search feature.** The General category is the only actual settings page.
+**Implemented and reported working in-game by the maintainer:** numeric itemID → consuming professions on supported item tooltips, multiple profession matches, enUS/esES localization, account-wide language preference, `/craftatlas` settings, draggable minimap button and an offline 593-item index. **A functional material explorer was implemented in PR #14.** The new recipe-use detail is being implemented in a separate approved follow-up; live-client QA is pending.
 
 The exact client build and per-origin tooltip test results have not been captured in this repository. Imported relations are traceable to a beta database, not all independently verified against the current live realm; do not advertise comprehensive material coverage.
 
@@ -14,8 +14,8 @@ The exact client build and per-origin tooltip test results have not been capture
 | 0.0.1 | First playable baseline: implemented and tested in-game by maintainer; no standalone stable release tagged |
 | 0.1.0-dev | Current source: broader offline catalog (593 itemIDs / 10 professions), tooltip annotations, settings, minimap button; runtime reported working, data coverage not fully live-verified |
 | 0.2.0 (planned) | Improve live-client data coverage, auditing, diagnostics, optimizations and user experience |
-| 0.3.0 (planned) | **Functional** offline material search with profession filters and search results |
-| 0.4.0 (planned) | View recipes, input quantities and crafted outputs |
+| 0.3.0 (candidate) | Functional offline material search and profession filters (merged in PR #14) |
+| 0.4.0 (implementation candidate) | View source-backed consuming recipes, input quantities and crafted outputs; actual Forever QA pending |
 | 0.5.0 (planned) | Reverse crafting/dependency exploration |
 | 1.0.0 (planned) | Stable release after acceptance, precise compatibility declaration and audited coverage |
 
