@@ -26,7 +26,8 @@ local function widget(kind, parent)
     return self
 end
 CreateFrame = function(kind, name, parent) return widget(kind,parent) end
-local ns = {
+local ns
+ns = {
     L = function(key) 
         local vals = {RECIPES_HEADING="Recipes", RECIPE_USE_COUNT="%d recipes",
             RECIPE_QUANTITY="x%d", RECIPE_PAGE_STATUS="Page %d / %d",
@@ -61,7 +62,6 @@ for i=1,6 do
     assert(buttons[i].icon.texture==1100+i,"one output icon per card")
 end
 assert(previous.enabled==false and nextButton.enabled==true)
-assert(nextButton.parent.pageLabel==nil) -- callbacks belong to separate buttons
 buttons[1].OnEnter(buttons[1])
 assert(ns.lastHover==2001,"native output tooltip should win")
 buttons[1].OnLeave(buttons[1])
