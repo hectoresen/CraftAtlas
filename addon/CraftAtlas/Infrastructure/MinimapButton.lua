@@ -4,9 +4,9 @@ local button
 local iconTexture = "Interface\\Icons\\Trade_BlackSmithing"
 local borderTexture = "Interface\\Minimap\\MiniMap-TrackingBorder"
 local unavailableCursor = "Interface\\Cursor\\UI-Cursor-NoMop"
-local buttonSize = 36
-local iconSize = 22
-local borderSize = 54
+local buttonSize = 31
+local iconSize = 20
+local borderSize = 53
 
 local function getAngleRadians(angle)
     return math.rad(tonumber(angle) or 45)
@@ -78,13 +78,16 @@ local function createButton()
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetTexture(iconTexture)
     icon:SetSize(iconSize, iconSize)
-    icon:SetPoint("CENTER")
+    -- These offsets match the native minimap button composition: the
+    -- profession icon sits inside the visual center of the tracking ring.
+    icon:SetPoint("TOPLEFT", button, "TOPLEFT", 7, -5)
+    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
     button.icon = icon
 
     local border = button:CreateTexture(nil, "OVERLAY")
     border:SetTexture(borderTexture)
     border:SetSize(borderSize, borderSize)
-    border:SetPoint("CENTER")
+    border:SetPoint("TOPLEFT", button, "TOPLEFT")
     button.border = border
 
     button:SetScript("OnClick", function(self, mouseButton)
