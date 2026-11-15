@@ -37,7 +37,7 @@ BOOTSTRAP_ALLOWED = {
 }
 METADATA = {
     "change": re.compile(r"^OpenSpec-Change: ([a-z0-9]+(?:-[a-z0-9]+)*)$", re.M),
-    "phase": re.compile(r"^OpenSpec-Phase: (proposal|implementation)$", re.M),
+    "phase": re.compile(r"^OpenSpec-Phase: (proposal|implementation|combined)$", re.M),
     "approval": re.compile(r"^OpenSpec-Approval-PR: ([1-9][0-9]*)$", re.M),
     "exemption": EXEMPTION,
 }
@@ -169,6 +169,28 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
             errors.append("Proposal PR must not include code or unrelated files")
         if exists_in_base(base_path + "proposal.md"):
             errors.append("Proposal ID already on base; create a new change")
+    elif phase == "combined":
+        # Narrow owner-authorized pilot: PR #14 only. Keep future two-PR gates intact.
+        if pr_number != 14 or change != "improve-material-explorer-ui":
+            errors.append("Combined phase is authorized only for CraftAtlas PR #14")
+        if approval:
+            errors.append("Combined phase cannot claim a separately merged approval")
+        if base_path + "proposal.md" not in changed:
+            errors.append("Combined PR must add its own proposal.md")
+        if exists_in_base(base_path + "proposal.md"):
+            errors.append("Combined PR must introduce a new change ID")
+        if not outside:
+            errors.append("Combined PR must include implementation outside its specs")
+        # These three governance files and AGENTS.md are required to document
+        # the exact one-time policy exception; no other special paths allowed.
+        special = {"scripts/validate_sdd.py", "tests/test_validate_sdd.py",
+                   "docs/SDD_COMPLIANCE.md", "AGENTS.md"}
+        for path in outside:
+            if path not in special and not (path in allowed or any(
+                    x.endswith("/**") and path.startswith(x[:-2]) for x in allowed)):
+                errors.append("Combined PR changed file outside its approved sdd-scope.json: " + path)
+        if any(path.startswith(".github/") for path in outside):
+            errors.append("Combined PR cannot modify workflow enforcement")
     elif phase == "implementation":
         if not approval:
             errors.append("Implementation requires OpenSpec-Approval-PR")

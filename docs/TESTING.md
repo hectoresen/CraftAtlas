@@ -38,3 +38,17 @@ Collect client build, reproducible results and screenshots for the release recor
 ## Important distinction
 
 **Working addon** means its runtime/UI have been successfully exercised by the maintainer. **Live-verified dataset** means the individual imported item-to-profession mappings have been corroborated against actual current-server recipes. The first has been reported; the second is still an open release-quality task.
+
+
+## Material explorer (PR #14; not yet game-verified)
+
+Offline test: `texlua tests/test_material_search.lua` (test by numeric itemID, client-resolved name, combined profession filter, shared-material relations, unknown items and unresolved names). Policy test: `python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v`.
+
+**Manual Forever checks required before calling this feature compatible:** Open the window from minimap and `/craftatlas`; ensure a single centered title, native frame, correct scroll/filter area, accessible close button, no clipping at different UI scales; search by ID `2447` and by localized name once cache resolves; compare a multi-profession item and filtering results; clear only search text and verify the filter stays; try an unknown ID and a missing-name cache case; switch language, reload SavedVariables; test `/craftatlas 2447`; ensure no existing tooltip annotation regressions. Record exact client build and screenshots. Click-to-open via tooltip **not implemented**, pending safe verified API.
+
+The PR was developed without the Forever client: all client-specific checks are **NOT RUN**. The 593-item dataset remains a bounded beta snapshot, not verified live-realm completeness.
+
+
+### 2026-11-15 screenshot-driven correction (PR #14)
+
+The first in-game screenshot showed 593 rows labeled `ID de objeto`, no icons and no Spanish material-name search. Root cause: the original candidate used obsolete `GetItemInfo`/`GetItemIcon` globals in Forever and did not request uncached item data. Revised implementation uses `C_Item.GetItemInfo`, `C_Item.GetItemInfoInstant`, `C_Item.RequestLoadItemDataByID` and `ITEM_DATA_LOAD_RESULT` (guarded compatibility fallbacks). Name browsing now excludes unknown-name rows and shows a loading notice; numeric ID lookup remains possible. Result rows have a visible separator, alternating surface and hover/selection highlights. Added `texlua tests/test_item_info.lua` for mocked adapter behavior. **These changes must be rechecked by the maintainer in the actual game; screenshot confirmation applies only to the original broken candidate.**
