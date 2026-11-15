@@ -40,7 +40,7 @@ Collect client build, reproducible results and screenshots for the release recor
 **Working addon** means its runtime/UI have been successfully exercised by the maintainer. **Live-verified dataset** means the individual imported item-to-profession mappings have been corroborated against actual current-server recipes. The first has been reported; the second is still an open release-quality task.
 
 
-## PR #14 candidate — material explorer (not yet game-verified)
+## Material explorer (PR #14; not yet game-verified)
 
 Offline test: `texlua tests/test_material_search.lua` (test by numeric itemID, client-resolved name, combined profession filter, shared-material relations, unknown items and unresolved names). Policy test: `python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v`.
 
