@@ -7,6 +7,16 @@ local selectedProfession = ""
 local results = {}
 local unresolved = 0
 local scrollOffset = 0
+local currentView = "materials"
+local selectedRecipe
+local switching = false
+local forcedSelection = false
+local viewState = {
+    materials = {query = "", profession = "", selected = nil, offset = 0},
+    recipes = {query = "", profession = "", selected = nil, offset = 0},
+}
+local history = {}
+local switchView
 local ROW_HEIGHT = 39
 local VISIBLE_ROWS = 6
 local languageOptions = {"auto", "esES", "enUS"}
@@ -35,6 +45,10 @@ end
 
 local function showDetail()
     if not ui.detailTitle then return end
+    if currentView == "recipes" then
+        ns.SetRecipeDetail(selectedRecipe)
+        return
+    end
     local itemID = selectedID
     local valid = itemID and ns.IsVerifiedReagent(itemID)
     ui.detailIcon:Hide()
@@ -72,16 +86,31 @@ local function updateRows()
     for index, row in ipairs(ui.rows) do
         local itemID = results[index + scrollOffset]
         if itemID then
-            local name, icon = ns.GetMaterialDisplay(itemID)
-            row.itemID = itemID
-            row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. itemID))
-            local professions = {}
-            for _, key in ipairs(ns.FindProfessions(itemID, ns.materials, ns.professionOrder)) do
-                professions[#professions + 1] = labelProfession(key)
+            local name, icon, subtitle
+            if currentView == "recipes" then
+                local recipe = ns.GetCatalogRecipe(itemID)
+                local spellName, spellIcon = ns.GetRecipeSpellPresentation(recipe.spellID)
+                local outputName, outputIcon
+                if recipe.outputItemID then
+                    outputName, outputIcon = ns.GetItemDisplay(recipe.outputItemID)
+                end
+                name = outputName or spellName or (ns.L("RECIPE_ID") .. " " .. recipe.spellID)
+                icon = outputIcon or spellIcon
+                subtitle = ns.ProfessionLabel(recipe.professionKey)
+            else
+                name, icon = ns.GetMaterialDisplay(itemID)
+                local professions = {}
+                for _, key in ipairs(ns.FindProfessions(itemID, ns.materials, ns.professionOrder)) do
+                    professions[#professions + 1] = labelProfession(key)
+                end
+                subtitle = table.concat(professions, ", ")
             end
-            row.professions:SetText(table.concat(professions, ", "))
+            row.itemID = itemID
+            row.name:SetText(name)
+            row.professions:SetText(subtitle or "")
             if icon then row.icon:SetTexture(icon) row.icon:Show() else row.icon:Hide() end
-            if itemID == selectedID then
+            if (currentView == "recipes" and itemID == selectedRecipe)
+                or (currentView == "materials" and itemID == selectedID) then
                 row.highlight:Show()
             else
                 row.highlight:Hide()
@@ -119,18 +148,26 @@ end
 
 local function refreshResults(resetOffset)
     local labels = {}
-    for _, key in ipairs(ns.professionOrder or {}) do
-        labels[key] = ns.ProfessionLabel(key)
-    end
+    for _, key in ipairs(ns.professionOrder or {}) do labels[key] = ns.ProfessionLabel(key) end
     local numberQuery = string.match(searchQuery, "^%d+$") ~= nil and searchQuery ~= ""
-    results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
-        searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
-        not numberQuery, labels, ns.recipeUses)
-    local index = containsSelected()
-    if not index then
-        selectedID = results[1]
-        index = selectedID and 1 or nil
+    if currentView == "recipes" then
+        results, unresolved = ns.SearchCatalogRecipes(searchQuery, selectedProfession,
+            ns.GetRecipeNames(), ns.GetKnownMaterialNames(), labels)
+    else
+        results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
+            searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
+            not numberQuery, labels, ns.recipeUses)
     end
+    local selected = currentView == "recipes" and selectedRecipe or selectedID
+    local index
+    for i, key in ipairs(results) do
+        if key == selected then index = i break end
+    end
+    if not index and not forcedSelection then
+        selected = results[1]
+        index = selected and 1 or nil
+    end
+    if currentView == "recipes" then selectedRecipe = selected else selectedID = selected end
     if resetOffset then scrollOffset = 0 end
     if index and (index <= scrollOffset or index > scrollOffset + VISIBLE_ROWS) then
         scrollOffset = math.max(0, index - 1)
@@ -169,88 +206,27 @@ local function createLanguageMenu(header)
 end
 
 local function createProfessionMenu(left)
-    local button = CreateFrame("Button", nil, left, "UIPanelButtonTemplate")
-    button:SetPoint("TOPLEFT", left, "TOPLEFT", 8, -9)
-    button:SetPoint("TOPRIGHT", left, "TOPRIGHT", -8, -9)
-    button:SetHeight(28)
-    ui.professionButton = button
-
-    local menu = CreateFrame("Frame", nil, panel)
-    menu:SetSize(225, (#(ns.professionOrder or {}) + 1) * 25 + 8)
-    menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -3)
-    menu:SetFrameLevel(left:GetFrameLevel() + 10)
-    paint(menu, 0.08, 0.08, 0.07, 0.99)
-    menu:Hide()
-    ui.professionMenu = menu
-    local choices = {""}
-    for _, key in ipairs(ns.professionOrder or {}) do choices[#choices + 1] = key end
-    ui.professionChoices = {}
-    for index, key in ipairs(choices) do
-        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
-        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - (index - 1) * 25)
-        choice:SetSize(217, 24)
-        choice:SetScript("OnClick", function()
-            selectedProfession = key
-            menu:Hide()
-            ui.professionButton:SetText(key == "" and ns.L("ALL_PROFESSIONS") or labelProfession(key))
-            refreshResults(true)
-        end)
-        ui.professionChoices[key] = choice
-    end
-    button:SetScript("OnClick", function()
-        if menu:IsShown() then menu:Hide() else menu:Show() end
+    local button, menu, choices = ns.CreateExplorerProfessionFilter(panel, left, function(key)
+        selectedProfession = key
+        forcedSelection = false
+        ui.professionButton:SetText(key == "" and ns.L("ALL_PROFESSIONS") or labelProfession(key))
+        refreshResults(true)
     end)
+    ui.professionButton, ui.professionMenu, ui.professionChoices = button, menu, choices
 end
 
 local function createRows(left)
     ui.rows = {}
     for index = 1, VISIBLE_ROWS do
-        local row = CreateFrame("Button", nil, left)
-        row:SetHeight(ROW_HEIGHT)
-        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -96 - (index - 1) * ROW_HEIGHT)
-        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -96 - (index - 1) * ROW_HEIGHT)
-        local surface = row:CreateTexture(nil, "BACKGROUND")
-        surface:SetAllPoints()
-        if index % 2 == 0 then
-            surface:SetColorTexture(0.16, 0.13, 0.10, 0.68)
-        else
-            surface:SetColorTexture(0.10, 0.09, 0.07, 0.75)
-        end
-        local separator = row:CreateTexture(nil, "BORDER")
-        separator:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 0)
-        separator:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 0)
-        separator:SetHeight(1)
-        separator:SetColorTexture(0.49, 0.40, 0.26, 0.80)
-        local hover = row:CreateTexture(nil, "BACKGROUND")
-        hover:SetAllPoints()
-        hover:SetColorTexture(0.32, 0.27, 0.17, 0.55)
-        row:SetHighlightTexture(hover)
-        local highlight = row:CreateTexture(nil, "BACKGROUND")
-        highlight:SetAllPoints()
-        highlight:SetColorTexture(0.45, 0.33, 0.10, 0.65)
-        highlight:Hide()
-        row.highlight = highlight
-        local icon = row:CreateTexture(nil, "ARTWORK")
-        icon:SetSize(30, 30)
-        icon:SetPoint("LEFT", row, "LEFT", 2, 0)
-        row.icon = icon
-        local name = font(row, "GameFontNormal")
-        name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
-        name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
-        name:SetJustifyH("LEFT")
-        name:SetWordWrap(false)
-        row.name = name
-        local professions = font(row, "GameFontDisableSmall")
-        professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
-        professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
-        professions:SetJustifyH("LEFT")
-        professions:SetWordWrap(false)
-        row.professions = professions
-        row:SetScript("OnClick", function(self)
-            selectedID = self.itemID
+        local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self)
+            forcedSelection = false
+            if currentView == "recipes" then selectedRecipe = self.itemID
+            else selectedID = self.itemID end
             updateRows()
             showDetail()
         end)
+        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -96 - (index - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -96 - (index - 1) * ROW_HEIGHT)
         ui.rows[index] = row
     end
 
@@ -307,7 +283,7 @@ local function createPanel()
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
     local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
     panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
-    VISIBLE_ROWS = math.max(3, math.min(8, math.floor((panel:GetHeight() - 248) / ROW_HEIGHT)))
+    VISIBLE_ROWS = math.max(3, math.min(8, math.floor((panel:GetHeight() - 285) / ROW_HEIGHT)))
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
@@ -336,19 +312,13 @@ local function createPanel()
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
 
-    local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
-    search:SetPoint("LEFT", header, "LEFT", 13, 0)
-    search:SetSize(math.max(110, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
-    search:SetAutoFocus(false)
-    search:SetMaxLetters(120)
-    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    search:SetScript("OnTextChanged", function(self)
-        local value = self:GetText()
-        if value ~= searchQuery then
-            searchQuery = value
-            refreshResults(true)
-        end
+    local search = ns.CreateExplorerSearchBox(header, function(value)
+        if switching or value == searchQuery then return end
+        searchQuery = value
+        forcedSelection = false
+        refreshResults(true)
     end)
+    search:SetSize(math.max(110, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
     ui.search = search
     local hint = font(header, "GameFontDisableSmall")
     hint:SetPoint("LEFT", search, "LEFT", 7, 0)
@@ -372,8 +342,27 @@ local function createPanel()
     ui.clear = clear
     createLanguageMenu(header)
 
+    local materialsTab = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    materialsTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -101)
+    materialsTab:SetSize(130, 27)
+    materialsTab:SetScript("OnClick", function() switchView("materials") end)
+    local recipesTab = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    recipesTab:SetPoint("LEFT", materialsTab, "RIGHT", 8, 0)
+    recipesTab:SetSize(130, 27)
+    recipesTab:SetScript("OnClick", function() switchView("recipes") end)
+    local back = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    back:SetPoint("RIGHT", panel, "RIGHT", -22, -114)
+    back:SetSize(76, 26)
+    back:SetScript("OnClick", function()
+        local entry = table.remove(history)
+        if entry then
+            switchView(entry.view, entry.selected, true, true)
+        end
+    end)
+    ui.materialsTab, ui.recipesTab, ui.back = materialsTab, recipesTab, back
+
     local left = CreateFrame("Frame", nil, panel)
-    left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -102)
+    left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -137)
     left:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 14, 30)
     left:SetWidth(math.floor((panel:GetWidth() - 40) * 0.38))
     paint(left, 0.06, 0.05, 0.04, 0.85)
@@ -420,7 +409,9 @@ local function createPanel()
     professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
     professions:SetJustifyH("LEFT")
     ui.detailProfessions = professions
-    ns.InitRecipePanel(right, panel:GetHeight() - 132)
+    ns.InitRecipePanel(right, panel:GetHeight() - 167)
+    ns.InitRecipeDetail(right)
+    ui.right = right
 
     local version = font(panel, "GameFontDisableSmall")
     version:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
@@ -444,6 +435,77 @@ local function createPanel()
     return panel
 end
 
+local function showActiveDetail()
+    local material = currentView == "materials"
+    for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailHeading,
+        ui.detailProfessions}) do
+        if material then element:Show() else element:Hide() end
+    end
+    if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
+    ns.ShowRecipeDetailView(not material)
+    ui.materialsTab:SetText(ns.L("MATERIALS_HEADING"))
+    ui.recipesTab:SetText(ns.L("RECIPES_HEADING"))
+    ui.back:SetText(ns.L("BACK"))
+    ui.back:SetEnabled(#history > 0)
+    ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "RECIPE_SEARCH_PLACEHOLDER"))
+end
+
+switchView = function(target, direct, fromBack)
+    if not panel then return end
+    if target ~= "recipes" then target = "materials" end
+    viewState[currentView] = {
+        query = searchQuery, profession = selectedProfession,
+        selected = currentView == "recipes" and selectedRecipe or selectedID,
+        offset = scrollOffset
+    }
+    currentView = target
+    local state = viewState[target]
+    searchQuery, selectedProfession, scrollOffset = state.query, state.profession, state.offset
+    selectedRecipe = target == "recipes" and state.selected or selectedRecipe
+    selectedID = target == "materials" and state.selected or selectedID
+    forcedSelection = direct ~= nil
+    switching = true
+    ui.search:SetText(searchQuery)
+    switching = false
+    ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
+        or labelProfession(selectedProfession))
+    showActiveDetail()
+    refreshResults(false)
+    if direct then
+        if target == "recipes" then selectedRecipe = direct else selectedID = direct end
+        updateRows()
+        showDetail()
+    end
+    if target == "recipes" then ns.PreloadRecipeNames() end
+    if not fromBack then
+        -- Navigating by the tab does not invalidate earlier Back entries.
+    end
+end
+
+function ns.NavigateToRecipe(use)
+    if not use then return end
+    history[#history + 1] = {
+        view = currentView, selected = currentView == "materials" and selectedID or selectedRecipe
+    }
+    if #history > 8 then table.remove(history, 1) end
+    switchView("recipes", ns.RecipeKey(use.professionKey, use.spellID))
+end
+
+function ns.OpenMaterialFromRecipe(itemID)
+    if not ns.IsVerifiedReagent(itemID) then return end
+    history[#history + 1] = {
+        view = currentView, selected = currentView == "materials" and selectedID or selectedRecipe
+    }
+    if #history > 8 then table.remove(history, 1) end
+    switchView("materials", itemID)
+end
+
+function ns.RefreshExplorer()
+    if panel and panel:IsShown() then
+        refreshResults(false)
+    end
+end
+
 function ns.RefreshMaterialResults()
     if panel and panel:IsShown() then refreshResults(false) end
 end
@@ -451,6 +513,7 @@ end
 function ns.RefreshSettings()
     if not panel then return end
     ui.title:SetText(ns.L("TITLE"))
+    showActiveDetail()
     ui.searchHint:SetText(ns.L("SEARCH_PLACEHOLDER"))
     ui.resultsHeading:SetText(ns.L("MATERIALS_HEADING"))
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
@@ -470,12 +533,14 @@ end
 function ns.OpenSettings(itemID)
     createPanel()
     if ns.IsVerifiedReagent(itemID) then
+        currentView = "materials"
         searchQuery = ""
         selectedProfession = ""
         ui.search:SetText("")
         selectedID = itemID
     end
     ns.PreloadMaterialInfo()
+    if currentView == "recipes" then ns.PreloadRecipeNames() end
     ns.RefreshSettings()
     panel:Show()
     panel:Raise()
