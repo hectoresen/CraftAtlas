@@ -12,9 +12,6 @@
     "docs/INSTALLATION.md",
     "docs/TESTING.md",
     "README.md",
-    "CHANGELOG.md",
-    "openspec/changes/add-first-playable-material-tooltips/**",
-    "openspec/changes/archive/**",
-    "openspec/specs/**"
+    "CHANGELOG.md"
   ]
 }
