@@ -214,5 +214,42 @@ class SddPolicyTests(unittest.TestCase):
                                    self.implementation, present=True,
                                    created="2026-10-01T00:00:00Z"))
 
+    def test_only_approved_documentation_gate_may_update_agents(self):
+        change = "mandatory-multiagent-documentation-gate"
+        prefix = "openspec/changes/" + change + "/"
+        folder = self.root / prefix
+        (folder / "specs" / "documentation-gate").mkdir(parents=True)
+        for name in ("proposal.md", "design.md", "tasks.md"):
+            (folder / name).write_text("# approved\n", encoding="utf-8")
+        (folder / "specs/documentation-gate/spec.md").write_text(
+            "## ADDED Requirements\n", encoding="utf-8")
+        (folder / "sdd-scope.json").write_text(json.dumps({
+            "allowed_paths": ["AGENTS.md", ".github/workflows/ci.yml",
+                "skills/documentation-sync/**", "scripts/validate_sdd.py"]
+        }))
+        body = ("OpenSpec-Change: " + change +
+                "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+
+        def approved_api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+            return [{"filename": prefix + "proposal.md"}]
+
+        self.assertEqual(self.check({"AGENTS.md", "skills/documentation-sync/SKILL.md"},
+                                    body, present=True, api=approved_api), [])
+        # A different change claiming AGENTS in scope still fails.
+        self.set_scope(["AGENTS.md", "addon/CraftAtlas/**"])
+        self.assertTrue(self.check({"AGENTS.md"}, self.implementation, present=True))
+        # SDD rules remain strict: an unrelated spec approval cannot bless AGENTS.
+        self.assertTrue(self.check({"AGENTS.md"}, body, present=True, api=self.api))
+        self.assertTrue(self.check({"AGENTS.md"}, body, present=False, api=approved_api))
+        self.assertTrue(self.check({"AGENTS.md"}, body, present=True,
+                                   created="2026-10-01T00:00:00Z", api=approved_api))
+
+    def test_governance_scope_cannot_glob_hidden_paths(self):
+        self.set_scope([".github/**", "AGENTS.md"])
+        self.assertTrue(self.check({self.prefix + "proposal.md"}, self.proposal))
+
 if __name__ == "__main__":
     unittest.main()
