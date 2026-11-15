@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Define one cross-agent documentation skill
-The project SHALL provide a discoverable, canonical Agent Skills-compatible documentation-sync SKILL.md reusable by Codex, Claude Code, Copilot and generic agents, with non-duplicated provider pointers as appropriate.
+The project SHALL provide a canonical, explicitly readable Agent Skills-compatible documentation-sync SKILL.md reusable by Codex, Claude Code, Copilot and generic agents, with non-duplicated provider pointers as appropriate.
 
 #### Scenario: Agent supports skill discovery
 - **WHEN** an agent recognizes the canonical skill path or its provider-specific alias
