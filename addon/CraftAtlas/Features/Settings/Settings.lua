@@ -1,60 +1,268 @@
 local _, ns = ...
 local panel
-local elements = {}
+local ui = {}
+local searchQuery = ""
+local selectedID
+local selectedProfession = ""
+local selectedLanguage
+local results = {}
+local unresolved = 0
+local scrollOffset = 0
+local ROW_HEIGHT = 39
+local VISIBLE_ROWS = 8
+local languageOptions = {"auto", "esES", "enUS"}
+local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
 
-local options = {"auto", "esES", "enUS"}
-local labels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
-
-local function text(parent, font, x, y)
-    local label = parent:CreateFontString(nil, "OVERLAY", font)
-    label:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
-    return label
+local function font(parent, fontName)
+    return parent:CreateFontString(nil, "OVERLAY", fontName)
 end
 
-local function createSearchAffordance(header)
-    local search = CreateFrame("Button", nil, header)
-    search:SetPoint("TOPLEFT", header, "TOPLEFT", 8, -7)
-    search:SetSize(190, 28)
-    search:EnableMouse(true)
-    search:SetScript("OnEnter", function()
-        if ns.SetSearchUnavailableCursor then
-            ns.SetSearchUnavailableCursor()
+local function paint(parent, r, g, b, alpha)
+    local texture = parent:CreateTexture(nil, "BACKGROUND")
+    texture:SetAllPoints()
+    texture:SetColorTexture(r, g, b, alpha)
+    return texture
+end
+
+local function labelProfession(key)
+    return ns.ProfessionLabel(key)
+end
+
+local function containsSelected()
+    for index, itemID in ipairs(results) do
+        if itemID == selectedID then return index end
+    end
+end
+
+local function showDetail()
+    if not ui.detailTitle then return end
+    local itemID = selectedID
+    local valid = itemID and ns.materials and ns.materials[itemID]
+    ui.detailIcon:Hide()
+    if not valid then
+        ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
+        ui.detailID:SetText("")
+        ui.detailProfessions:SetText("")
+        ui.detailHeading:SetText("")
+        ui.recipeHeading:SetText("")
+        ui.recipeUnavailable:SetText("")
+        return
+    end
+    local name, icon = ns.GetMaterialDisplay(itemID)
+    if icon then
+        ui.detailIcon:SetTexture(icon)
+        ui.detailIcon:Show()
+    end
+    ui.detailTitle:SetText(name or (ns.L("ITEM_ID") .. " " .. itemID))
+    ui.detailID:SetText(ns.L("ITEM_ID") .. ": " .. itemID)
+    ui.detailHeading:SetText(ns.L("USED_BY"))
+    local keys = ns.FindProfessions(itemID, ns.materials, ns.professionOrder)
+    local professions = {}
+    for _, key in ipairs(keys) do
+        professions[#professions + 1] = labelProfession(key)
+    end
+    ui.detailProfessions:SetText(table.concat(professions, "\n"))
+    ui.recipeHeading:SetText(ns.L("RECIPES_HEADING"))
+    ui.recipeUnavailable:SetText(ns.L("RECIPES_UNAVAILABLE"))
+end
+
+local function updateRows()
+    if not ui.rows then return end
+    local count = #results
+    if scrollOffset > math.max(0, count - VISIBLE_ROWS) then
+        scrollOffset = math.max(0, count - VISIBLE_ROWS)
+    end
+    for index, row in ipairs(ui.rows) do
+        local itemID = results[index + scrollOffset]
+        if itemID then
+            local name, icon = ns.GetMaterialDisplay(itemID)
+            row.itemID = itemID
+            row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. itemID))
+            local professions = {}
+            for _, key in ipairs(ns.FindProfessions(itemID, ns.materials, ns.professionOrder)) do
+                professions[#professions + 1] = labelProfession(key)
+            end
+            row.professions:SetText(table.concat(professions, ", "))
+            if icon then row.icon:SetTexture(icon) row.icon:Show() else row.icon:Hide() end
+            if itemID == selectedID then
+                row.highlight:Show()
+            else
+                row.highlight:Hide()
+            end
+            row:Show()
+        else
+            row.itemID = nil
+            row:Hide()
+        end
+    end
+    if ui.scrollbar then
+        ui.scrollbar:SetMinMaxValues(0, math.max(0, count - VISIBLE_ROWS))
+        ui.scrollbar:SetValue(scrollOffset)
+        if count > VISIBLE_ROWS then ui.scrollbar:Show() else ui.scrollbar:Hide() end
+    end
+    ui.count:SetText(string.format(ns.L("RESULT_COUNT"), count))
+    if unresolved > 0 and searchQuery ~= "" then
+        ui.incomplete:SetText(ns.L("NAME_RESULTS_INCOMPLETE"))
+        ui.incomplete:Show()
+    else
+        ui.incomplete:Hide()
+    end
+    if count == 0 then
+        ui.empty:SetText(ns.L("NO_RESULTS"))
+        ui.empty:Show()
+    else
+        ui.empty:Hide()
+    end
+end
+
+local function refreshResults(resetOffset)
+    results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
+        searchQuery, selectedProfession, ns.GetKnownMaterialNames())
+    local index = containsSelected()
+    if not index then
+        selectedID = results[1]
+        index = selectedID and 1 or nil
+    end
+    if resetOffset then scrollOffset = 0 end
+    if index and (index <= scrollOffset or index > scrollOffset + VISIBLE_ROWS) then
+        scrollOffset = math.max(0, index - 1)
+    end
+    updateRows()
+    showDetail()
+end
+
+local function createLanguageMenu(header)
+    local button = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
+    button:SetPoint("RIGHT", header, "RIGHT", -10, 0)
+    button:SetSize(120, 28)
+    ui.language = button
+
+    local menu = CreateFrame("Frame", nil, panel)
+    menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -3)
+    menu:SetSize(124, 96)
+    menu:SetFrameLevel(header:GetFrameLevel() + 10)
+    paint(menu, 0.09, 0.08, 0.06, 0.98)
+    menu:Hide()
+    ui.languageMenu = menu
+    ui.languageChoices = {}
+    button:SetScript("OnClick", function()
+        if menu:IsShown() then menu:Hide() else menu:Show() end
+    end)
+    for index, value in ipairs(languageOptions) do
+        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
+        choice:SetSize(118, 28)
+        choice:SetScript("OnClick", function()
+            menu:Hide()
+            ns.SetLanguage(value)
+        end)
+        ui.languageChoices[value] = choice
+    end
+end
+
+local function createProfessionMenu(left)
+    local button = CreateFrame("Button", nil, left, "UIPanelButtonTemplate")
+    button:SetPoint("TOPLEFT", left, "TOPLEFT", 8, -9)
+    button:SetPoint("TOPRIGHT", left, "TOPRIGHT", -8, -9)
+    button:SetHeight(28)
+    ui.professionButton = button
+
+    local menu = CreateFrame("Frame", nil, panel)
+    menu:SetSize(225, (#(ns.professionOrder or {}) + 1) * 25 + 8)
+    menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -3)
+    menu:SetFrameLevel(left:GetFrameLevel() + 10)
+    paint(menu, 0.08, 0.08, 0.07, 0.99)
+    menu:Hide()
+    ui.professionMenu = menu
+    local choices = {""}
+    for _, key in ipairs(ns.professionOrder or {}) do choices[#choices + 1] = key end
+    ui.professionChoices = {}
+    for index, key in ipairs(choices) do
+        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - (index - 1) * 25)
+        choice:SetSize(217, 24)
+        choice:SetScript("OnClick", function()
+            selectedProfession = key
+            menu:Hide()
+            ui.professionButton:SetText(key == "" and ns.L("ALL_PROFESSIONS") or labelProfession(key))
+            refreshResults(true)
+        end)
+        ui.professionChoices[key] = choice
+    end
+    button:SetScript("OnClick", function()
+        if menu:IsShown() then menu:Hide() else menu:Show() end
+    end)
+end
+
+local function createRows(left)
+    ui.rows = {}
+    for index = 1, VISIBLE_ROWS do
+        local row = CreateFrame("Button", nil, left)
+        row:SetHeight(ROW_HEIGHT)
+        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -96 - (index - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -96 - (index - 1) * ROW_HEIGHT)
+        local highlight = row:CreateTexture(nil, "BACKGROUND")
+        highlight:SetAllPoints()
+        highlight:SetColorTexture(0.45, 0.33, 0.10, 0.65)
+        highlight:Hide()
+        row.highlight = highlight
+        local icon = row:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(30, 30)
+        icon:SetPoint("LEFT", row, "LEFT", 2, 0)
+        row.icon = icon
+        local name = font(row, "GameFontNormal")
+        name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
+        name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
+        name:SetJustifyH("LEFT")
+        name:SetWordWrap(false)
+        row.name = name
+        local professions = font(row, "GameFontDisableSmall")
+        professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
+        professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
+        professions:SetJustifyH("LEFT")
+        professions:SetWordWrap(false)
+        row.professions = professions
+        row:SetScript("OnClick", function(self)
+            selectedID = self.itemID
+            updateRows()
+            showDetail()
+        end)
+        ui.rows[index] = row
+    end
+
+    local scrollbar = CreateFrame("Slider", nil, left, "UIPanelScrollBarTemplate")
+    scrollbar:SetPoint("TOPRIGHT", left, "TOPRIGHT", -3, -96)
+    scrollbar:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -3, 18)
+    scrollbar:SetWidth(16)
+    scrollbar:SetMinMaxValues(0, 0)
+    scrollbar:SetValueStep(1)
+    scrollbar:SetScript("OnValueChanged", function(self, value)
+        local offset = math.floor(value + 0.5)
+        if offset ~= scrollOffset then
+            scrollOffset = offset
+            updateRows()
         end
     end)
-    search:SetScript("OnLeave", function()
-        if ns.ClearSearchUnavailableCursor then
-            ns.ClearSearchUnavailableCursor()
-        end
+    ui.scrollbar = scrollbar
+    left:EnableMouseWheel(true)
+    left:SetScript("OnMouseWheel", function(_, delta)
+        scrollOffset = math.max(0, math.min(#results - VISIBLE_ROWS, scrollOffset - delta * 2))
+        scrollOffset = math.max(0, scrollOffset)
+        updateRows()
     end)
-
-    local background = search:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints()
-    background:SetColorTexture(0.06, 0.06, 0.06, 0.72)
-
-    local label = search:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    label:SetPoint("LEFT", search, "LEFT", 10, 0)
-    label:SetJustifyH("LEFT")
-    label:SetText(ns.L("SEARCH_PLACEHOLDER"))
-    search.label = label
-    return search
 end
 
 local function createPanel()
-    if panel then
-        return panel
-    end
-
-    local ok, window = pcall(CreateFrame, "Frame", "CraftAtlasSettingsFrame",
-        UIParent, "BasicFrameTemplateWithInset")
+    if panel then return panel end
+    local ok, window = pcall(CreateFrame, "Frame", "CraftAtlasSettingsFrame", UIParent, "BasicFrameTemplateWithInset")
     if not ok or not window then
         window = CreateFrame("Frame", "CraftAtlasSettingsFrame", UIParent)
-        local background = window:CreateTexture(nil, "BACKGROUND")
-        background:SetAllPoints()
-        background:SetColorTexture(0.09, 0.09, 0.09, 0.96)
+        paint(window, 0.09, 0.09, 0.09, 0.96)
     end
-
     panel = window
-    panel:SetSize(560, 340)
+    local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
+    local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
+    panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
     panel:SetPoint("CENTER")
     panel:SetFrameStrata("DIALOG")
     panel:SetMovable(true)
@@ -63,115 +271,167 @@ local function createPanel()
     panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:Hide()
-
-    if panel.TitleText then
-        panel.TitleText:Hide()
-    end
-
-    local header = CreateFrame("Frame", nil, panel)
-    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
-    header:SetSize(536, 52)
-    header:SetFrameLevel(panel:GetFrameLevel() + 1)
-    local headerBackground = header:CreateTexture(nil, "BACKGROUND")
-    headerBackground:SetAllPoints()
-    headerBackground:SetColorTexture(0.12, 0.10, 0.07, 0.98)
-    local headerDivider = header:CreateTexture(nil, "ARTWORK")
-    headerDivider:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 0, 0)
-    headerDivider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 0, 0)
-    headerDivider:SetHeight(2)
-    headerDivider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
-    elements.header = header
-
-    elements.search = createSearchAffordance(header)
-
-    elements.title = header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    elements.title:SetPoint("CENTER", header, "CENTER", 0, 0)
-    elements.title:SetTextColor(1.0, 0.82, 0.30)
-
+    if panel.TitleText then panel.TitleText:Hide() end
     if not panel.CloseButton then
         local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
         close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", 0, 0)
     end
 
-    local selector = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
-    selector:SetPoint("TOPRIGHT", header, "TOPRIGHT", -8, -13)
-    selector:SetSize(118, 26)
-    elements.selector = selector
+    local header = CreateFrame("Frame", nil, panel)
+    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
+    header:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -12, -38)
+    header:SetHeight(54)
+    header:SetFrameLevel(panel:GetFrameLevel() + 1)
+    paint(header, 0.12, 0.10, 0.07, 0.95)
+    local divider = header:CreateTexture(nil, "ARTWORK")
+    divider:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT")
+    divider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT")
+    divider:SetHeight(2)
+    divider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
 
-    local menu = CreateFrame("Frame", nil, panel)
-    menu:SetPoint("TOPRIGHT", selector, "BOTTOMRIGHT", 0, -3)
-    menu:SetSize(118, 87)
-    menu:SetFrameLevel(selector:GetFrameLevel() + 2)
-    local surface = menu:CreateTexture(nil, "BACKGROUND")
-    surface:SetAllPoints()
-    surface:SetColorTexture(0.12, 0.12, 0.12, 0.98)
-    menu:Hide()
-    elements.menu = menu
+    local title = font(header, "GameFontNormalLarge")
+    title:SetPoint("CENTER", header, "CENTER")
+    title:SetTextColor(1, 0.82, 0.30)
+    ui.title = title
 
-    selector:SetScript("OnClick", function()
-        if menu:IsShown() then menu:Hide() else menu:Show() end
+    local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
+    search:SetPoint("LEFT", header, "LEFT", 13, 0)
+    search:SetSize(210, 28)
+    search:SetAutoFocus(false)
+    search:SetMaxLetters(120)
+    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    search:SetScript("OnTextChanged", function(self)
+        local value = self:GetText()
+        if value ~= searchQuery then
+            searchQuery = value
+            refreshResults(true)
+        end
     end)
+    ui.search = search
+    local clear = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
+    clear:SetPoint("LEFT", search, "RIGHT", 4, 0)
+    clear:SetSize(28, 28)
+    clear:SetText("X")
+    clear:SetScript("OnClick", function()
+        search:SetText("")
+        search:SetFocus()
+    end)
+    ui.clear = clear
+    createLanguageMenu(header)
 
-    elements.choices = {}
-    for index, value in ipairs(options) do
-        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
-        choice:SetPoint("TOPLEFT", 2, -2 - (index - 1) * 28)
-        choice:SetSize(114, 27)
-        choice:SetScript("OnClick", function()
-            ns.SetLanguage(value)
-            menu:Hide()
-        end)
-        elements.choices[value] = choice
-    end
+    local left = CreateFrame("Frame", nil, panel)
+    left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -102)
+    left:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 14, 30)
+    left:SetWidth(math.floor((panel:GetWidth() - 40) * 0.38))
+    paint(left, 0.06, 0.05, 0.04, 0.85)
+    ui.left = left
+    local right = CreateFrame("Frame", nil, panel)
+    right:SetPoint("TOPLEFT", left, "TOPRIGHT", 9, 0)
+    right:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -14, 30)
+    paint(right, 0.09, 0.07, 0.05, 0.65)
+    createProfessionMenu(left)
 
-    local sidebar = CreateFrame("Frame", nil, panel)
-    sidebar:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -98)
-    sidebar:SetSize(120, 180)
-    local divider = sidebar:CreateTexture(nil, "ARTWORK")
-    divider:SetPoint("TOPRIGHT", sidebar, "TOPRIGHT", 0, 0)
-    divider:SetSize(1, 180)
-    divider:SetColorTexture(0.4, 0.35, 0.26, 0.55)
-    elements.navigation = text(sidebar, "GameFontNormal", 9, -12)
+    local resultsHeading = font(left, "GameFontNormal")
+    resultsHeading:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -51)
+    ui.resultsHeading = resultsHeading
+    local count = font(left, "GameFontDisableSmall")
+    count:SetPoint("TOPRIGHT", left, "TOPRIGHT", -11, -53)
+    ui.count = count
+    local incomplete = font(left, "GameFontDisableSmall")
+    incomplete:SetPoint("BOTTOMLEFT", left, "BOTTOMLEFT", 10, 5)
+    incomplete:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -10, 5)
+    incomplete:SetJustifyH("LEFT")
+    ui.incomplete = incomplete
+    local empty = font(left, "GameFontHighlight")
+    empty:SetPoint("TOPLEFT", left, "TOPLEFT", 12, -102)
+    ui.empty = empty
+    createRows(left)
 
-    elements.heading = text(panel, "GameFontNormalLarge", 160, -114)
-    elements.heading:SetWidth(360)
-    elements.heading:SetJustifyH("CENTER")
-    elements.comingSoon = text(panel, "GameFontHighlight", 160, -190)
-    elements.comingSoon:SetWidth(360)
-    elements.comingSoon:SetJustifyH("CENTER")
+    local detailIcon = right:CreateTexture(nil, "ARTWORK")
+    detailIcon:SetSize(48, 48)
+    detailIcon:SetPoint("TOPLEFT", right, "TOPLEFT", 16, -16)
+    ui.detailIcon = detailIcon
+    local detailTitle = font(right, "GameFontNormalLarge")
+    detailTitle:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -19)
+    detailTitle:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -19)
+    detailTitle:SetJustifyH("LEFT")
+    ui.detailTitle = detailTitle
+    local detailID = font(right, "GameFontDisableSmall")
+    detailID:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -42)
+    ui.detailID = detailID
+    local heading = font(right, "GameFontNormal")
+    heading:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -91)
+    ui.detailHeading = heading
+    local professions = font(right, "GameFontHighlight")
+    professions:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -115)
+    professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
+    professions:SetJustifyH("LEFT")
+    ui.detailProfessions = professions
+    local recipes = font(right, "GameFontNormal")
+    recipes:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -296)
+    ui.recipeHeading = recipes
+    local unavailable = font(right, "GameFontDisable")
+    unavailable:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -321)
+    unavailable:SetPoint("TOPRIGHT", right, "TOPRIGHT", -17, -321)
+    unavailable:SetJustifyH("LEFT")
+    ui.recipeUnavailable = unavailable
 
-    local version = text(panel, "GameFontDisableSmall", 18, -314)
+    local version = font(panel, "GameFontDisableSmall")
+    version:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
     version:SetText("v" .. ns.version)
-    panel:SetScript("OnHide", function() menu:Hide() end)
+
+    ui.itemListener = CreateFrame("Frame", nil, panel)
+    ui.itemListener:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+    ui.itemListener:SetScript("OnEvent", function(_, _, itemID, success)
+        if ns.UpdateMaterialInfo(itemID, success) then
+            refreshResults(false)
+        end
+    end)
+    panel:SetScript("OnHide", function()
+        ui.languageMenu:Hide()
+        ui.professionMenu:Hide()
+        ui.search:ClearFocus()
+    end)
     return panel
 end
 
 function ns.RefreshSettings()
     if not panel then return end
-    elements.title:SetText(ns.L("TITLE"))
-    elements.search.label:SetText(ns.L("SEARCH_PLACEHOLDER"))
-    elements.navigation:SetText(ns.L("GENERAL"))
-    elements.heading:SetText(ns.L("GENERAL"))
-    elements.comingSoon:SetText(ns.L("COMING_SOON"))
-
-    local selected = ns.GetLanguage()
-    local effectiveLanguage = ns.ResolveLocale(selected, ns.GetClientLocale())
-    elements.selector:SetText(ns.L(labels[effectiveLanguage]))
-    for _, option in ipairs(options) do
-        local prefix = option == selected and "> " or "   "
-        elements.choices[option]:SetText(prefix .. ns.L(labels[option]))
+    ui.title:SetText(ns.L("TITLE"))
+    ui.resultsHeading:SetText(ns.L("MATERIALS_HEADING"))
+    ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
+        or labelProfession(selectedProfession))
+    ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
+    local current = ns.GetLanguage()
+    for _, value in ipairs(languageOptions) do
+        ui.languageChoices[value]:SetText((current == value and "> " or "   ") .. ns.L(languageLabels[value]))
     end
+    ui.professionChoices[""]:SetText(ns.L("ALL_PROFESSIONS"))
+    for _, key in ipairs(ns.professionOrder or {}) do
+        ui.professionChoices[key]:SetText(labelProfession(key))
+    end
+    refreshResults(false)
 end
 
-function ns.OpenSettings()
-    local window = createPanel()
+function ns.OpenSettings(itemID)
+    createPanel()
+    if type(itemID) == "number" and ns.materials[itemID] then
+        searchQuery = ""
+        selectedProfession = ""
+        ui.search:SetText("")
+        selectedID = itemID
+    end
+    ns.PreloadMaterialInfo()
     ns.RefreshSettings()
-    window:Show()
-    window:Raise()
+    panel:Show()
+    panel:Raise()
 end
 
 function ns.InitSettings()
     SLASH_CRAFTATLAS1 = "/craftatlas"
     SlashCmdList = SlashCmdList or {}
-    SlashCmdList.CRAFTATLAS = ns.OpenSettings
+    SlashCmdList.CRAFTATLAS = function(input)
+        local id = tonumber(string.match(input or "", "^%s*(%d+)%s*$"))
+        ns.OpenSettings(id)
+    end
 end
