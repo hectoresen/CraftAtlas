@@ -28,13 +28,13 @@ end
 
 local function layoutCards()
     if not state.grid then return end
-    local width = math.max(180, state.grid:GetWidth())
-    local height = math.max(135, state.grid:GetHeight())
-    local columns = width < 330 and 2 or 3
+    local width = math.max(1, state.grid:GetWidth())
+    local height = math.max(1, state.grid:GetHeight())
+    local columns = width < 210 and 2 or 3
     local rows = PAGE_SIZE / columns
     local gap = 6
-    local cardWidth = math.floor((width - (columns - 1) * gap) / columns)
-    local cardHeight = math.floor((height - (rows - 1) * gap) / rows)
+    local cardWidth = math.max(1, math.floor((width - (columns - 1) * gap) / columns))
+    local cardHeight = math.max(1, math.floor((height - (rows - 1) * gap) / rows))
     state.columns = columns
 
     for index, card in ipairs(state.cards) do
@@ -121,7 +121,7 @@ end
 function ns.InitRecipePanel(parent, availableHeight)
     if state.grid then return end
 
-    local compact = availableHeight < 270
+    local compact = availableHeight < 370
     local headingY = compact and -119 or -142
     local gridY = compact and -141 or -164
 
@@ -181,7 +181,7 @@ function ns.InitRecipePanel(parent, availableHeight)
     end
 
     local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    previous:SetSize(92, 24)
+    previous:SetSize(76, 24)
     previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
     previous:SetScript("OnClick", function()
         if state.page > 1 then
@@ -192,7 +192,7 @@ function ns.InitRecipePanel(parent, availableHeight)
     state.previous = previous
 
     local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    nextButton:SetSize(92, 24)
+    nextButton:SetSize(76, 24)
     nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
     nextButton:SetScript("OnClick", function()
         local totalPages = math.ceil(#state.uses / PAGE_SIZE)
