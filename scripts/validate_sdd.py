@@ -221,9 +221,36 @@ def validate_lifecycle(paths, approval, change, root, base, exists_in_base):
     return errors
 
 
+def context_regression_errors(current_config, baseline_config):
+    """Reject obsolete version claims once the parent branch has been repaired.
+
+    A preexisting inconsistency on main is grandfathered only during this
+    transitional governance PR; it cannot be reintroduced after lifecycle sync.
+    """
+    stale = "v0.0.0 is documentation and folder structure only"
+    if stale in current_config and stale not in baseline_config:
+        return ["OpenSpec context regressed to non-playable v0.0.0 scaffold"]
+    if stale not in baseline_config and (
+            "schema: spec-driven" not in current_config or
+            "README.md" not in current_config):
+        return ["OpenSpec context must remain spec-driven and refer to README.md"]
+    return []
+
+
 def validate(files, body, pr_number, root=Path("."), base="origin/main",
              token=None, api=github_api, exists_in_base=None, implementation_created=None):
     errors = []
+    # Existing stale main context is a tracked debt; once removed via the
+    # approved lifecycle PR, fail every PR trying to reintroduce it.
+    current_config = root / "openspec/config.yaml"
+    if current_config.is_file():
+        try:
+            baseline_config = subprocess.check_output(
+                ["git", "show", base + ":openspec/config.yaml"], text=True)
+        except (OSError, subprocess.CalledProcessError):
+            baseline_config = current_config.read_text(encoding="utf-8")
+        errors.extend(context_regression_errors(
+            current_config.read_text(encoding="utf-8"), baseline_config))
     info = parse_metadata(body)
     if any(len(x) > 1 for x in info.values()):
         errors.append("Duplicate PR OpenSpec metadata")
