@@ -9,7 +9,7 @@ local function contains(haystack, needle)
     return string.find(normalize(haystack), needle, 1, true) ~= nil
 end
 
-function ns.FilterMaterials(materials, professionOrder, query, profession, names)
+function ns.FilterMaterials(materials, professionOrder, query, profession, names, namedOnly, professionLabels)
     local ids = {}
     local unresolved = 0
     local needle = normalize(query)
@@ -24,7 +24,17 @@ function ns.FilterMaterials(materials, professionOrder, query, profession, names
             end
             if accepted then
                 local name = names and names[itemID]
-                if needle == "" or contains(itemID, needle) or (name and not numberQuery and contains(name, needle)) then
+                local professionMatch = false
+                if needle ~= "" and not numberQuery then
+                    for _, key in ipairs(professions) do
+                        if contains((professionLabels and professionLabels[key]) or key, needle) then
+                            professionMatch = true
+                            break
+                        end
+                    end
+                end
+                if (not namedOnly or name) and (needle == "" or contains(itemID, needle)
+                    or (name and not numberQuery and contains(name, needle)) or professionMatch) then
                     ids[#ids + 1] = itemID
                 elseif not numberQuery and not name then
                     unresolved = unresolved + 1
