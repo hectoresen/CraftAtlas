@@ -11,6 +11,12 @@ eventFrame:SetScript("OnEvent", function(self, event, loadedName)
     if ns.InitSettings then
         ns.InitSettings()
     end
+    if ns.InitMinimapButton then
+        local minimapOk, minimapReason = ns.InitMinimapButton()
+        if not minimapOk and type(print) == "function" then
+            print("CraftAtlas: " .. tostring(minimapReason))
+        end
+    end
     local ok, reason = ns.InitTooltip()
     if not ok and type(print) == "function" then
         print("CraftAtlas: " .. tostring(reason))

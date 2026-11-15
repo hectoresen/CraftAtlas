@@ -3,6 +3,7 @@
 ## Notes: Offline profession usage for materials; first playable preview
 ## Author: CraftAtlas contributors
 ## Version: 0.0.1
+## IconTexture: Interface\\Icons\\Trade_BlackSmithing
 ## SavedVariables: CraftAtlasDB
 
 Core/Init.lua
@@ -11,6 +12,7 @@ Data/Materials.lua
 Localization/Locales.lua
 Infrastructure/Preferences.lua
 Infrastructure/TooltipAdapter.lua
+Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua
 Features/Settings/Settings.lua
 Core/Bootstrap.lua

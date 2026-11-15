@@ -31,6 +31,9 @@ equals(ns.ResolveLocale("auto", "frFR"), "enUS", "fallback")
 equals(ns.ResolveLocale("enUS", "esES"), "enUS", "override")
 equals(ns.Text("FIRST_AID", "esES", "enUS"), "Primeros auxilios", "label")
 equals(ns.Text("FIRST_AID", "enUS", "esES"), "First Aid", "English")
+equals(ns.Text("SEARCH_PLACEHOLDER", "esES", "enUS"),
+    "Buscar objetos, profesiones..", "search placeholder")
+equals(ns.Text("COMING_SOON", "esES", "enUS"), "Próximamente", "empty state")
 equals(ns.NormalizeLanguage("malformed"), "auto", "invalid preference")
 
 CraftAtlasDB = { language = "malformed" }

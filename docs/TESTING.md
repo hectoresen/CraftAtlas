@@ -37,6 +37,11 @@ Use deterministic Lua tests for material lookup, multi-profession resolution, un
 - enUS/esES and unknown-locale fallback
 - Manual language override survives reload/restart
 - Performance acceptable under rapid tooltip changes
+- Addon list shows the verified profession/crafting icon
+- Exactly one minimap button appears after load/reload
+- Minimap primary click opens the same settings window as `/craftatlas`
+- Search affordance does not accept input and shows the unavailable cursor
+- Expanded header layout is readable at ordinary UI scale
 - Screenshots or reproducible evidence attached to PR
 
 Mark each test *passed*, *failed* or *not run*. Never present an unrun game test as passing.

@@ -10,19 +10,19 @@
 
 ## 2. Addon identity and minimap access
 
-- [ ] 2.1 Add the verified native icon declaration/resource wiring without external web imagery.
-- [ ] 2.2 Implement one idempotent minimap button with the verified icon.
-- [ ] 2.3 Route primary click to the existing `ns.OpenSettings` action.
-- [ ] 2.4 Keep the button visible by default and omit future visibility/position settings.
+- [x] 2.1 Add the native icon candidate declaration/resource wiring without external web imagery.
+- [x] 2.2 Implement one idempotent minimap button with the candidate icon.
+- [x] 2.3 Route primary click to the existing `ns.OpenSettings` action.
+- [x] 2.4 Keep the button visible by default and omit future visibility/position settings.
 - [ ] 2.5 Add offline tests for initialization idempotence and click routing.
 
 ## 3. Settings shell
 
-- [ ] 3.1 Enlarge the settings window using client-native layout primitives.
-- [ ] 3.2 Build the header with left search affordance, centered title and right language selector.
-- [ ] 3.3 Make the search affordance non-interactive and show the unavailable/prohibited pointer state.
-- [ ] 3.4 Move language selection out of General while preserving immediate application and persistence.
-- [ ] 3.5 Replace General content with a centered localized “Coming soon” message.
+- [x] 3.1 Enlarge the settings window using client-native layout primitives.
+- [x] 3.2 Build the header with left search affordance, centered title and right language selector.
+- [x] 3.3 Make the search affordance non-interactive and show the unavailable/prohibited pointer state.
+- [x] 3.4 Move language selection out of General while preserving immediate application and persistence.
+- [x] 3.5 Replace General content with a centered localized “Coming soon” message.
 - [ ] 3.6 Add/update English and Spanish strings and tests.
 
 ## 4. Verification and handoff
