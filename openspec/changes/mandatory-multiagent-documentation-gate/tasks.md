@@ -18,7 +18,7 @@
 - [x] Modify `scripts/validate_sdd.py` narrowly to allow AGENTS.md only under this exact approved governance change with explicit paths, and add regression tests for all bypass cases.
 
 ## Verification and handoff
-- [ ] Validate all skill references and command examples; no fabricated supported automatic invocation.
-- [ ] Execute Python documentation/SDD regressions, repository validator, relevant Lua tests, shared release checker, strict OpenSpec and CI; report not-run commands.
-- [ ] Confirm README accurately describes source functionality; AGENTS contains no duplicate outdated feature statuses.
-- [ ] Open a separate implementation PR with `OpenSpec-Approval-PR` referencing the real owner-merged spec PR, no automatic merge.
+- [x] Review canonical skill references and examples; make no unsupported auto-discovery claims.
+- [x] GitHub CI (including Python documentation regressions and release-readiness checks) and SDD Compliance passed on PR #32. Local commands and real-client checks NOT RUN; no Lua/gameplay changes.
+- [x] Confirm README accurately describes source functionality; AGENTS contains no duplicate outdated feature statuses.
+- [x] Open implementation PR #32 referring to merged specification PR #31, without merging.
