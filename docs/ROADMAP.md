@@ -28,3 +28,5 @@ The approved follow-up implements six-card recipe pagination (three columns, two
 ## Recipe Explorer milestone (implementation candidate)
 
 Shared native Materials/Recipes navigation, reusable UI controls, unique recipe-by-profession/spellID index, searchable recipe results, ingredient/output details, cross-navigation and native tooltips are implemented in a PR candidate. The existing Materials viewer remains the default. **Not yet verified in the Forever client.** Further wishlist features (owned reagent counts, recipe craftability, favorites, auction data and crafting trees) remain future work and are not included.
+
+**PR #25 refinement:** the UI tab is now called **Fabricables / Craftables**; the Material detail's crafting-use heading is separated from profession metadata; native results list uses available vertical room (seven rows at normal window height); Back is in the navigation bar. The underlying Recipes domain terminology and data are intentionally unchanged.
