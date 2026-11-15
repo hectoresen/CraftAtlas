@@ -12,9 +12,9 @@ Read `README.md`, `AGENTS.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md`,
 2. For any new behavior, material schema, game compatibility or nontrivial refactor, first use `/opsx:propose` and present proposal/specs/design/tasks to **@hectoresen**. **Wait for approval before implementing**.
 3. Implement only approved tasks following Clean Code rules in `docs/CODE_QUALITY.md`. Document every new data source and license.
 4. Run `python3 scripts/validate_repo.py`, all relevant Lua tests and lint introduced with implementation, and actual Forever client smoke tests for game-facing changes. Clearly report *not run* tests.
-5. Update both locales, architecture, specs, changelog and roadmap as relevant. Synchronize accepted OpenSpec changes.
+5. **Before opening the PR, explicitly read and execute `skills/documentation-sync/SKILL.md`.** Compare source and accepted spec with README current features, relevant technical docs, changelog, tests and evidence. Update affected documentation; leave `AGENTS.md` as agent instructions only. Follow `docs/DOCUMENTATION_PROTOCOL.md` and include `Documentation-Review: updated|not-applicable` plus a substantive `Documentation-Evidence: ...` declaration for functional PRs.
 6. Open a PR with rationale, OpenSpec change ID, tests/results, Forever build, screenshots where appropriate, risks and rollback.
-7. Address review feedback. **Only @hectoresen authorizes merges, tags and releases.** Contributors and agents may not merge or push directly to `main`.
+7. Re-run the documentation skill after functional review revisions and address reviewer feedback. **Only @hectoresen authorizes merges, tags and releases.** Contributors and agents may not merge or push directly to `main`.
 
 For functional changes, use the two-PR OpenSpec process in docs/SDD_COMPLIANCE.md. The first PR has exactly these lines:
 

@@ -29,6 +29,9 @@ DISCOVER → EXPLORE (optional) → PROPOSE → OWNER_APPROVAL
                                           |
                                      SYNC SPECS
                                           |
+                          RUN documentation-sync SKILL
+                             AUDIT → UPDATE → VERIFY
+                                          |
                                       OPEN PR
                                           |
                                   OWNER REVIEWS
@@ -40,7 +43,8 @@ DISCOVER → EXPLORE (optional) → PROPOSE → OWNER_APPROVAL
 
 - **Gate 1:** The maintainer @hectoresen explicitly approves the proposal/spec scope before code changes.
 - **Gate 2:** Proposed implementation passes offline checks, records manual game checks and matches accepted specs before PR.
-- **Gate 3:** Only the owner may authorize merge, release, protection changes or privileged GitHub operations.
+- **Gate 3:** Before every functional PR, explicitly read and execute `skills/documentation-sync/SKILL.md`; review README and affected documentation, document test evidence and declare `Documentation-Review`/`Documentation-Evidence` in the PR body. Optional multiagent auditors must have disjoint file ownership; all agents can do the work serially. See `docs/DOCUMENTATION_PROTOCOL.md`. Structural CI cannot certify the skill ran or semantic accuracy.
+- **Gate 4:** Only the owner may authorize merge, release, protection changes or privileged GitHub operations.
 - Revision requests return to planning, not an automatic implementation loop.
 
 OpenSpec `/opsx:archive` is applied when the change is accepted and the canonical specs have been synchronized. Agents may prepare the archive on a PR branch; do not archive a rejected or unreviewed behavior change as though accepted.
@@ -52,6 +56,10 @@ Record the change ID, branch, approved scope, current tasks, modified files, dec
 ## What agents must not do
 
 Never direct-push `main`; merge; force-push shared history; create tags/releases; rotate secrets; alter GitHub permissions/rulesets; remove attribution; or import unlicensed datasets without a separate owner authorization. Never mark a manual game test completed without performing it.
+
+## Documentation review handoff
+
+List each reviewed document as updated or unchanged with a reason, the README feature claim checked against source, and exact tests RUN/NOT RUN. Do not place fluctuating feature summaries in AGENTS.md; that document is only an agent contract and skills index. After changing the PR, rerun the skill before asking for merge.
 
 ## Output at handoff
 

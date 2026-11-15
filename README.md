@@ -56,7 +56,7 @@ docs/               Installation, technical documentation and testing
 
 ## Development and validation
 
-Review [AGENTS.md](AGENTS.md) for agent instructions and [CONTRIBUTING.md](CONTRIBUTING.md) for the spec-first, owner-merged PR process. Technical references: [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md), [testing](docs/TESTING.md), [roadmap](docs/ROADMAP.md), [OpenSpec](openspec/README.md) and [changelog](CHANGELOG.md).
+Review [AGENTS.md](AGENTS.md) for agent instructions and [CONTRIBUTING.md](CONTRIBUTING.md) for the spec-first, owner-merged PR process. **Before any functional PR**, explicitly run the [documentation-sync skill](skills/documentation-sync/SKILL.md) and provide documentation evidence as explained in the [documentation protocol](docs/DOCUMENTATION_PROTOCOL.md). Technical references: [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md), [testing](docs/TESTING.md), [roadmap](docs/ROADMAP.md), [OpenSpec](openspec/README.md) and [changelog](CHANGELOG.md).
 
 ```sh
 bash scripts/validate_release_checks.sh

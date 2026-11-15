@@ -1,76 +1,51 @@
-# AGENTS.md — CraftAtlas agent contract
+# AGENTS.md — CraftAtlas agent instructions
 
-**Required first read for every AI agent, including OpenCode, and recommended for humans.**
-CraftAtlas is an MIT-licensed Lua addon for World of Warcraft: Forever. **Current v0.0.0 is a non-playable repository scaffold.** Roadmap features are not implemented.
+This file is an **agent contract**, not a functional product manual. Read [README.md](README.md) for current behavior and limitations. Applies to Codex, Claude Code, GitHub Copilot, OpenCode and any other coding agent.
 
-## Operating principles
+## First read and source of truth
 
-1. **Read before acting.** Read `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `openspec/config.yaml`, `openspec/README.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md` and relevant architecture/specs.
-2. **Recover context.** Inspect `git status`, current branch, open PRs/issues, accepted `openspec/specs/`, active `openspec/changes/`, and the target version in `docs/ROADMAP.md`. Never assume a task was completed because it appears on the roadmap. Ask for missing decisions only when they block safe work.
-3. **Spec before implementation.** New features, changed user behavior, data-model changes, client compatibility changes and nontrivial refactors require an OpenSpec proposal, explicit approval from **@hectoresen** and only then implementation. Never interpret generating a proposal as approval. No silent scope expansion.
-4. **Small maintenance exception.** Typographical or documentation-only fixes and strictly mechanical changes can skip OpenSpec with an explanation in the PR. Security/compatibility fixes still require test evidence and explicit approval before broad changes.
-5. **Agents prepare, owner integrates.** Agents may create branches, commits, tests, issues and PRs when authorized. They **must not push to `main`, merge or approve their own PR, bypass protection, publish releases, change repository permissions/rulesets or modify secrets** without an explicit separate request from @hectoresen. A conversational approval to implement is NOT merge approval.
-6. **Evidence over confidence.** List exactly what tests ran, what did not run, current Forever client build (if known), remaining assumptions and risks. Never claim client compatibility without a real-client test.
-7. **Do not introduce unrelated work.** Preserve existing code, specs, user changes, licenses and attribution. Avoid needless dependencies and large refactors.
+1. Read `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, `docs/CODE_QUALITY.md`, `docs/DEVELOPMENT.md`, `docs/TESTING.md` and `openspec/README.md`.
+2. Inspect current `main`, branch, PRs, `openspec/changes/`, accepted specifications, tests and relevant code. Do not trust historical roadmap text without verifying code.
+3. For observed implemented behavior consult current source; for intended changes consult the **owner-merged** OpenSpec delta. Report discrepancies rather than silently changing requirements.
 
-## Required OpenSpec / OpenCode flow
+All **source code, project documentation, tests, specs and PR text are in English**. Only addon-visible strings are localized (enUS/esES). Keep advice and components small and reusable; favor deterministic, testable domain logic over framework-like abstractions.
 
-**Terminal setup** (Node.js 22.12+ for the current official npm CLI):
+## Implementation boundaries and practices
 
-```sh
-npm install -g @fission-ai/openspec@latest
-openspec init
-openspec list
-```
+| Area | Responsibility |
+| --- | --- |
+| `Core/` | Addon lifecycle and wiring |
+| `Domain/` | Pure, deterministic lookups, filters and pagination; no WoW globals |
+| `Data/` | Licensed, version-pinned sources and generated Lua indices |
+| `Infrastructure/` | Guarded Forever WoW APIs, name caches, SavedVariables, tooltip and minimap adapters |
+| `Features/` | Thin native-WoW views and tooltip presenters |
+| `Features/Settings/Shared/` | Reusable search, filter, list, pager and layout controls |
+| `Localization/` | enUS/esES strings and client-locale fallback |
 
-Choose the OpenCode integration during initialization. Initialization generates local agent commands/skills; **keep existing config and project specs**. OpenSpec default core commands in OpenCode:
+Use numeric itemID to identify reagents and profession+spellID to identify recipes. Names and rarity come from the client; never invent catalog facts, learned status or live compatibility. No runtime network service, unlicensed data, telemetry or mandatory external addon. Avoid duplicate tooltip hooks and expensive per-frame scanning. Follow `docs/CODE_QUALITY.md` for tests, error paths and straightforward interfaces.
 
-```text
-/opsx:explore                 # Optional research/clarification; no implementation
-/opsx:propose <change-name>  # proposal + specs + design + tasks
-# STOP: present artifacts; wait for @hectoresen approval
-/opsx:update                 # Revise planning artifacts if review demands
-/opsx:apply                  # Implement approved scope and tick tasks
-/opsx:sync                   # Sync approved delta specs into canonical specs
-/opsx:archive                # Archive accepted change after verification
-```
+## Mandatory OpenSpec / SDD lifecycle
 
-Some agent tools use different command spellings; use the commands generated by `openspec init`. The `/opsx:verify` command is only available with an expanded profile; verification (tests, manual smoke testing, spec comparison) is **mandatory regardless of profile**. See `openspec/README.md` for exact gates.
+Functional behavior, schema, client compatibility or nontrivial refactors require the standard **two PRs**:
 
-**PR is mandatory for all changes**, including documentation, unless @hectoresen explicitly instructs otherwise. Never merge the PR on your own.
+1. Propose `openspec/changes/<id>/` with proposal, design, SHALL scenarios, tasks, and `sdd-scope.json`; open a **spec-only PR** and stop for @hectoresen to merge it.
+2. After that owner merge, implement only approved scope in a new branch. Implementation PR must include `OpenSpec-Change: <id>`, `OpenSpec-Phase: implementation`, `OpenSpec-Approval-PR: <owner-merged number>`. Only `tasks.md` may advance; approved specs/design/scope stay unchanged.
+3. Verify actual behavior, tests, documentation and acceptance scenarios, then open PR for **owner review**. No combined proposal/code exceptions except the historical PR #14; do not reuse it.
 
-## Source-of-truth and boundaries
+The official OpenSpec CLI (`@fission-ai/openspec`, using a supported Node.js version) can provide `/opsx:propose`, `/opsx:apply`, `/opsx:verify`, `/opsx:sync` and `/opsx:archive` according to installed profile. Do not invent commands when unsupported. See `openspec/README.md` and `docs/SDD_COMPLIANCE.md`. Documentation-only and tiny maintenance exemptions are narrowly restricted.
 
-Accepted `openspec/specs/` + approved active change > documented architectural decisions > current code for observed implementation > future roadmap. If they disagree, stop and flag the discrepancy before implementing.
+## Skill catalog and mandatory pre-PR gate
 
-- `Core/`: wiring and lifecycle, not business logic.
-- `Domain/`: deterministic Lua lookups, independent of WoW API globals.
-- `Data/`: offline versioned itemID/profession datasets, with provenance.
-- `Infrastructure/`: client API adapters and persistent settings.
-- `Features/`: thin UI and tooltip/settings presenters.
-- `Localization/`: enUS/esES strings with fallback and persisted language choice.
+| Skill | When to use | Path |
+| --- | --- | --- |
+| **documentation-sync** | **MANDATORY after implementation/testing and before opening or updating any functional PR**; also review doc-only/spec PRs | [`skills/documentation-sync/SKILL.md`](skills/documentation-sync/SKILL.md) |
 
-## Non-negotiable technical rules
+**Explicitly read and execute the canonical skill every time.** Codex, Claude, Copilot, OpenCode or generic agents must use the file path even when automatic discovery is unavailable. The skill checks code→README, architecture/data/install/development/testing/roadmap/changelog, license, OpenSpec tasks and test evidence; optional audit subagents have non-overlapping ownership. `AGENTS.md` must **not** accumulate current feature documentation. A functional PR declares `Documentation-Review: updated` or `Documentation-Review: not-applicable`, plus `Documentation-Evidence: ...` with specific evidence; see [documentation protocol](docs/DOCUMENTATION_PROTOCOL.md). CI checks structural evidence but cannot prove internal invocation or semantic accuracy.
 
-- Use **numeric itemID**, never localized item names or translated tooltip phrases, for material identity.
-- A material can belong to multiple professions independent of character skills. Unknown material = no fabricated result.
-- enUS/esES, auto locale selection and manual override. Keep user-facing content localized.
-- No runtime network service, telemetry, or mandatory third-party addon.
-- Verify supported Forever build, .toc interface number and tooltip hooks in-game; do not assume Retail or Vanilla compatibility.
-- Keep hooks safe and idempotent; no duplicate tooltip lines, side effects or per-frame scans.
-- Apply `docs/CODE_QUALITY.md`: simple functions, clear names, single responsibility, no dead code or speculative abstractions, deterministic tests, explicit failure paths.
-- Data licensing, retrieval date and applicability must be recorded before import. Do not copy unlicensed third-party databases.
+## Quality and handoff
 
-## Automated PR traceability gate
+Run `bash scripts/validate_release_checks.sh`, relevant Lua/Python tests, generated-data checks, documentation validation and SDD/OpenSpec checks where available. For game-facing changes record the real Forever build and manual test evidence or explicitly say **NOT RUN**. CI success is not proof of gameplay; imported source evidence is not live-realm validation.
 
-See docs/SDD_COMPLIANCE.md. Behavioral work normally uses two PRs. **Owner-authorized one-time exception:** PR #14 for `improve-material-explorer-ui` may combine its OpenSpec proposal and implementation after explicit approval on 2026-11-15; validation restricts this exception to the exact PR/change and scoped paths. No other change inherits this approval.\n\nStandard flow uses two PRs:
-1. OpenSpec-Phase: proposal: only new OpenSpec artifacts (including sdd-scope.json) and owner merge.
-2. OpenSpec-Phase: implementation: code PR references OpenSpec-Approval-PR pointing to that already merged owner-approved spec PR. Approved specs and scope must remain unchanged; only tasks.md can advance.
+Before asking for a merge, summarize: goal, approved spec, branch/PR, source and docs changed, tests **passed/failed/not run**, client evidence, unknowns and remaining owner decisions.
 
-The CI tests the relation to main, checks the approver via GitHub and rejects files outside the approved path scope. Documentation-only/maintenance exemptions are restricted; PR #2 alone can use bootstrap. Never assume a passing check proves semantic compliance. All development still requires the official OpenSpec workflow and explicit owner approval.
-
-## Completion / handoff
-
-Before opening a PR: tests, lint and repo validation; relevant enUS/esES, docs and changelog; applicable in-game evidence; verify against acceptance scenarios; update or sync specs as appropriate. Include an explicit list of **not run** checks.
-
-Every handoff MUST say: goal; branch; OpenSpec change and approval; files modified; tests passed/failed/not run; Forever compatibility evidence; risks; PR URL; what needs @hectoresen's decision. **Only @hectoresen decides whether and when a PR is merged.**
+**Never** direct-push `main`, self-approve/merge, publish a release, change repository settings/rulesets/permissions, modify secrets or mark unexecuted checks passed without a separate explicit owner instruction. An instruction to implement does **not** authorize merging.

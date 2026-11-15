@@ -1,0 +1,51 @@
+# Mandatory documentation review before pull requests
+
+The canonical, model-independent skill is **[documentation-sync](../skills/documentation-sync/SKILL.md)**. Every agent (Codex, Claude Code, Copilot, OpenCode, or a generic coding assistant) must **explicitly read and execute that file after implementation/testing and before opening a functional PR**, regardless of automatic skill discovery. It supports optional parallel subagents, but serial execution is fully supported.
+
+## Documents and ownership
+
+- `README.md` owns the **current functional reality**: user features, limitations, commands, screenshots/examples and source/data scope.
+- `AGENTS.md` owns **agent instructions**, OpenSpec, code boundaries, skills catalog, pre-PR verification and owner permissions. Avoid ever-growing product feature descriptions or unverified build numbers there.
+- `docs/ARCHITECTURE.md`, `DATA_MODEL.md`, `INSTALLATION.md`, `DEVELOPMENT.md`, `TESTING.md` document technical implementation, source provenance, usage and evidence.
+- `docs/ROADMAP.md` separates implemented from not implemented; `CHANGELOG.md` records actual source changes, not speculative features.
+- `openspec/changes/<id>/tasks.md` records evidenced completed tasks. Approved specs/design/scope are immutable in ordinary implementation PRs. Historical archive/sync stays under its separately approved lifecycle process.
+
+## When and how to invoke
+
+1. Complete approved implementation and tests; gather the actual current branch diff and source.
+2. Read `skills/documentation-sync/SKILL.md` **in full**. Assign its four audit roles sequentially or to nonoverlapping subagents, then reconcile findings.
+3. Update README and affected docs. If no change is warranted, record a **substantive code-to-document explanation**, not an empty exemption.
+4. Validate docs paths/links, actual source identifiers, locale names and catalog counts. Report `NOT RUN` for unavailable Forever/client tests; passing CI does not verify gameplay or the beta source against live realms.
+5. Run the applicable tests and `python3 scripts/validate_documentation.py` with PR event/diff after PR details are available; pre-PR run its pure unit tests and review the diff. Open PR only after the skill is complete.
+
+## PR metadata
+
+For a functional PR with documentation changes:
+
+```text
+Documentation-Review: updated
+Documentation-Evidence: README.md and CHANGELOG.md aligned to <specific implemented functionality>; <actual test/evidence details>.
+```
+
+For a functional PR with **no** user-facing documentation impact:
+
+```text
+Documentation-Review: not-applicable
+Documentation-Evidence: <explicit inspected behavior/source and why README and other docs remain accurate; include relevant test evidence>.
+```
+
+CI validates **structure**, not inner agent execution or semantic truth. A missing attestation on functional PRs, an empty/superficial rationale, or `updated` without changed documentation fails. Spec-only proposal and docs-only changes receive lighter handling. The GitHub documentation gate complements, not replaces, the mandatory SDD traceability, owner-merged specification, and explicit owner merge decision.
+
+## Local verification
+
+```sh
+python3 -m unittest discover -s tests -p 'test_validate_documentation.py' -v
+python3 -m unittest discover -s tests -p 'test_validate_sdd.py' -v
+bash scripts/validate_release_checks.sh
+```
+
+Agent adapters may provide GitHub file APIs instead of a local `git` checkout; verify changed files and README through those APIs. Never claim commands executed in a local checkout if only GitHub CI ran.
+
+## Known protected-source debt
+
+`openspec/config.yaml` still includes a historical `v0.0.0` scaffold description. Updating that protected file needs **separate approved scope and validator policy**; it is not silently changed by this skill implementation. A broader reconciliation/archival process is already separately proposed.
