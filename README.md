@@ -16,6 +16,9 @@ There is **no standalone material search, recipe browser, ingredient quantities 
 
 ## Install
 
+Download the installable ZIP from [GitHub Releases](https://github.com/hectoresen/CraftAtlas/releases) when one is published, and extract it directly into `Interface/AddOns/`. The archive already contains the top-level `CraftAtlas/` directory. Do **not** use GitHub's automatic Source code ZIP for installation.
+
+
 1. Copy **only** `addon/CraftAtlas/` to the Forever installation at `Interface/AddOns/CraftAtlas/`.
 2. Check that `CraftAtlas.toc` is directly inside the installed folder; enable the addon and launch the game.
 3. Hover a known crafting material or type `/craftatlas` to open settings. Alternatively click the minimap button.
@@ -42,6 +45,12 @@ docs/                   Functional, technical and contributor documentation
 scripts/                Dataset compilation and quality checks
 tests/                  Offline regression tests
 ```
+
+## Manual releases (maintainer only)
+
+From GitHub **Actions → Publish CraftAtlas Release → Run workflow**, select `main` and the patch/minor/major increment. Only GitHub user `hectoresen` can publish, including on reruns; both the original and rerunning actor are checked. The first version is `v0.1.0` when no SemVer tags exist. Later versions increment from the highest valid `vMAJOR.MINOR.PATCH` tag. The workflow runs repository/material/package checks, creates a minimal `CraftAtlas-vX.Y.Z.zip`, and publishes it as a GitHub Release. Versions below 1.0 are marked as prereleases. This action does not run automatically on merges or pushes and does not edit the tracked `.toc` version in `main`.
+
+Anyone with write access may still see the manual action; only `hectoresen` is authorized to publish. Protecting `main` and workflow changes from unauthorized edits is required for strong enforcement. Releases are not evidence of complete live-realm catalog validation.
 
 ## Development and governance
 
