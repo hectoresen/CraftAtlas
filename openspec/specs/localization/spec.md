@@ -1,5 +1,9 @@
 # Localization
 
+## Purpose
+
+Defines implemented English/Spanish labeling, locale auto-detection, safe fallback, and language-independent data identities. Actual game-client behavior has maintainer-reported acceptance without a recorded exact client build.
+
 ## Requirements
 
 ### Requirement: Translate all CraftAtlas user-facing labels in English and Spanish
