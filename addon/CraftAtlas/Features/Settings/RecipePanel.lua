@@ -119,9 +119,7 @@ function ns.InitRecipePanel(parent, availableHeight)
 
     -- Reserve a dedicated gap after the profession labels at Y=-115.
     -- The former compact Y=-119 overlapped those labels on the new tabbed window.
-    local compact = availableHeight < 270
-    local headingY = compact and -138 or -151
-    local gridY = compact and -160 or -174
+    local headingY, gridY = ns.MaterialDetailSectionOffsets(availableHeight)
 
     state.heading = font(parent, "GameFontNormal")
     state.heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, headingY)
