@@ -63,7 +63,7 @@ Accepted `openspec/specs/` + approved active change > documented architectural d
 
 ## Automated PR traceability gate
 
-See docs/SDD_COMPLIANCE.md. Behavioral work uses two PRs:
+See docs/SDD_COMPLIANCE.md. Behavioral work normally uses two PRs. **Owner-authorized one-time exception:** PR #14 for `improve-material-explorer-ui` may combine its OpenSpec proposal and implementation after explicit approval on 2026-11-15; validation restricts this exception to the exact PR/change and scoped paths. No other change inherits this approval.\n\nStandard flow uses two PRs:
 1. OpenSpec-Phase: proposal: only new OpenSpec artifacts (including sdd-scope.json) and owner merge.
 2. OpenSpec-Phase: implementation: code PR references OpenSpec-Approval-PR pointing to that already merged owner-approved spec PR. Approved specs and scope must remain unchanged; only tasks.md can advance.
 
