@@ -1,67 +1,40 @@
-# Testing strategy
+# Testing strategy and evidence
 
-## Foundation
-`python3 scripts/validate_repo.py` verifies required files, Markdown formatting and OpenSpec config; CI runs it for PRs/pushes to main. This does NOT validate playable functionality.
+## Reported in-game acceptance
 
-## v0.0.1 implementation candidate
+On **15 November 2026**, the maintainer confirmed that the **current addon is tested and functional in WoW Forever**, including its present tooltip/settings/minimap experience. This is **user-reported manual acceptance**, not an automated test result or a recorded full matrix. The exact client build, screenshots and results by individual tooltip origin (bank, vendor, auction, chat, etc.) were not supplied. Do not mark those individual cases as passed without evidence.
 
-From the repository root, run:
+The settings **search affordance is intentionally visual only**. Testing must assert that it is not presented as an operational search control; the actual search feature is planned for a later milestone.
 
-```sh
-python3 -m unittest discover -s tests -p 'test_material_data.py' -v
-python3 scripts/build_materials.py --check
-python3 scripts/build_materials.py --release --check
-texlua tests/test_addon.lua
-```
+## Automated/offline checks
 
-The `--release` command is **expected to fail** until the signed-off
-30-item minimum is complete. `texlua` runs the pure Lua fixtures and mocks;
-it **cannot** substitute for the game client or prove compatibility with
-Forever's UI/security APIs. No in-game tests have been run by the implementation agent.
-
-The source of profession relationships is
-`addon/CraftAtlas/Data/materials.source.json`, with human-readable references
-and review dates. These references are *not* client proof. Curate the remaining
-items and verify each included association with actual Forever recipes.
-
-## Future automated tests
-Use deterministic Lua tests for material lookup, multi-profession resolution, unknown IDs, localization fallback and SavedVariables preference behavior. Static analysis (Luacheck) and dataset/schema validation must be introduced with the first implementation. CI must fail on invalid data, tests or lint errors.
-
-## Manual Forever-client matrix (required for game-facing changes)
-- Exact client build + interface version recorded
-- Addon detected/enabled, no Lua startup errors
-- Player inventory/bag item tooltip behavior (bank/global tooltips require later approved scope)
-- Known single-profession and multi-profession materials
-- Unrecognized item adds no false information
-- No duplicate lines on repeated hovers/reloads
-- enUS/esES and unknown-locale fallback
-- Manual language override survives reload/restart
-- Performance acceptable under rapid tooltip changes
-- Addon list shows the profession/crafting icon
-- Exactly one minimap button appears after load/reload
-- Minimap primary click opens the same settings window as `/craftatlas`
-- Search affordance is not editable, with unavailable cursor
-- Expanded header is readable at standard UI scale
-- Screenshots or reproducible evidence attached to PR
-
-Mark each test *passed*, *failed* or *not run*. Never present an unrun game test as passing.
-
-## v0.1.0 development candidate
-
-Run from repository root: `python3 -m unittest discover -s tests -p 'test_material_data.py' -v`, `python3 scripts/build_materials.py --check`, and `texlua tests/test_addon.lua`. The release gate `python3 scripts/build_materials.py --release --check` is deliberately failing while 30 verified items are unavailable. Test bank, guild bank, inventory, chat item links, auction, vendors, mail, crafting and quest rewards individually in a real Forever build; report each as passed/failed/not run. Existing client testing covered only initial v0.0.1. Do not claim all origins tested or all professions catalogued.
-
-## MIT catalog expansion QA (pending real client)
-
-Imported dataset: 593 item IDs, 10 consuming professions, 237 shared materials, indexed by numeric itemID. The source is the **beta Forever 1.60.1.69977 LibProfessionDB** core data (MIT, Pimptasty), not a live-server capture. The current published LibProfessionDB v1.10.0 uses live build 1.60.1.70938 and includes Herbalism/Skinning; obtaining and comparing that snapshot remains open.
-
-Execute the following against the candidate branch:
+Run from the repo root:
 
 ```sh
+python3 scripts/validate_repo.py
 python3 -m unittest discover -s tests -p 'test_material_data.py' -v
 python3 scripts/build_materials.py --check
 python3 scripts/coverage_report.py
 texlua tests/test_addon.lua
-python3 scripts/build_materials.py --release --check  # MUST fail until Forever QA recorded
+python3 scripts/build_materials.py --release --check
 ```
 
-The in-game matrix must test **new materials beyond the six prototype entries**, multi-profession overlaps, Mining smelting, Fishing crafts, displayed enUS/esES names, item tooltips in bag/bank/chat/AH/merchant, unknown items, reload and rapid hover. At present these checks are not reported as passed. A 593-material import does **not** imply a release-ready build.
+The first repository validator runs in existing CI; **this does not prove Lua gameplay functionality**. The other commands need to be run and reported for each candidate PR. This documentation update does not assert that they have been executed. The `--release --check` gate also requires `referenceUniverse.liveClientValidated`, independent of whether the addon itself loads and runs successfully.
+
+## Client test checklist — record pass/fail/not run for each
+
+- Exact Forever build, `.toc` interface metadata and Lua startup errors
+- Inventory and bag tooltips: one consuming profession, multiple consuming professions, unknown itemID
+- Rapid tooltip refresh/item switching: no stale labels or duplicates
+- Bank, guild bank, chat links, auction, vendor, mail, quest rewards and crafting: **separate** origin checks
+- enUS/esES and auto language resolution; manual language change and persistence across `/reload`
+- `/craftatlas` opens the General settings page and closes/reopens without duplicate frames
+- Minimap button opens the same settings, is draggable and persists its position
+- Search placeholder is visual and does **not** perform a search
+- At least several materials introduced by the expanded 593-item catalog match actual current-server recipes
+
+Collect client build, reproducible results and screenshots for the release record. For data integrity review `addon/CraftAtlas/Data/coverage-report.json`: 593 candidates, 237 multi-profession IDs, and `liveClientValidated: false` regarding **the imported relations**, not whether the Lua addon works.
+
+## Important distinction
+
+**Working addon** means its runtime/UI have been successfully exercised by the maintainer. **Live-verified dataset** means the individual imported item-to-profession mappings have been corroborated against actual current-server recipes. The first has been reported; the second is still an open release-quality task.

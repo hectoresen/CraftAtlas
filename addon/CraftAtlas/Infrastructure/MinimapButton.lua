@@ -3,7 +3,6 @@ local _, ns = ...
 local button
 local iconTexture = "Interface\\Icons\\Trade_BlackSmithing"
 local borderTexture = "Interface\\Minimap\\MiniMap-TrackingBorder"
-<<<<<<< HEAD
 local unavailableCursor = "Interface\\Cursor\\UnablePoint"
 local buttonSize = 31
 local iconSize = 20

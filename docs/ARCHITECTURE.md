@@ -1,65 +1,31 @@
-# Architecture
+# Architecture — current implementation
 
-CraftAtlas is a lightweight Lua addon using pragmatic ports-and-adapters concepts: **separation is mandatory; speculative abstraction is not**. Read [CODE_QUALITY.md](CODE_QUALITY.md) for Clean Code and review standards.
+CraftAtlas is an installable Lua addon with a pragmatic separation of domain, client APIs and UI. It **is implemented and reported working in Forever by the maintainer**, not an empty scaffold. It uses no runtime networking, telemetry or required third-party addon.
 
-## Module responsibilities
+| Module | Runtime responsibility |
+| --- | --- |
+| `Core/Init.lua` / `Core/Bootstrap.lua` | Namespace, lifecycle, initialization after `ADDON_LOADED` |
+| `Domain/MaterialLookup.lua` | Pure numeric itemID → ordered consuming-profession keys; no WoW API calls |
+| `Data/Professions.lua` / `Data/Materials.lua` | Compact, generated offline profession registry and 593-material map |
+| `Infrastructure/TooltipAdapter.lua` | Single `TooltipDataProcessor.AddTooltipPostCall` item hook and numeric itemID extraction |
+| `Features/Tooltip/Tooltip.lua` | Localized two-line profession annotation and refresh deduplication |
+| `Infrastructure/Preferences.lua` | Saved language choice and minimap angle in account-wide `CraftAtlasDB` |
+| `Infrastructure/MinimapButton.lua` | Draggable minimap entry point to settings |
+| `Localization/Locales.lua`, `ProfessionLabels.lua` | English/Spanish labels and fallback |
+| `Features/Settings/Settings.lua` | Native-style General panel, language choice and `/craftatlas` command |
 
-| Boundary | Purpose | Must not |
-| --- | --- | --- |
-| `Core/` | Bootstrap, lifecycle, dependency wiring | Contain lookup/domain rules |
-| `Domain/` | Pure material → professions rules | Call WoW APIs, access SavedVariables/UI |
-| `Data/` | Compact offline mapping plus verifiable provenance | Infer relations from localized names |
-| `Infrastructure/` | Client item/tooltip adapters, settings persistence | Decide domain relationships |
-| `Features/Tooltip/` | Idempotent tooltip presentation | Own database query rules |
-| `Features/Settings/` | Language preferences UI | Reach into item data directly |
-| `Localization/` | Locale keys/labels | Encode game logic |
+## Runtime flow
 
-## End-to-end flow
+WoW item tooltip → numeric itemID from structured tooltip data → pure map lookup → ordered consuming professions → locale-aware tooltip lines. Missing IDs produce no annotation. Tooltip registration is guarded for unsupported APIs and callback errors. The UI panel is available via slash command and minimap.
 
-Tooltip event → Forever-supported game adapter → numeric itemID → domain material lookup → local versioned dataset → translation by locale → tooltip presenter. Unknown IDs produce no fabricated profession lines.
+**Settings search is not functional.** `createSearchAffordance()` creates a visual Button/label and unavailable cursor; there is **no edit box, filtering or results handler**. The current General page and language selector are functional. Material search, recipe graph and ingredient quantities are future work.
 
-Game API calls are edge effects. Domain logic must be executable and tested with vanilla Lua values. No per-frame scanning, repeated heavy allocations, or duplicate tooltip injection. Prefer small functions and minimal global namespace. Never ship a runtime network dependency.
+## Data architecture
 
-## Compatibility and engineering constraints
+A 593-item, ten-profession local index is generated from a provenance-bearing source file. The large JSON (~678 KB) is build evidence; the small Lua runtime map (~25 KB) is what the client loads. This snapshot comes from an MIT-licensed LibProfessionDB Forever beta build 69977; it is not a full live server catalog. See [Data model](DATA_MODEL.md).
 
-The addon skeleton is currently nonfunctional. Validate exact Forever interface value, tooltips, available API and SavedVariables behavior on a current client before claiming support. Do not assume Retail or old Vanilla APIs match.
+## Compatibility and acceptance
 
-Changes to module boundaries, data schema or externally visible behavior require an OpenSpec proposal, prior maintainer approval and documented acceptance tests. Source data needs a compatible license and explicit provenance. New modules should not exist merely to anticipate future crafting graphs.
+The maintainer reported successful in-game operation of the current addon on **15 November 2026**. The exact tested Forever build and separate bank/auction/chat/vendor origin results have not been recorded. The approved original [v0.0.1 inventory spec](../openspec/changes/add-first-playable-material-tooltips/specs/inventory-tooltips/spec.md) formally guarantees inventory/bag behavior only; avoid silently extending its documented acceptance scope.
 
-## Decision references
-
-- [Agent workflow](AGENT_WORKFLOW.md)
-- [Data model](DATA_MODEL.md)
-- [Testing](TESTING.md)
-- [Roadmap](ROADMAP.md)
-
-## v0.0.1 implementation notes
-
-`Core/Init.lua` initializes the namespace; `Core/Bootstrap.lua` wires
-initialization after addon load. `Domain/MaterialLookup.lua` is a pure function
-accepting a numeric itemID, table and stable profession order.
-`Infrastructure/TooltipAdapter.lua` contains modern WoW tooltip-specific code,
-where `TooltipDataProcessor.AddTooltipPostCall` is used provisionally;
-`Features/Tooltip/Tooltip.lua` formats verified relations.
-`Infrastructure/Preferences.lua`, `Localization/Locales.lua` and
-`Features/Settings/Settings.lua` implement language selection independently
-of lookup. The native settings panel uses the approved clean CraftAtlas
-header without decorative emblem and a single General category.
-`Infrastructure/MinimapButton.lua` provides the always-visible native minimap
-entry point and routes its primary click to the same `ns.OpenSettings` action
-as `/craftatlas`. The addon metadata and minimap button currently use the
-native `Trade_BlackSmithing` icon as a profession/crafting candidate; its
-availability and exact appearance remain subject to Forever client testing.
-
-The modern item-tooltip callback has a broad surface in Mainline-family WoW.
-**The spec currently guarantees only inventory/bag behavior**; extending
-guaranteed support to other origins needs an approved spec revision and game
-tests. The adapter is not considered compatible until tested on Forever.
-
-## v0.1.0 expansion
-
-A generated profession registry provides stable keys and enUS/esES labels before the lookup module loads. The tooltip adapter registers once with the supported structured item-data post-call; this is intended to serve every supported item origin, subject to in-game verification. No unsafe protected-frame modifications or per-hover catalog scanning.
-
-## Pinned MIT reagent corpus
-
-The offline runtime table groups the 593 material IDs by consuming professions, deduped across recipes. The editable source is 677 KB JSON because it also carries evidence `recipeIDs`, while the runtime Lua index is compact (~25 KB). `scripts/build_materials.py` converts evidence to generated tables and enforces licensing and release QA gates. Original LibProfessionDB library is not loaded or required at runtime. The current snapshot came from client beta build 69977; reconcile against a newer verified live build before stable release.
+The tooltip API belongs at the infrastructure edge; pure lookup stays testable with Lua fixtures. Do not infer mappings from localized names or add speculative modules. Source/code/spec changes follow [OpenSpec governance](../openspec/README.md) and [code quality standards](CODE_QUALITY.md).

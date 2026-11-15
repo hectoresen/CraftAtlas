@@ -1,37 +1,38 @@
-## Unreleased — licensed reagent import (DRAFT)
-
-- Imported 593 unique ingredient itemIDs and mappings across 10 profession recipes from MIT-licensed LibProfessionDB beta 1.60.1.69977 (237 multi-profession materials).
-- Preserved recipe spell IDs and per-relation provenance with upstream license attribution.
-- Added an offline source importer, expanded tests and stricter release QA gate.
-- **Not full live coverage**: newest Forever 1.60.1.70938 snapshot and real-game validation remain pending.
-
-## Unreleased — v0.1.0 development candidate
-
-- Extensible localized profession registry and relation-level catalog evidence.
-- Reproducible coverage report without unjustified completeness claims.
-- Centralized modern item tooltip adapter with localization-aware refresh and nil/zero enum support.
-- Offline data/Lua tests; expansion and client compatibility still require verification.
-
-## Unreleased — v0.0.1 implementation candidate
-
-- Added an offline Lua material-profession lookup and a small evidence-linked
-  starter catalog (six researched IDs; 30 required before release).
-- Added modern item-tooltip adapter pending live Forever API testing.
-- Added native-style settings panel and `/craftatlas` with Spanish/English
-  selection and SavedVariables persistence.
-- Added a native profession icon candidate, an always-visible minimap entry point, and an expanded settings header with a non-functional search affordance and General empty state.
-- Added deterministic data generator, data tests and mocked Lua behavior tests.
-- **Not a release:** no complete dataset or real-client acceptance yet.
-
 # Changelog
 
-This project uses [Semantic Versioning](https://semver.org/) after the first release. Pre-1.0 milestones are planned feature boundaries, not guarantees.
+CraftAtlas uses pre-1.0 development milestones; this log distinguishes **implemented runtime features**, **imported data** and **future releases**. No tagged stable release is asserted.
 
-## [Unreleased]
+## [Unreleased] — current `0.1.0-dev` (15 November 2026)
 
-### Added
-- Project initialization: contributor and agent contracts, OpenSpec workflow, documentation, CI and addon folder layout.
+### Working in Forever (maintainer-reported)
 
-## [0.0.0] — Foundation
+- ItemID-based tooltip annotations listing all known consuming professions for a material, including multi-profession items.
+- Spanish/English localization, automatic language resolution, saved manual selection and the `/craftatlas` settings window.
+- Draggable minimap button opening the same settings panel.
+- Native-style General settings UI. The search-looking control is **visual only; no search functionality exists**.
 
-This milestone is a **nonfunctional scaffold**; no working in-game functionality is released.
+### Catalog
+
+- Replaced the historical six-item preview with **593 distinct reagent IDs** covering **ten profession sources**; 237 materials have multiple consuming professions.
+- Imported a pinned MIT-licensed LibProfessionDB beta snapshot (Forever 1.60.1.69977), retaining recipe IDs, rights metadata and attribution.
+- Added a deterministic source importer and coverage report. This data is **not independently reconciled with the current Forever live server**; complete coverage is not claimed.
+
+### Maintenance
+
+- Removed an accidentally committed Git conflict marker from `Infrastructure/MinimapButton.lua`.
+- Updated documentation to reflect the currently working addon and distinguish visual placeholders from planned search.
+
+### Outstanding release-quality evidence
+
+- Record the exact tested Forever build and test matrix for each tooltip origin.
+- Audit imported relations against newer live-client recipe data and satisfy the separate dataset release gate.
+
+## [0.0.1] — first playable development baseline
+
+- Implemented a Lua addon bootstrap, domain lookup, initial tooltip hook, six-material preview, persisted language settings and a settings panel.
+- Subsequently superseded by the wider `0.1.0-dev` implementation; no standalone stable release is asserted.
+
+## [0.0.0] — foundation
+
+- Created repository structure, project documentation, OpenSpec governance, tests scaffold and CI.
+- This initial milestone was non-playable.
