@@ -1,16 +1,18 @@
 ## Interface: 16001
 ## Title: CraftAtlas
-## Notes: Offline profession usage for materials; first playable preview
+## Notes: Offline profession usage across supported item tooltips
 ## Author: CraftAtlas contributors
-## Version: 0.0.1
+## Version: 0.1.0-dev
 ## IconTexture: Interface\\Icons\\Trade_BlackSmithing
 ## SavedVariables: CraftAtlasDB
 
 Core/Init.lua
+Data/Professions.lua
 Domain/MaterialLookup.lua
 Data/Materials.lua
 Localization/Locales.lua
 Infrastructure/Preferences.lua
+Localization/ProfessionLabels.lua
 Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua

@@ -1,29 +1,20 @@
 local _, ns = ...
 
--- Forever 1.60.x reports a modern Mainline tooltip API. Verify in the
--- actual supported client before claiming production compatibility.
 function ns.ResolveTooltipItemID(data)
-    local ok, id = pcall(function()
-        if type(data) ~= "table" or type(data.id) ~= "number" then
-            return nil
-        end
-        if data.id <= 0 or data.id % 1 ~= 0 then
-            return nil
-        end
-        return data.id
-    end)
-    return ok and id or nil
+    local ok, id = pcall(function() return data and data.id end)
+    if not ok or type(id) ~= "number" or id < 1 or id % 1 ~= 0 then return nil end
+    return id
 end
 
+-- One modern item-tooltip hook for all origins exposed by the Forever client.
+-- Unsupported/protected frame APIs are never patched.
 function ns.RegisterTooltipHook(callback)
-    if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
-        and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item) then
-        return false, "TooltipDataProcessor API unavailable"
+    if not (TooltipDataProcessor and type(TooltipDataProcessor.AddTooltipPostCall) == "function"
+        and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item ~= nil) then
+        return false, "TooltipDataProcessor item hook unavailable"
     end
     local ok, err = pcall(TooltipDataProcessor.AddTooltipPostCall,
         Enum.TooltipDataType.Item, callback)
-    if not ok then
-        return false, tostring(err)
-    end
+    if not ok then return false, tostring(err) end
     return true
 end

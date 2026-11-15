@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "professions": [
+    {
+      "key": "ALCHEMY",
+      "enUS": "Alchemy",
+      "esES": "Alquimia",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "BLACKSMITHING",
+      "enUS": "Blacksmithing",
+      "esES": "Herrería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "COOKING",
+      "enUS": "Cooking",
+      "esES": "Cocina",
+      "role": "consumer",
+      "source": "WoW Classic secondary profession"
+    },
+    {
+      "key": "ENCHANTING",
+      "enUS": "Enchanting",
+      "esES": "Encantamiento",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "ENGINEERING",
+      "enUS": "Engineering",
+      "esES": "Ingeniería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "FIRST_AID",
+      "enUS": "First Aid",
+      "esES": "Primeros auxilios",
+      "role": "consumer",
+      "source": "WoW Classic secondary profession"
+    },
+    {
+      "key": "FISHING",
+      "enUS": "Fishing",
+      "esES": "Pesca",
+      "role": "consumer",
+      "source": "LibProfessionDB Forever 1.60.1.69977 Fishing recipes with reagents"
+    },
+    {
+      "key": "LEATHERWORKING",
+      "enUS": "Leatherworking",
+      "esES": "Peletería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "MINING",
+      "enUS": "Mining",
+      "esES": "Minería",
+      "role": "consumer",
+      "source": "LibProfessionDB Forever 1.60.1.69977 smelting recipes with reagents"
+    },
+    {
+      "key": "TAILORING",
+      "enUS": "Tailoring",
+      "esES": "Sastrería",
+      "role": "consumer",
+      "source": "WoW Classic crafting profession"
+    }
+  ]
+}

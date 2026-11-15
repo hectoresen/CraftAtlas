@@ -37,3 +37,18 @@
 - [ ] 5.3 Add data/adapter tests and large-data benchmarks; execute offline and in Forever, capturing exact client version/screenshots.
 - [ ] 5.4 Update README, roadmap, data model, testing, installation, changelog and coverage report with precise claims.
 - [ ] 5.5 Submit separate implementation PR with approved spec PR reference; do not merge without owner review.
+
+## Implementation checkpoint
+
+Initial architecture implemented: dynamic profession registry, per-relation provenance, deterministic generator/coverage report, central tooltip adapter, localized labels and offline tests. **Not accepted:** only six candidate items, no complete licensed Forever reference universe, and no real in-game tests for the additional tooltip origins. Leave unverified tasks unchecked; this PR must stay DRAFT.
+
+## Snapshot import checkpoint — pending full verification
+
+- [x] Import a legally redistributable dataset under MIT and preserve attribution: LibProfessionDB 1.60.1.69977 **beta snapshot**.
+- [x] Generate offline per-itemID mappings and provenance for **593 reagents / ten professions / 237 multi-profession overlaps**.
+- [x] Preserve the unknown-denominator guard and require a separately confirmed live-client QA signal for release.
+- [ ] Obtain and compare upstream LibProfessionDB **live 1.60.1.70938** source; reconcile Herbalism, Skinning and other missing/changed profession groups.
+- [ ] Verify expected item-profession associations across actual Forever item tooltip surfaces, including the new imported items.
+- [ ] Audit full reference universe before making a comprehensive coverage claim.
+
+**This remains a DRAFT implementation; do not merge or archive.**

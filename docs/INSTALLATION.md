@@ -8,9 +8,13 @@
 2. Copy the CONTENTS of `addon/CraftAtlas/` into `Interface/AddOns/CraftAtlas/`; `CraftAtlas.toc` must sit directly inside that folder.
 3. Launch the Forever client and verify the addon appears in the character selection AddOns panel; enable out-of-date addons only when appropriate for an explicitly tested build.
 4. Enable Lua errors if appropriate; test inventory and bank item tooltips, language auto-detection, manual language setting, reload persistence, unknown IDs and multi-profession IDs.
-5. Verify that the addon list shows a profession/crafting icon and that one CraftAtlas button appears at the minimap edge; left-clicking it must open the same settings window as `/craftatlas`.
+5. Verify the addon icon in the character-select addon list and that exactly one minimap button appears. Its left-click must open the same settings as `/craftatlas`.
 6. Record exact game build, addon version, client language and any errors. Report compatibility regressions as issues.
 
 The implementation branch currently sets provisional `## Interface: 16001` based on third-party Forever API reports, not direct testing. Verify it with `/dump select(4, GetBuildInfo())` and record the build. Game UI APIs are Mainline-family in Forever; do not assume Classic Era's legacy `OnTooltipSetItem` works. See docs/TESTING.md.
 
 The minimum release catalog contains 30 verified itemIDs; the preview currently contains only six externally researched ones. Unknown IDs deliberately produce no annotation.
+
+## Development candidate v0.1.0
+
+Download the implementation branch ZIP (not the entire folder structure into AddOns). Copy **only** `addon/CraftAtlas/` into the game's `Interface/AddOns/CraftAtlas/`, preserving `CraftAtlas.toc` directly inside it. The new runtime has **no dependency on LibProfessionDB**: its transformed reagent index is bundled under `Data/`. This is a DRAFT and still requires live Forever validation, particularly when using newer client builds than the imported beta snapshot.
