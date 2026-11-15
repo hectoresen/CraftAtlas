@@ -4,6 +4,50 @@ local button
 local iconTexture = "Interface\\Icons\\Trade_BlackSmithing"
 local borderTexture = "Interface\\Minimap\\MiniMap-TrackingBorder"
 local unavailableCursor = "Interface\\Cursor\\UI-Cursor-NoMop"
+local buttonSize = 36
+local iconSize = 22
+local borderSize = 54
+
+local function getAngleRadians(angle)
+    return math.rad(tonumber(angle) or 45)
+end
+
+local function positionButton()
+    if not button or not Minimap then
+        return
+    end
+
+    -- Put the button's center on the minimap edge. The native border extends
+    -- evenly on both sides of that edge instead of floating outside it.
+    local radius = Minimap:GetWidth() / 2
+    local radians = getAngleRadians(ns.GetMinimapAngle and ns.GetMinimapAngle() or 45)
+    button:ClearAllPoints()
+    button:SetPoint("CENTER", Minimap, "CENTER",
+        math.cos(radians) * radius, math.sin(radians) * radius)
+end
+
+local function saveDraggedPosition()
+    if not button or not Minimap or not GetCursorPosition then
+        return
+    end
+
+    local scale = UIParent and UIParent.GetEffectiveScale
+        and UIParent:GetEffectiveScale() or 1
+    local cursorX, cursorY = GetCursorPosition()
+    local minimapX, minimapY = Minimap:GetCenter()
+    local dx = (cursorX / scale) - minimapX
+    local dy = (cursorY / scale) - minimapY
+    local angle
+    if math.atan2 then
+        angle = math.deg(math.atan2(dy, dx))
+    else
+        angle = math.deg(math.atan(dy, dx))
+    end
+    if ns.SetMinimapAngle then
+        ns.SetMinimapAngle(angle)
+    end
+    positionButton()
+end
 
 local function setUnavailableCursor()
     if type(SetCursor) == "function" then
@@ -23,26 +67,42 @@ local function createButton()
     end
 
     button = CreateFrame("Button", "CraftAtlasMinimapButton", Minimap)
-    button:SetSize(32, 32)
+    button:SetSize(buttonSize, buttonSize)
     button:SetFrameStrata("MEDIUM")
-    button:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", -2, -2)
+    button:SetMovable(true)
+    button:SetClampedToScreen(true)
+    positionButton()
     button:RegisterForClicks("LeftButtonUp")
+    button:RegisterForDrag("LeftButton")
 
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetTexture(iconTexture)
-    icon:SetSize(20, 20)
+    icon:SetSize(iconSize, iconSize)
     icon:SetPoint("CENTER")
     button.icon = icon
 
     local border = button:CreateTexture(nil, "OVERLAY")
     border:SetTexture(borderTexture)
-    border:SetAllPoints()
+    border:SetSize(borderSize, borderSize)
+    border:SetPoint("CENTER")
     button.border = border
 
     button:SetScript("OnClick", function(self, mouseButton)
+        if self.wasDragged then
+            self.wasDragged = nil
+            return
+        end
         if mouseButton == "LeftButton" and ns.OpenSettings then
             ns.OpenSettings()
         end
+    end)
+    button:SetScript("OnDragStart", function(self)
+        self.wasDragged = true
+        self:StartMoving()
+    end)
+    button:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        saveDraggedPosition()
     end)
     button:SetScript("OnEnter", function(self)
         if GameTooltip and GameTooltip.SetOwner then

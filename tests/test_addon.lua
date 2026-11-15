@@ -39,8 +39,11 @@ equals(ns.NormalizeLanguage("malformed"), "auto", "invalid preference")
 CraftAtlasDB = { language = "malformed" }
 ns.InitPreferences()
 equals(CraftAtlasDB.language, "auto", "recover preference")
+equals(CraftAtlasDB.minimapAngle, 45, "default minimap angle")
 ns.SetLanguage("esES")
 equals(CraftAtlasDB.language, "esES", "persist preference")
+ns.SetMinimapAngle(135)
+equals(ns.GetMinimapAngle(), 135, "persist minimap angle")
 GetLocale = function() return "enUS" end
 equals(ns.L("TAILORING"), "Sastrería", "effective preference")
 
