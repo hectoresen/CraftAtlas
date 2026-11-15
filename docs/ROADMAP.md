@@ -24,3 +24,7 @@ Scope and dates are not commitments. Future behavior changes require reviewed Op
 ### UI refinement after PR #21
 
 The approved follow-up implements six-card recipe pagination (three columns, two rows at typical resolutions), native hover information, and a working close button. It does not implement the separate searchable recipe catalog/tab; that remains a possible future change. Real Forever-client visual/close QA is pending.
+
+## Recipe Explorer milestone (implementation candidate)
+
+Shared native Materials/Recipes navigation, reusable UI controls, unique recipe-by-profession/spellID index, searchable recipe results, ingredient/output details, cross-navigation and native tooltips are implemented in a PR candidate. The existing Materials viewer remains the default. **Not yet verified in the Forever client.** Further wishlist features (owned reagent counts, recipe craftability, favorites, auction data and crafting trees) remain future work and are not included.
