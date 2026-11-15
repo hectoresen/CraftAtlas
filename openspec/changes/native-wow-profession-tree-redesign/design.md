@@ -5,7 +5,7 @@
 | Concept image element | Proposed implementation | Evidence constraint |
 | --- | --- | --- |
 | Dark metal/stone border, gold header, large crafting emblem | Native window with Blizzard/Classic-compatible NineSlice/texture or a restrained game-native fallback | Use supported client assets; do not bundle/extract copyrighted UI resources |
-| Top-left magnifying-glass search | Keep **functional** `CreateExplorerSearchBox`, clear button and view-local query | Existing search cannot become decorative |
+| Top-left magnifying-glass search and adjacent **broom icon** | Keep **functional** `CreateExplorerSearchBox`; replace textual `X` clear button with a native broom icon button and view-local query | Broom must clear the current field and refresh results; never become decorative, confuse window close, or require external art |
 | Profession dropdown above left list | Keep actual source-backed profession filter | Existing selected filter and full list semantics persist |
 | Grouped Alquimia / Sastrería / Herrería sections | New profession-key grouped tree, expand/collapse, counts | Only catalog relations; duplicates across groups remain itemID-identical |
 | Large selected item icon/name, secondary info | Existing client item name/icon, numeric ID, client-verified optional type/item level/quality | Do not hardcode any field shown in image |
@@ -13,6 +13,7 @@
 | "Recetas (2)" section with single-line result entries | **Se utiliza para fabricar** with count of actual source-backed uses, selectable rows and pagination/scroll | Consistent product terminology; source-backed amounts |
 | Item type and level panel | Conditional **Detalles** panel when real client item metadata is available | Hide or say unavailable, never invent |
 | Missing tabs in concept screenshot | Preserve **Materiales** and **Fabricables** tab navigation, Back and language selector | Existing approved behavior cannot regress |
+| Bottom-left `v0.1.0-dev` in current addon | Show `v0.1.0` for an installed **v0.1.0 release package**, determined from its locally stamped `.toc`; omit version for dev checkouts | Never display `-dev`, hardcode latest GitHub tag or query GitHub from the addon |
 
 ## Data and domain
 
@@ -34,7 +35,8 @@ Render only the visible row window (virtualized list or fixed reusable row pool)
 Keep `Features/Settings/Settings.lua` as the view/state coordinator, with a single main frame. Allocate header/toolbar/tabs and content area from measured window bounds; prefer adaptable anchors rather than magic constants. The new left pane should occupy roughly one-third of the usable width (about 32–40%), right pane the remainder. A reference-like large window is the preferred desktop presentation, but **must** fit supported smaller game viewports without controls disappearing.
 
 - Shared native frame treatments and section bars live in `Shared/ExplorerWidgets.lua` or a dedicated `Shared/NativeTheme.lua` if needed. Do not depend on Retail-only templates.
-- Header: centered gold title, working search, clear, language; tabs and Back remain accessible and visibly distinguish selected state.
+- Header: centered gold title, working search, **broom clear icon button** sourced from a client-supported native icon/texture (with a safe native fallback if the broom texture is not available), language; tabs and Back remain accessible and visibly distinguish selected state. The clear control must have an accessible tooltip/enUS-esES label, meaningful hover/pressed affordance, empty-query disabled state, and its click must clear/reset filtering exactly as before. Reserve the textual `X` exclusively for closing the window.
+- Footer/version: do **not** display `ns.version = "0.1.0-dev"` as a public version. The release packaging script already rewrites `## Version:` in the installable `.toc` to the actual SemVer (currently `0.1.0`). Read packaged metadata using the supported Forever API (guarded legacy `GetAddOnMetadata` or compatible API as actually confirmed in-game), show `v<release-version>` only for numeric release SemVer, and omit the label when the checkout still advertises `-dev` or metadata cannot be trusted. Do not hardcode GitHub's currently latest release and do not add runtime network access. If a different local release is installed, show that installed release's version rather than the latest remote tag. Remove/synchronize the hardcoded `ns.version` in `Core/Init.lua` to avoid duplicate conflicting version sources.
 - Material detail: icon/title/ID top block; non-overlapping profession-use panel; explicit fabrication-use panel; conditional native item metadata details. Collapsible **section headings** may be added only where tested and with safe defaults. The left profession tree has expandable group headers.
 - Replace six-card recipe grid with readable native **recipe rows**, preserving click to Fabricables, material-used quantity, item/spell hover, pagination and empty/no-output states. Use a fixed visible page size or responsive scrolling, tested with 0/1/many uses; don't clip pager.
 - Fabricables detail reuses section styling and ingredient rows, showing **all source-backed ingredients/quantities**, with paging/scroll and cross-navigation.
@@ -47,7 +49,7 @@ Store per-view search/filter, selection by numeric itemID or profession+spellID,
 ## Verification
 
 - **Pure Lua:** grouping order, multi-profession duplicates, distinct counts, filter+search+collapse/restore, stable selection on async name load, no empty/hardcoded groups, pagination and preserved recipe quantities.
-- **UI mocks:** group click behavior, row recycling, section visibility, close/reopen, tab switch/Back, no tooltip duplicates, item metadata conditionality and enUS/esES.
+- **UI mocks:** group click behavior, row recycling, section visibility, close/reopen, tab switch/Back, no tooltip duplicates, item metadata conditionality and enUS/esES; broom availability/disabled state, clear behavior and tooltip localization; release-stamped metadata vs dev/unknown metadata and no runtime GitHub calls.
 - **Layout:** two representative window sizes (standard and minimum) and multiple UI scales; no header overlap, scrollbar obscuring clickable rows, clipped footer or phantom hover.
 - **In-game manual matrix:** exact Forever build, item 2447 (Peacebloom), item 159, material 14044/recipe 19093, multi-profession material 14341, unknown item, non-item enchantment, long recipes, fast search/filter, item cache unavailable/reload and tooltip behavior; record screenshots and outcomes. These IDs are fixtures/examples, not proof of live coverage.
 - **Documentation:** `documentation-sync` before implementation PR; README, testing, architecture, installation, changelog and roadmap, preserving clear distinction between beta source and real-client evidence.
