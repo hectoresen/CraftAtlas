@@ -368,6 +368,8 @@ class SddPolicyTests(unittest.TestCase):
             "schema: spec-driven\ncontext: no reference\n", current))
         self.assertTrue(gate.context_regression_errors(
             "schema: unexpected\ncontext: README.md\n", current))
+        self.assertTrue(gate.context_regression_errors(
+            "schema: spec-driven\ncontext: README.md, current version v0.1.0-dev\n", current))
 
 if __name__ == "__main__":
     unittest.main()
