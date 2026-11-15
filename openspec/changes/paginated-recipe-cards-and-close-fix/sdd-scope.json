@@ -1,0 +1,14 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Domain/RecipeUsage.lua",
+    "addon/CraftAtlas/Features/Settings/RecipePanel.lua",
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md"
+  ]
+}
