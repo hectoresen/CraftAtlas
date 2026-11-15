@@ -1,0 +1,9 @@
+{
+  "allowed_paths": [
+    "scripts/build_materials.py",
+    "tests/test_material_data.py",
+    "scripts/validate_release_checks.sh",
+    ".github/workflows/ci.yml",
+    ".github/workflows/publish-release.yml"
+  ]
+}
