@@ -2,7 +2,7 @@
 
 The policy in scripts/validate_sdd.py is enforced by .github/workflows/spec-compliance.yml on every pull request. It is **not** an OpenSpec command: OpenSpec generates and validates the specifications; CraftAtlas CI enforces their PR-level provenance.
 
-## Two separate pull requests (mandatory for functional work)
+## Two separate pull requests (default for functional work)
 
 **Phase A: specification.** Start with the official OpenSpec /opsx:propose command inside OpenCode (or the officially generated equivalent). After review, open a PR changing **only** a new openspec/changes/<id>/ directory. In the PR description, on separate lines:
 
@@ -46,6 +46,12 @@ Use the REAL number of the earlier merged spec PR. It must target main, have bee
 6. For phase implementation, it checks the artifacts in main, consults GitHub's API for the referenced merged specification PR and its merging user, and verifies that the actual changed files fit the frozen scope. Previously existing unrelated specs do not authorize new work.
 7. The official OpenSpec CLI runs: openspec validate --all --strict --no-interactive. It checks OpenSpec syntax/requirements; it does not prove the developer followed the process.
 8. CI fails on any policy failure. The owner still reviews the code's semantic match with SHALL scenarios, tests and actual Forever client compatibility.
+
+## Owner-authorized single-PR exception (PR #14 only)
+
+On 2026-11-15, @hectoresen explicitly approved implementing the V3 visual material explorer and its behavior in the existing specification PR #14. `OpenSpec-Phase: combined` is accepted **only** when the PR number is 14 and the change ID is `improve-material-explorer-ui`. The PR must introduce its own proposal, design, delta specs, tasks and bounded scope, and contain real non-spec implementation changes within that scope. The only additional governance edits permitted here are the validator, its tests, AGENTS.md and this policy document. Any GitHub workflow change, unrelated change ID, different PR number or unrelated file still fails. This exception does not apply to future proposals; the two-PR contract remains in force otherwise.
+
+The owner explicitly authorized this exception before implementation. Passing CI does not replace manual review or in-game verification, and only @hectoresen can merge.
 
 ## Small exceptions
 
