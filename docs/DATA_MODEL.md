@@ -55,3 +55,7 @@ python3 scripts/build_materials.py --import-libprofessiondb /path/to/Forever/_co
 - The pinned source is not independently verified against the latest live Forever realm. Names/tooltips come from the client and may remain unavailable; there is no claim of complete live-realm coverage.
 
 When importing another LibProfessionDB snapshot, **regenerate and reconcile both** material relations and recipe-use records before building; mismatched source relations intentionally fail validation to prevent stale reverse lookups.
+
+## Unique recipe catalog (implementation awaiting in-game QA)
+
+`Data/Recipes.lua` is generated deterministically from the *same* `Data/recipe-uses.source.json` as `RecipeUses.lua`; it is not a second manually maintained source. The source's **8,455 reagent-use records** become **2,506 unique profession+spellID recipe keys**. Each record stores `{spellID, professionIndex, outputItemID|0, kindIndex, {{inputItemID, exactQuantity}...}}` and is ordered by profession registry then spell ID. The generator validates consistent output item/type and rejects duplicate input ingredients. All recipe ingredients, including ingredients other than the selected material, are preserved. Identical crafted output items from distinct recipes remain separate catalog records. Values reflect the pinned beta source and **not necessarily every recipe or crafting permission in the current live realm**. Run `python3 scripts/build_materials.py --check` to detect generated drift and provenance mismatches.
