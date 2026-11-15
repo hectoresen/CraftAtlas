@@ -1,6 +1,20 @@
 local _, ns = ...
 
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
+
+-- The shell reserves 137 px above the list, 30 px below it, 76 px
+-- for the filter and heading, and 16 px for the bottom status.
+function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
+    local rows = math.floor((windowHeight - 167 - 76 - 16) / rowHeight)
+    return math.max(2, math.min(9, rows))
+end
+
+-- Keep profession metadata and the fabrication header in separate vertical bands.
+function ns.MaterialDetailSectionOffsets(availableHeight)
+    if availableHeight < 270 then return -138, -160 end
+    return -151, -174
+end
+
 function ns.CreateExplorerRow(parent, height, onClick)
     local row = CreateFrame("Button", nil, parent)
     row:SetHeight(height)
