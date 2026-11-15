@@ -52,3 +52,8 @@ Initial architecture implemented: dynamic profession registry, per-relation prov
 - [ ] Audit full reference universe before making a comprehensive coverage claim.
 
 **This remains a DRAFT implementation; do not merge or archive.**
+
+
+## Lifecycle evidence checkpoint — 2026-11-15
+
+**Specification PR #5 and implementation PR #6 are merged**, even though the implementation PR title mentioned DRAFT. The pinned, attributed MIT beta snapshot now contains 593 reagents, ten consuming profession categories, 237 multi-profession materials, 8,455 use relationships and 2,506 unique recipes. These numbers are **source-backed**, not independently verified against the complete live Forever reference universe. The stable profession-registry contract is synchronized to canonical specs; all-live tooltip origin and exhaustive coverage requirements remain **OPEN / unarchived** until substantiated by build-specific QA. Historic "do not merge" notes remain as provenance and are superseded only as a GitHub merge-state statement, not as acceptance evidence. See `docs/OPENSPEC_STATUS.md`.

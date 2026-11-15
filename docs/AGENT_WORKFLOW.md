@@ -64,3 +64,7 @@ List each reviewed document as updated or unchanged with a reason, the README fe
 ## Output at handoff
 
 Provide concise: progress, PR, evidence, unmet acceptance criteria, outstanding decisions and a direct next action for @hectoresen.
+
+## OpenSpec lifecycle and context drift
+
+Before proposing changes, cross-check the current feature claims in `README.md` with source code and use `docs/OPENSPEC_STATUS.md` to understand historical tasks that are implemented, superseded or still missing live-client evidence. Treat `openspec/config.yaml` as stable project context only, not a second feature-status summary. Do not declare legacy changes archived or complete when acceptance requirements remain open. The lifecycle path is limited to the owner-approved change `reconcile-openspec-lifecycle-and-status` and its fixed SDD allowlist; user acceptance of UI does not prove source-data completeness or individual tooltip-origin support.

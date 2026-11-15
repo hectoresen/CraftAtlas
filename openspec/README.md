@@ -1,6 +1,6 @@
 # CraftAtlas — mandatory OpenSpec / SDD workflow
 
-**Single source of truth for behavior:** accepted `openspec/specs/`; proposed delta changes live in `openspec/changes/<kebab-case-id>/`. This project uses the `spec-driven` schema from `openspec/config.yaml`. It is not acceptable to implement a behavioral change first and write specs later.
+**Specification truth:** synchronized accepted requirements live in `openspec/specs/`, while historical and proposed delta changes remain in `openspec/changes/<kebab-case-id>/`. **Current implemented feature status is documented in `README.md` and backed by code**; consult `docs/OPENSPEC_STATUS.md` for which historical requirements are still open or superseded. Do not treat an unsynchronized or unverified requirement as a shipped feature. This project uses the `spec-driven` schema from `openspec/config.yaml`. It is not acceptable to implement a behavioral change first and write specs later.
 
 ## Install and initialize (terminal)
 
@@ -41,6 +41,12 @@ Expanded optional profile enables `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/o
 ## Exception: tiny maintenance
 
 Typo-only, documentation-only or unambiguous mechanical maintenance can skip proposing a change; PR still required. Explain why no behavior/spec change is needed.
+
+## Lifecycle reconciliation and documentation consistency
+
+The owner-approved lifecycle path is limited to OpenSpec change `reconcile-openspec-lifecycle-and-status` (spec PR #13) and requires `OpenSpec-Phase: lifecycle` with the real approval metadata. It permits only specific historical task/evidence records, supported canonical capabilities and lossless archived copies of historical changes. It must **not** rewrite original proposals, delta specs, source rights or incomplete QA acceptance. See `docs/SDD_COMPLIANCE.md` and `docs/OPENSPEC_STATUS.md`.
+
+Every agent should read `README.md` for current implemented features and explicitly execute `skills/documentation-sync/SKILL.md` before opening a functional PR. `openspec/config.yaml` describes stable architecture and links to README; do not insert a point-in-time version/status claim there. CI checks for reintroduction of the historical non-playable scaffold statement.
 
 ## First feature
 

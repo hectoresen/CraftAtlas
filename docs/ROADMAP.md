@@ -25,3 +25,7 @@ These are **features of the current development branch** and do not imply separa
 - Security/maintainer branch protection and approved workflow/process improvements where applicable.
 
 Future behavior changes follow an owner-approved OpenSpec proposal and separate implementation PR. Avoid claiming complete live data coverage or promising game-client support unsupported by recorded tests. See [OpenSpec](../openspec/README.md), [testing](TESTING.md) and [data model](DATA_MODEL.md).
+
+## OpenSpec evidence and synchronization
+
+Canonical specs are being reconciled for accepted material lookup, localization, minimap access and the stable profession registry under owner-approved lifecycle policy. Historical changes with incomplete source coverage, initial 30-item acceptance, or unrecorded client build/per-origin checks remain open rather than being falsely archived. Read [OpenSpec status](OPENSPEC_STATUS.md) for change-by-change evidence. Future agents must not duplicate a version-specific feature summary in `openspec/config.yaml`; current behavior remains in [README](../README.md).

@@ -32,3 +32,8 @@
 - [ ] 4.3 Record exact client build, screenshots and any compatibility limitations.
 - [ ] 4.4 Update relevant documentation and changelog.
 - [ ] 4.5 Open a separate implementation PR referencing the merged approval PR; do not merge or archive unilaterally.
+
+
+## Lifecycle evidence checkpoint — 2026-11-15
+
+**Specification PR #7 and implementation PR #8 are merged.** Native minimap button and shell work were implemented, then evolved in subsequent approved feature work. The original **noninteractive search** and **General-only/Coming soon** constraints were superseded by later owner-approved functional search and two-view explorer behavior; do not represent those historical UI requirements as current. A native minimap entry capability is synchronized to canonical specs; exact historical client build, independent UI-scale and all compatibility evidence are not recorded. Keep the change **OPEN / unarchived** pending scope/acceptance reconciliation; do not falsely check those tasks complete. See `docs/OPENSPEC_STATUS.md`.
