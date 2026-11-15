@@ -20,7 +20,7 @@ CraftAtlas is an installable Lua addon with a pragmatic separation of domain, cl
 
 WoW item tooltip → numeric itemID from structured tooltip data → pure map lookup → ordered consuming professions → locale-aware tooltip lines. Missing IDs produce no annotation. Tooltip registration is guarded for unsupported APIs and callback errors. The UI panel is available via slash command and minimap.
 
-**PR #14 candidate (not yet merged or game-tested):** Settings search uses an EditBox, instant itemID/name filtering, profession dropdown, recycled item rows, icon/name fallbacks, material detail and unavailable-recipes state. Search depends on client-cached names; an itemID fallback remains. The live release on main still has a visual-only search. Recipe graph, recipe quantities and clickable tooltip navigation are not implemented. Direct command entry `/craftatlas 2447` selects a known material by itemID, as a safe alternative.
+**New material explorer implementation (Forever game QA pending):** Settings search uses an EditBox, instant itemID/name filtering, profession dropdown, recycled item rows, icon/name fallbacks, material detail and unavailable-recipes state. Search depends on client-cached names; an itemID fallback remains. Recipe graph, recipe quantities and clickable tooltip navigation are not implemented. Direct command entry `/craftatlas 2447` selects a known material by itemID, as a safe alternative.
 
 ## Data architecture
 
