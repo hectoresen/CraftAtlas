@@ -1,5 +1,9 @@
 # Profession registry
 
+## Purpose
+
+Defines source-backed, stable profession keys and localized consuming-profession labels, with a deterministic offline catalog. Comprehensive current live-realm profession coverage is not inferred.
+
 ## Requirements
 
 ### Requirement: Registry covers every verified consuming profession in the reference client
