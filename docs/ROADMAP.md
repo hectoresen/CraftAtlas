@@ -1,19 +1,22 @@
 # Roadmap and release gates
 
-**v0.0.0 (foundation):** repository documentation, OpenSpec config, agent protocol, templates, CI and folder skeleton. No working gameplay.
+## Current state — v0.1.0-dev (15 November 2026)
 
-**v0.0.1 (first playable baseline — pending):** itemID-based profession tooltip for player inventory/bags, local vetted starter catalog (at least 30 itemIDs, five professions, two cross-profession items), enUS/esES and persisted language selection, minimalist native Forever/Classic-style settings. Current implementation branch is a preview, not a released addon; game-client acceptance and catalog completion remain gates.
+**Implemented and reported working in-game by the maintainer:** numeric itemID → consuming professions on supported item tooltips, multiple profession matches, enUS/esES localization, account-wide language preference, `/craftatlas` settings, draggable minimap button and an offline 593-item index. **The search control in settings is a visual placeholder, not a functional search feature.** The General category is the only actual settings page.
 
-**v0.1.0 (wider tooltip coverage and improvements):** numeric itemID profession identification in inventory/bank and wider supported item tooltips; all related professions regardless of character training; local audited dataset; enUS/esES language auto detection and persisted override; settings panel; no duplicates, no guessed associations; real Forever client validation. Do not declare *all material coverage* without an audited coverage report.
+The exact client build and per-origin tooltip test results have not been captured in this repository. Imported relations are traceable to a beta database, not all independently verified against the current live realm; do not advertise comprehensive material coverage.
 
-**v0.2.0:** improve dataset coverage and attribution; diagnose unknown IDs; optimize performance; usability fixes.
+## Milestones
 
-**v0.3.0:** offline material search, profession filters, local result UI.
+| Version | State / scope |
+| --- | --- |
+| 0.0.0 | Completed: repository foundation, CI, OpenSpec, agent protocol and Lua scaffold |
+| 0.0.1 | First playable baseline: implemented and tested in-game by maintainer; no standalone stable release tagged |
+| 0.1.0-dev | Current source: broader offline catalog (593 itemIDs / 10 professions), tooltip annotations, settings, minimap button; runtime reported working, data coverage not fully live-verified |
+| 0.2.0 (planned) | Improve live-client data coverage, auditing, diagnostics, optimizations and user experience |
+| 0.3.0 (planned) | **Functional** offline material search with profession filters and search results |
+| 0.4.0 (planned) | View recipes, input quantities and crafted outputs |
+| 0.5.0 (planned) | Reverse crafting/dependency exploration |
+| 1.0.0 (planned) | Stable release after acceptance, precise compatibility declaration and audited coverage |
 
-**v0.4.0:** recipe usage, crafted output items and ingredient quantities, with source provenance.
-
-**v0.5.0:** reverse dependency explorer (crafted item → recipe → required materials), cycle/error handling.
-
-**v1.0.0:** stable tested feature set, clear compatibility declaration, mature catalog and docs.
-
-Release gates for every version: approved OpenSpec change, passing automated checks, real-client testing where relevant, supported locales, changelog, release notes and maintainer approval. A scope/version change must update this file and the relevant spec.
+Scope and dates are not commitments. Future behavior changes require reviewed OpenSpec deltas. Releases require owner approval, the applicable tests, updated documentation and release notes. The existing approved [v0.0.1 change](../openspec/changes/add-first-playable-material-tooltips/specs/) guarantees inventory/bag tooltips; other item origins must be separately evidenced before making support guarantees.
