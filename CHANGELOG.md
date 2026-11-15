@@ -67,3 +67,16 @@ CraftAtlas uses pre-1.0 development milestones; this log distinguishes **impleme
 - Added localized Previous/Next controls, page index/total and disabled boundary states. Preserve page during item-info refresh; reset on selecting another material.
 - Rebound native top-right window X to explicitly hide CraftAtlas, raise the button above decorative frames, and clean up search/menu/tooltip state.
 - Added offline domain, native-frame and close-button regressions; **in-game QA remains pending**.
+
+## Unreleased — Recipe Explorer and shared native UI
+
+- Added Materials/Recipes subnavigation, recipe name/product search, profession filters and full recipe input/output detail with original WoW item hover.
+- Compiled **2,506** unique recipes and all their source-backed ingredients from the same 8,455-use MIT beta snapshot, with conflict/duplicate detection and deterministic checks.
+- Reused a single native search box, profession selector, recycled result rows and pager across views, preserving Materials behavior, native X and six-card consuming-recipe grid.
+- Added bidirectional Material ↔ Recipe navigation and bounded Back history, plus enUS/esES strings and regression tests. Real Forever-client QA is still pending.
+
+### PR #25 layout correction after user screenshot
+
+- Renamed user-visible Recipes view to **Fabricables / Craftables** and its material usage section to **Se utiliza para fabricar / Used to craft**, leaving source identities and enchantment behavior unchanged.
+- Fixed profession-label/section-title overlap, aligned Back within the top navigation and hid it when there is no history.
+- Increased normal-height result rows from five to **seven** with a shared geometry helper, and added a Lua layout regression for row capacity and material-detail spacing.

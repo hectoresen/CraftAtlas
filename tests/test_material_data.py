@@ -76,6 +76,46 @@ class MaterialsTests(unittest.TestCase):
         self.recipes["uses"].reverse()
         self.assertEqual(g.generate_recipe_uses(self.recipes, self.registry), expected)
 
+    def test_unique_recipe_compiler_and_source_consistency(self):
+        grouped = g.group_recipe_catalog(self.recipes, self.registry)
+        self.assertEqual(len(grouped), 2506)
+        self.assertEqual(sum(len(value["inputs"]) for value in grouped.values()), 8455)
+        self.assertEqual(
+            g.RECIPES_TARGET.read_text(encoding="utf-8"),
+            g.generate_recipes(self.recipes, self.registry),
+        )
+        for (profession, spell), value in grouped.items():
+            self.assertTrue(profession and spell > 0)
+            self.assertTrue(all(item > 0 and amount > 0 for item, amount in value["inputs"].items()))
+
+    def test_unique_recipes_deterministic_after_reordering(self):
+        first = g.generate_recipes(self.recipes, self.registry)
+        self.recipes["uses"].reverse()
+        self.assertEqual(g.generate_recipes(self.recipes, self.registry), first)
+
+    def test_unique_recipe_conflicting_output_rejected(self):
+        sample = list(self.recipes["uses"][0])
+        same_recipe_new_input = [999999, sample[1], sample[2], 1, sample[4] + 1, sample[5]]
+        changed = dict(self.recipes)
+        changed["uses"] = self.recipes["uses"] + [same_recipe_new_input]
+        with self.assertRaises(ValueError):
+            g.group_recipe_catalog(changed, self.registry)
+
+    def test_unique_recipe_duplicate_ingredient_rejected(self):
+        changed = dict(self.recipes)
+        changed["uses"] = self.recipes["uses"] + [list(self.recipes["uses"][0])]
+        with self.assertRaises(ValueError):
+            g.group_recipe_catalog(changed, self.registry)
+
+    def test_recipe_ingredients_are_complete(self):
+        # Cindercloth Cloak is a reagent in the Onyxia Scale Cloak recipe.
+        grouped = g.group_recipe_catalog(self.recipes, self.registry)
+        inputs = grouped[("LEATHERWORKING", 19093)]["inputs"]
+        self.assertEqual(inputs[14044], 1)
+        self.assertEqual(inputs[14341], 1)
+        self.assertEqual(inputs[15410], 1)
+        self.assertEqual(grouped[("LEATHERWORKING", 19093)]["output"], 15138)
+
     def test_cloak_is_valid_second_stage_reagent(self):
         cloak = [r for r in self.recipes["uses"] if r[0] == 14044]
         self.assertEqual(cloak, [[14044, 19093, "LEATHERWORKING", 1, 15138, "item"]])

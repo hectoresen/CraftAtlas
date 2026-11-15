@@ -29,7 +29,7 @@ CreateFrame = function(kind, name, parent) return widget(kind,parent) end
 local ns
 ns = {
     L = function(key) 
-        local vals = {RECIPES_HEADING="Recipes", RECIPE_USE_COUNT="%d recipes",
+        local vals = {CRAFTABLE_USES_HEADING="Used to craft", CRAFTABLE_USE_COUNT="%d uses",
             RECIPE_QUANTITY="x%d", RECIPE_PAGE_STATUS="Page %d / %d",
             PREVIOUS_PAGE="Previous", NEXT_PAGE="Next",
             NO_VERIFIED_RECIPES="No recipes", ITEM_ID="Item"}
@@ -52,6 +52,7 @@ for i=1,14 do
 end
 ns.recipeUses[765] = {{800,1,2,0,2}}
 assert(loadfile("addon/CraftAtlas/Domain/RecipeUsage.lua"))("CraftAtlas",ns)
+assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/RecipePanel.lua"))("CraftAtlas",ns)
 ns.InitRecipePanel(widget("Frame"),378)
 assert(#buttons==8,"must allocate six cards and two navigation controls")
