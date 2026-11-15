@@ -7,7 +7,7 @@
 - [ ] 0.2 Explicitly record the **v0.0.1 exception**: six starter materials instead of the original 30, with the catalog expansion transferred to this new approved change. Do not claim the old 30-item acceptance criterion passed.
 - [ ] 0.3 Synchronize the accepted v0.0.1 capability deltas to canonical openspec/specs/ using official OpenSpec sync semantics.
 - [ ] 0.4 Archive openspec/changes/add-first-playable-material-tooltips/ to the supported OpenSpec archive location, preserving proposal, design, tasks, specs, rights and audit history.
-- [ ] 0.5 Execute official OpenSpec validation and repository SDD compliance; archive in a separate reviewable PR authorized by this spec, never directly on main.
+- [ ] 0.5 Obtain a separately approved governance pathway for archiving: current SDD scope policy rejects `openspec/**`. Then run official OpenSpec validation and SDD checks on a separate archive PR; never bypass checks or commit directly to main.
 
 ## 1. Reconcile v0.0.1 and client baseline
 - [ ] 1.1 Confirm the old implementation PR #4 is merged or identify explicit outstanding gates; do not mark old spec complete solely from settings working.
