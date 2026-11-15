@@ -39,7 +39,17 @@ The explorer SHALL offer a compact profession selector using the existing profes
 - **AND** focus returns to search
 
 ### Requirement: Compact results and material detail
-The explorer SHALL show a scrollable results list and an adjacent detail pane. Each result SHALL use a client item icon if available, a localized client item name or itemID fallback, and known consuming professions. The detail SHALL show the selected item's icon, name/fallback, numeric ID and all known consuming professions from the offline catalog.
+When browsing or searching by name, the explorer SHALL not display unresolved materials as normal \`Item ID X\` rows. It SHALL request names from supported Forever item APIs, show a localized loading/unavailable state and display loaded, named items; explicit numeric itemID search MAY retain the safe itemID fallback. The explorer SHALL show a scrollable results list and an adjacent detail pane. Each result SHALL use a client item icon if available, a localized client item name or itemID fallback, and known consuming professions. The detail SHALL show the selected item's icon, name/fallback, numeric ID and all known consuming professions from the offline catalog.
+
+#### Scenario: Material names are loading
+- **WHEN** the client has not yet loaded material names
+- **THEN** the normal browse list excludes placeholder-only entries
+- **AND** the UI communicates that results are still being loaded
+- **AND** name/icon data refreshes when corresponding client events arrive
+
+#### Scenario: Original item icons
+- **WHEN** the client exposes an item icon through C_Item.GetItemInfoInstant
+- **THEN** the result and selected item show the native icon without requiring the material name to be cached
 
 #### Scenario: Select a result
 - **WHEN** the player selects a material in the results list
