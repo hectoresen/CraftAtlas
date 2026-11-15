@@ -1,0 +1,61 @@
+local _, ns = ...
+
+-- Shared native controls. A view supplies values and callbacks; no domain dependency.
+function ns.CreateExplorerRow(parent, height, onClick)
+    local row = CreateFrame("Button", nil, parent)
+    row:SetHeight(height)
+    local bg = row:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.12, 0.10, 0.07, 0.82)
+    local edge = row:CreateTexture(nil, "BORDER")
+    edge:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
+    edge:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT")
+    edge:SetHeight(1)
+    edge:SetColorTexture(0.48, 0.38, 0.24, 0.85)
+    local hover = row:CreateTexture(nil, "BACKGROUND")
+    hover:SetAllPoints()
+    hover:SetColorTexture(0.42, 0.32, 0.14, 0.58)
+    row:SetHighlightTexture(hover)
+    local selected = row:CreateTexture(nil, "BACKGROUND")
+    selected:SetAllPoints()
+    selected:SetColorTexture(0.48, 0.34, 0.10, 0.55)
+    selected:Hide()
+    row.highlight = selected
+    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon:SetSize(30, 30)
+    row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
+    row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
+    row.name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
+    row.name:SetJustifyH("LEFT")
+    row.name:SetWordWrap(false)
+    row.professions = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    row.professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
+    row.professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
+    row.professions:SetJustifyH("LEFT")
+    row.professions:SetWordWrap(false)
+    row:SetScript("OnClick", function(self) if onClick then onClick(self) end end)
+    return row
+end
+
+function ns.CreateExplorerPager(parent, onPrevious, onNext)
+    local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    previous:SetSize(76, 24)
+    previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
+    previous:SetScript("OnClick", function() if onPrevious then onPrevious() end end)
+    local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    nextButton:SetSize(76, 24)
+    nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
+    nextButton:SetScript("OnClick", function() if onNext then onNext() end end)
+    local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("CENTER", parent, "BOTTOM", 0, 21)
+    return {previous = previous, next = nextButton, label = label}
+end
+
+function ns.UpdateExplorerPager(pager, page, pages)
+    pager.previous:SetText(ns.L("PREVIOUS_PAGE"))
+    pager.next:SetText(ns.L("NEXT_PAGE"))
+    pager.label:SetText(string.format(ns.L("RECIPE_PAGE_STATUS"), page, pages))
+    pager.previous:SetEnabled(page > 1)
+    pager.next:SetEnabled(page > 0 and page < pages)
+end
