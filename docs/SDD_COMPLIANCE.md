@@ -24,7 +24,7 @@ The change directory must contain proposal.md, design.md, tasks.md, at least one
 }
 ~~~
 
-Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. The owner reviews the requirements, proposed paths, tests and dataset rights, then merges the spec-only PR. Do not implement before owner approval.
+Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. GitHub Actions changes require a **single explicit** `.github/workflows/<name>.yml` or `.yaml` path in the approved scope; `.github/workflows/**`, `.github/**` and arbitrary hidden paths are forbidden. This approval does not relax owner/chronology/approval gates or allow other governance files. The owner reviews the requirements, proposed paths, tests and dataset rights, then merges the spec-only PR. Do not implement before owner approval.
 
 **Phase B: implementation.** Begin only after the approved specification PR has been merged into main by @hectoresen. Run the official /opsx:apply (or generated equivalent). Create a separate code PR with:
 
@@ -65,6 +65,8 @@ Do not combine an exemption with a change/phase/approval declaration. Unlisted f
 | Code references unmerged or other person's spec PR | Rejected |
 | Code modifies accepted delta spec or sdd-scope.json | Rejected |
 | Code outside the approved path manifest | Rejected |
+| Workflow explicitly enumerated in owner-merged spec manifest | Accepted subject to all other checks |
+| Any other workflow or broad `.github/**` manifest pattern | Rejected |
 | Valid spec-only PR with new change and no code | Accepted by structural check |
 | Implementation after valid owner-merged spec PR, inside scope | Accepted by structural check; still needs code and human review |
 | README-only with docs-only exemption | Accepted by structural check |
