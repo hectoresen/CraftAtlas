@@ -11,6 +11,8 @@
 ## Native UI
 - [ ] C1 Build an adaptable native WoW shell inspired by the supplied image (dark frame, restrained gold separators, native textures/fonts; graceful Forever fallback).
 - [ ] C2 Keep real search, profession filter, language selection, Materiales/Fabricables tabs, Back and close/minimap/slash workflows functional.
+- [ ] C2a Replace the current search-clear textual `X` with a native WoW **broom icon**, with localized tooltip, empty-query disabled state, fallback icon and tests confirming click clears the active view's query without losing other view state.
+- [ ] C2b Replace the bottom-left hardcoded `v0.1.0-dev` caption with the **installed packaged release version** read from stamped `.toc` metadata (currently `v0.1.0`); show no version for dev/unverified builds, do not query GitHub at runtime, and remove conflicting `ns.version` duplication. Test release metadata, dev metadata and unavailable client API.
 - [ ] C3 Redesign material detail: real item icon/name/itemID, consuming-profession section and readable source-backed recipe **rows** with quantity, hover, navigation and pagination/scroll.
 - [ ] C4 Show optional client-derived item metadata only when available; never hardcode demo item level/type/rarity or profession icons.
 - [ ] C5 Redesign Fabricables detail consistently, preserving full ingredients, quantity, non-item output fallback and cross-navigation.
