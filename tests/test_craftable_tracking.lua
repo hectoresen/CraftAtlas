@@ -147,7 +147,7 @@ local function widget(kind,parent)
     function w:SetBackdrop(info) self.backdrop=info end
     function w:SetBackdropColor() end
     function w:SetBackdropBorderColor() end
-    function w:SetStatusBarColor() end
+    function w:SetStatusBarColor(r,g,b) self.barColor={r,g,b} end
     function w:SetMinMaxValues(a,b) self.min=a self.max=b end
     function w:SetValue(v) self.value=v end
     function w:SetText(v) self.text=v end
@@ -249,12 +249,41 @@ for _,w in ipairs(frames) do
     end
 end
 eq(#statusbars,3,"two independent material bars and one aggregate")
-for _,w in ipairs(statusbars) do eq(w.value,0,"empty bar really at zero") end
+for _,w in ipairs(statusbars) do
+    eq(w.value,0,"empty bar really at zero")
+end
+local function progressColors()
+    local rows={}
+    for _,w in ipairs(frames) do
+        if w.kind=="StatusBar" and w.shown and (not w.parent or w.parent.shown) then
+            rows[#rows+1]=w
+        end
+    end
+    return rows
+end
+local function isOrange(w)
+    return w.barColor and w.barColor[1] > w.barColor[2]
+        and w.barColor[2] > w.barColor[3]
+end
+local function isGreen(w)
+    return w.barColor and w.barColor[2] > w.barColor[1]
+        and w.barColor[2] > w.barColor[3]
+end
 stock[3]={bags=4,available=4,bankStatus="excluded"}
 stock[4]={bags=1,available=1,bankStatus="excluded"}
 uiNs.RefreshRecipeDetail()
 assert(findLabel("4/2 · Faltan 0") and findLabel("1/3 · Faltan 2"),"show uncapped bags in dedicated tracker")
 assert(findLabel("60%"),"weighted overall percent is 3/5")
+local halfBars=progressColors()
+eq(#halfBars,3,"three native bars shown for partial progress")
+assert(isOrange(halfBars[3]),"total partial progress uses amber fill")
+local greenCount, amberCount=0,0
+for _,w in ipairs(halfBars) do
+    if isGreen(w) then greenCount=greenCount+1 end
+    if isOrange(w) then amberCount=amberCount+1 end
+end
+eq(greenCount,1,"exactly one material is fully covered")
+eq(amberCount,2,"partial ingredient and aggregate progress use amber")
 assert(findLabel("4/2 · Faltan 0") and findLabel("1/3 · Faltan 2"),"missing counts")
 eq(ingredient[1].professions.text,"x2","Ingredients stays unchanged on stock refresh")
 includeBank=true
@@ -262,6 +291,9 @@ stock[3]={bags=4,bank=0,available=4,bankStatus="confirmed"}
 stock[4]={bags=1,bank=2,available=3,bankStatus="confirmed"}
 uiNs.RefreshRecipeDetail()
 assert(findLabel("100%"),"bank increment completes the overall total")
+for _,w in ipairs(progressColors()) do
+    assert(isGreen(w),"every fully covered native progress bar must be green")
+end
 assert(findLabel("3/3 · Faltan 0"),"bank added to item availability")
 includeBank=false
 uiNs.RefreshRecipeDetail()
