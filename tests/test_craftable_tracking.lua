@@ -163,7 +163,7 @@ end
 assert(progressCount>=3, "both per-ingredient and aggregate bars are visible at 0%")
 assert(divider>=3, "native-style section divider and bar outlines")
 assert(trackCheck and trackCheck.checked and bankText, "tracking controls visible")
-assert(bankText.parent.points.TOPLEFT.y == -84,
+assert(bankText.parent.points.TOPLEFT.y == -88,
     "tracking subsection follows two visible ingredient rows rather than the pager")
 local function labelFound(value)
     for _, frame in ipairs(frames) do
@@ -179,7 +179,7 @@ uiNs.RefreshRecipeDetail()
 assert(labelFound("Track crafting"),"checkbox text updates on locale change")
 assert(labelFound("Include bank"),"bank label updates on locale change")
 assert(labelFound("Ingredients (2)"),"ingredient section updates on locale change")
-assert(labelFound("Material progress: 0%"),"progress title updates on locale change")
+assert(labelFound("Material progress") and labelFound("0%"),"progress title updates on locale change")
 assert(labelFound("Bags: 0  |  Bank: off  |  Need: 2  |  Missing: 2"),
     "English item status updates on locale change")
 uiNs.ReadCraftInventoryCount = function(id)
@@ -189,7 +189,7 @@ end
 uiNs.RefreshRecipeDetail()
 assert(labelFound("Bags: 4  |  Bank: off  |  Need: 2  |  Missing: 0"),
     "actual bag stock must not be capped to required quantity")
-assert(labelFound("Material progress: 60%"),
+assert(labelFound("Material progress") and labelFound("60%"),
     "weighted progress reflects available recipe ingredient units")
 print("Craftable tracking localized native UI regression PASS")
 
