@@ -11,6 +11,7 @@ Data/Professions.lua
 Domain/MaterialLookup.lua
 Domain/MaterialSearch.lua
 Domain/ProfessionTree.lua
+Domain/CatalogProgress.lua
 Data/Materials.lua
 Data/RecipeUses.lua
 Data/Recipes.lua
