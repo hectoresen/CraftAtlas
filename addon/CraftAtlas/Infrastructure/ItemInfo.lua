@@ -35,7 +35,8 @@ end
 
 function ns.GetItemDisplay(itemID)
     if type(itemID) ~= "number" or itemID < 1 then return nil, nil end
-    readItem(itemID)
+    -- Known client name+icon are session-stable until a native data event refresh.
+    if not names[itemID] or not icons[itemID] then readItem(itemID) end
     if not names[itemID] and not requested[itemID] and not failed[itemID] then
         local api = itemAPI()
         if api and type(api.RequestLoadItemDataByID) == "function" then
