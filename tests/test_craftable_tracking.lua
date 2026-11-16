@@ -31,6 +31,10 @@ observation = ns.ReadCraftInventoryCount(3,true)
 eq(observation.bank,3,"bank delta")
 eq(observation.available,5,"combined stock")
 eq(observation.bankStatus,"confirmed","open bank observation")
+combined = bag
+observation = ns.ReadCraftInventoryCount(3,true)
+eq(observation.bank,0,"confirmed empty bank must be numeric zero")
+eq(observation.available,bag,"empty bank adds nothing to progress")
 combined = 1
 eq(ns.ReadCraftInventoryCount(3,true).available,2,"inconsistent combined count")
 ns.SetCraftBankOpen(false)
