@@ -412,8 +412,7 @@ local function createPanel()
         if GameTooltip then GameTooltip:Hide() end
     end)
     clear:SetScript("OnClick", function()
-        search:SetText("")
-        search:SetFocus()
+        ns.ClearExplorerSearch(search)
     end)
     ui.clear = clear
     search:HookScript("OnTextChanged", function(self)
