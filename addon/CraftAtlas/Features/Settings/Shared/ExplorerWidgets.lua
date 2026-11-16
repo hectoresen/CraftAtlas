@@ -13,6 +13,14 @@ function ns.GetExplorerClearIcon(fileLookup)
     return "Interface\\Icons\\Spell_Holy_DispelMagic"
 end
 
+-- A minimum logical size is scaled uniformly for smaller physical viewports.
+function ns.ExplorerWindowGeometry(viewportWidth, viewportHeight)
+    local width = math.min(740, math.max(600, viewportWidth - 50))
+    local height = math.min(510, math.max(440, viewportHeight - 60))
+    local scale = math.min(1, (viewportWidth - 24) / width, (viewportHeight - 24) / height)
+    return width, height, math.max(0.2, scale)
+end
+
 -- The shell reserves 137 px above the list, 30 px below it, 76 px
 -- for the filter and heading, and 16 px for the bottom status.
 function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
