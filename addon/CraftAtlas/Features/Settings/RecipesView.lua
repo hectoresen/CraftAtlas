@@ -1,9 +1,9 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
-local TRACKER_ROW_HEIGHT = 36
-local TRACKER_TOP_HEIGHT = 52
-local TRACKER_BOTTOM_HEIGHT = 38
+local TRACKER_ROW_HEIGHT = 31
+local TRACKER_TOP_HEIGHT = 45
+local TRACKER_BOTTOM_HEIGHT = 31
 
 local function trackedPageSize(availableHeight)
     -- Pair each paged ingredient with one independently rendered tracker row.
