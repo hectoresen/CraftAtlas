@@ -80,8 +80,14 @@ local function createProfessionDetail(right)
     end)
     for i = 1, 2 do
         local cell = CreateFrame("Frame", nil, right)
-        cell:SetPoint("TOPLEFT", right, "TOPLEFT", 18 + (i - 1) * 155, -124)
-        cell:SetSize(150, 29)
+        if i == 1 then
+            cell:SetPoint("TOPLEFT", right, "TOPLEFT", 18, -124)
+            cell:SetPoint("TOPRIGHT", right, "TOP", -6, -124)
+        else
+            cell:SetPoint("TOPLEFT", right, "TOP", 6, -124)
+            cell:SetPoint("TOPRIGHT", right, "TOPRIGHT", -18, -124)
+        end
+        cell:SetHeight(29)
         cell.icon = cell:CreateTexture(nil, "ARTWORK")
         cell.icon:SetSize(25, 25)
         cell.icon:SetPoint("LEFT", cell, "LEFT", 0, 0)
