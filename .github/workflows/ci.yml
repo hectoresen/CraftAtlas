@@ -71,18 +71,13 @@ jobs:
           fetch-depth: 0
       - name: Spec-only PR uses SDD/OpenSpec gate (no release/Python suite)
         if: needs.classify.outputs.mode == 'spec'
-        run: echo "Spec-only diff: SDD Compliance validates specifications; no runtime checks needed."
+        run: |
+          echo "Spec-only diff: SDD Compliance validates specifications; no runtime checks needed."
       - name: Lightweight Markdown repository validation
         if: needs.classify.outputs.mode == 'docs'
         run: python3 scripts/validate_repo.py
       - uses: actions/setup-python@v5
         if: needs.classify.outputs.mode == 'code'
-        with:
-          python-version: '3.11'
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Validate release readiness
