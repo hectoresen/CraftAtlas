@@ -105,22 +105,36 @@ UnitName=function() return player end
 GetRealmName=function() return realm end
 CraftAtlasDB = nil
 ns.InitPreferences()
-eq(ns.IsCraftableTracked("ALCHEMY:100"),false,"default disabled")
-ns.SetCraftableTracked("ALCHEMY:100",true)
-eq(ns.IsCraftableTracked("ALCHEMY:100"),true,"persist tracked recipe")
+eq(ns.IsCraftTrackingEnabled(),false,"global tracking defaults off")
+-- Upgrading from old per-recipe SavedVariables must never auto-enable global mode.
+CraftAtlasDB.craftTracking["Test Realm:Alice"] = {["ALCHEMY:100"] = true}
+eq(ns.IsCraftTrackingEnabled(),false,"old recipe opt-in never enables global toggle")
+eq(ns.SetCraftTrackingEnabled(true),true,"enable global tracking")
+eq(ns.IsCraftTrackingEnabled(),true,"all recipes share one character toggle")
+eq(CraftAtlasDB.craftTracking["Test Realm:Alice"]["ALCHEMY:100"],true,
+    "legacy recipe records remain untouched")
 ns.InitPreferences()
-eq(ns.IsCraftableTracked("ALCHEMY:100"),true,"reload persistence")
+eq(ns.IsCraftTrackingEnabled(),true,"global tracking survives UI reload")
 player="Bob"
-eq(ns.IsCraftableTracked("ALCHEMY:100"),false,"character isolation")
-ns.SetCraftableTracked("ALCHEMY:100",true)
+eq(ns.IsCraftTrackingEnabled(),false,"other character defaults disabled")
+eq(ns.SetCraftTrackingEnabled(true),true,"second character can opt in")
 player="Alice"
-eq(ns.IsCraftableTracked("ALCHEMY:101"),false,"per recipe")
-eq(ns.IsCraftableTracked("ALCHEMY:100"),true,"original char state")
-ns.SetCraftableTracked("ALCHEMY:100",false)
-eq(ns.IsCraftableTracked("ALCHEMY:100"),false,"disable")
+eq(ns.IsCraftTrackingEnabled(),true,"first character retains preference")
+eq(ns.SetCraftTrackingEnabled(false),true,"global opt-out")
+eq(ns.IsCraftTrackingEnabled(),false,"global opt-out sticks")
+player="Bob"
+eq(ns.IsCraftTrackingEnabled(),true,"disabling first character does not affect second")
 player=nil
-ns.SetCraftableTracked("ALCHEMY:100",true)
-eq(ns.IsCraftableTracked("ALCHEMY:100"),false,"no ambiguous identity")
+eq(ns.SetCraftTrackingEnabled(true),false,"identity required for global write")
+eq(ns.IsCraftTrackingEnabled(),false,"identity required for global read")
+player="Alice"
+ns.SetCraftBankPreference(true)
+eq(ns.GetCraftBankPreference(),true,"bank preference independent of global tracking")
+eq(ns.IsCraftTrackingEnabled(),false,"bank toggle never enables tracking")
+ns.SetCraftTrackingEnabled(true)
+eq(ns.GetCraftBankPreference(),true,"global tracking never clears include bank")
+ns.SetCraftBankPreference(false)
+eq(ns.IsCraftTrackingEnabled(),true,"bank opt-out never disables tracking")
 print("Craftable tracking domain/adapter/preferences PASS")
 
 -- Native UI regression: Ingredients stays intact, tracking gets its own rows and
@@ -170,6 +184,10 @@ local stock = {[3]={bags=0,available=0,bankStatus="excluded"},
 local recipe={key="ALCHEMY:2329",spellID=2329,professionKey="ALCHEMY",
     outputItemID=118,kind="item",
     ingredients={{itemID=3,quantity=2},{itemID=4,quantity=3}}}
+local otherRecipe={key="ALCHEMY:2330",spellID=2330,professionKey="ALCHEMY",
+    outputItemID=858,kind="item",
+    ingredients={{itemID=5,quantity=1}}}
+local trackingEnabled=true
 local strings = {
     esES={RECIPE_INGREDIENT_COUNT="Materiales necesarios (%d)",
         RECIPE_QUANTITY="x%d",RECIPE_PAGE_STATUS="Página %d / %d",
@@ -193,8 +211,12 @@ local uiNs={
     ProfessionLabel=function() return "Alchemy" end,
     GetRecipeSpellPresentation=function() return "Minor Elixir",nil end,
     GetItemDisplay=function(id) return "Item "..id,id end,
-    GetCatalogRecipe=function(key) if key==recipe.key then return recipe end end,
-    IsCraftableTracked=function(key) return key==recipe.key end,
+    GetCatalogRecipe=function(key)
+        if key==recipe.key then return recipe end
+        if key==otherRecipe.key then return otherRecipe end
+    end,
+    IsCraftTrackingEnabled=function() return trackingEnabled end,
+    SetCraftTrackingEnabled=function(value) trackingEnabled=value end,
     GetCraftBankPreference=function() return includeBank end,
     SetCraftBankPreference=function(v) includeBank=v end,
     IsCraftBankSupported=function() return true end,
@@ -347,4 +369,38 @@ for _,w in ipairs(trackerRows) do
 end
 assert(bankButton and bankButton.points.TOPLEFT.y + -bankButton.height >= -34,
     "bank checkbox must not extend into the first tracker row")
+-- Toggle once, navigate to another recipe, and keep it enabled. Only the
+-- selected recipe's ingredients contribute to Material progress.
+local trackingCheckbox
+for _,w in ipairs(frames) do
+    if w.kind=="CheckButton" and w.points and w.points.TOPRIGHT
+        and w.points.TOPRIGHT.x == -176 then trackingCheckbox=w end
+end
+assert(trackingCheckbox and trackingCheckbox.checked,
+    "global checkbox is checked when tracking is enabled")
+uiNs.SetRecipeDetail(otherRecipe.key)
+eq(trackingCheckbox.checked,true,"switching to another recipe preserves toggle")
+assert(findLabel("0/1 · Missing 1"),"second recipe has its own ingredient quantities")
+local secondRows=ingredientRows()
+eq(#secondRows,1,"second recipe shows only its own Ingredients")
+eq(secondRows[1].ingredient.itemID,5,"second recipe itemID not stale")
+eq(secondRows[1].professions.text,"x1","second recipe requirement kept")
+trackingCheckbox:SetChecked(false)
+trackingCheckbox.OnClick(trackingCheckbox)
+eq(trackingEnabled,false,"turning off recipe B disables global tracking")
+uiNs.SetRecipeDetail(recipe.key)
+eq(trackingCheckbox.checked,false,"recipe A stays unchecked after global opt-out")
+assert(not (function()
+    for _,w in ipairs(frames) do
+        if w.kind=="Frame" and w.points and w.points.TOPLEFT
+            and w.points.TOPLEFT.y == -47 and w.shown then return true end
+    end
+    return false
+end)(),"material progress hidden when global preference is disabled")
+trackingCheckbox:SetChecked(true)
+trackingCheckbox.OnClick(trackingCheckbox)
+eq(trackingEnabled,true,"re-enable global tracking on recipe A")
+uiNs.SetRecipeDetail(otherRecipe.key)
+eq(trackingCheckbox.checked,true,"global opt-in survives second navigation")
+assert(findLabel("0/1 · Missing 1"),"other recipe tracker reappears without rechecking")
 print("Craftable tracking native separate material rows PASS")
