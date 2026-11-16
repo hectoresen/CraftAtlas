@@ -50,6 +50,32 @@ local dropdown = ns.CreateExplorerClassicButton(ui())
 ns.AddExplorerDropdownArrow(dropdown)
 assert(dropdown.dropdownArrow and dropdown.dropdownArrow.SetTextureCalled,
     "native dropdown arrow is visible on the classic control")
+-- Native Blizzard dropdown path, including localized label refresh and selection.
+local options = {}
+UIDropDownMenu_Initialize = function(frame, build) frame.buildMenu = build end
+UIDropDownMenu_CreateInfo = function() return {} end
+UIDropDownMenu_AddButton = function(info) options[#options+1] = info end
+UIDropDownMenu_SetWidth = function(frame, width) frame.dropdownWidth=width end
+UIDropDownMenu_SetText = function(frame, value) frame.displayText=value end
+CloseDropDownMenus = function() end
+local selectedKey
+local native, menu, choices = ns.CreateExplorerNativeDropdown(ui(), {"", "ALCHEMY"},
+    function(key) selectedKey=key end, 215)
+assert(native and native.dropdownWidth==215 and choices["ALCHEMY"])
+choices[""]:SetText("All professions")
+choices["ALCHEMY"]:SetText("Alchemy")
+native:SetText("All professions")
+native.buildMenu(native, 1)
+assert(#options==2 and options[1].text=="All professions" and options[2].text=="Alchemy")
+options[2].func()
+assert(selectedKey=="ALCHEMY" and native.displayText=="All professions")
+menu:Hide()
+UIDropDownMenu_Initialize=nil
+UIDropDownMenu_CreateInfo=nil
+UIDropDownMenu_AddButton=nil
+UIDropDownMenu_SetWidth=nil
+UIDropDownMenu_SetText=nil
+CloseDropDownMenus=nil
 local pager=ns.CreateExplorerPager(ui(),function() n=n+1 end,function() n=n+2 end)
 pager.previous.OnClick()
 pager.next.OnClick()
