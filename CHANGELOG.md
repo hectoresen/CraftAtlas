@@ -6,10 +6,10 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ### Material and craftable exploration
 - Added **Materiales**: functional material name/itemID search, profession filter, native detail view, and profession uses.
-- Added the **Se utiliza para fabricar** grid with six source-backed crafting uses per page, native item/spell hover, result icons, required quantities, Prev/Next pagination, and clickable navigation.
+- Added **Se utiliza para fabricar** with paginated vertical source-backed native rows (replacing six-card tiles), native item/spell hover, result icons, exact required quantities and clickable navigation.
 - Added **Fabricables** (formerly labeled Recetas): searchable/filterable index of 2,506 unique profession+spellID recipes, full source-backed ingredient quantities and crafted/non-item outputs.
 - Added cross-navigation between materials and craftables, bounded **Volver / Back** history, independent view state, and reusable native search/filter/result/pager widgets.
-- Adjusted visual spacing and result density to avoid overlapping profession metadata and cards; fixed the top-right X. At normal window height, seven result rows fit.
+- Added source-backed grouped profession tree with distinct matching counts, expand/collapse, search-time auto-expansion and restoration, shared bounded rows, native broom-style clear control with localized tooltip, optional client item metadata and viewport scaling. The locally stamped release SemVer is shown only for official installed packages; development versions remain hidden. Preserved separate top-right X close and both explorer tabs.
 
 ### Catalog, compatibility and localization
 - Replaced the historical six-item preview with **593** distinct source-backed reagents, **10** consuming professions, **237** multi-profession items and **8,455** reagent-use relationships.
@@ -21,7 +21,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Added OpenSpec/SDD approval gating, Python generator/package tests and Lua domain/UI regressions. Automated checks alone do not certify client behavior.
 
 ### Evidence and remaining limitations
-- Maintainer reported the addon and its UI tested and accepted in Forever, including PR #23 and #25. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
+- Maintainer reported earlier addon UI tested and accepted in Forever, including PR #23 and #25. The new grouped-tree/redesigned-detail view has not yet been manually verified inside the game. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
 - No crafting automation, inventory availability, player-known recipe validation, dependency graph or external syncing is implemented.
 
 ## Historical milestones
