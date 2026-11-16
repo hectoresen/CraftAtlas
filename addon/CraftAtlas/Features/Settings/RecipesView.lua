@@ -1,10 +1,16 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
+local TRACKER_ROW_HEIGHT = 36
+local TRACKER_TOP_HEIGHT = 52
+local TRACKER_BOTTOM_HEIGHT = 38
+
 local function trackedPageSize(availableHeight)
-    -- Keep the aggregate tracker above the native bottom pager.
+    -- Pair each paged ingredient with one independently rendered tracker row.
+    local remaining = availableHeight - 143 - 40 - 8
+        - TRACKER_TOP_HEIGHT - TRACKER_BOTTOM_HEIGHT
     return math.max(1, math.min(ITEMS_PER_PAGE,
-        math.floor((availableHeight - 143 - 118) / 39)))
+        math.floor(remaining / (39 + TRACKER_ROW_HEIGHT))))
 end
 
 local function setCheck(button, checked)
@@ -37,38 +43,49 @@ local function refreshTrackingCounts(recipe)
     end
 end
 
-local function styleTrackingRow(row, ingredient, tracking)
-    if not row.progress then return end
-    if not tracking or not ingredient then
-        row.progress:Hide()
+local function createNativeBar(parent)
+    local bar = CreateFrame("StatusBar", nil, parent)
+    if type(bar.SetStatusBarTexture) == "function" then
+        bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        bar:SetStatusBarColor(0.74, 0.56, 0.21)
+        bar:SetMinMaxValues(0, 1)
+    end
+    -- Match the Blizzard status-bar texture for the empty portion.
+    local empty = bar:CreateTexture(nil, "BACKGROUND")
+    empty:SetAllPoints(bar)
+    empty:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    if type(empty.SetVertexColor) == "function" then
+        empty:SetVertexColor(0.23, 0.23, 0.23, 0.95)
+    end
+    return bar
+end
+
+local function updateTrackingMaterial(row, ingredient, observation, bankIncluded)
+    if not ingredient then
+        row:Hide()
         return
     end
-    local observation = view.trackingCounts and view.trackingCounts[ingredient.itemID]
     local needed = ingredient.quantity
-    local bags = observation and observation.bags
-    local available = observation and observation.available
-    local bankIncluded = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
-    if type(bags) ~= "number" or type(available) ~= "number" then
-        row.professions:SetText(string.format(ns.L("TRACK_STOCK_UNAVAILABLE"), needed))
-        if type(row.progress.SetValue) == "function" then row.progress:SetValue(0) end
+    local count = observation and observation.available
+    local name = ns.GetItemDisplay(ingredient.itemID)
+    row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. tostring(ingredient.itemID)))
+    local bankKnown = bankIncluded and observation and observation.bankStatus == "confirmed"
+    if type(count) == "number" then
+        local formatKey = bankKnown and "TRACK_AVAILABLE_BANK" or "TRACK_AVAILABLE_BAGS"
+        row.amount:SetText(string.format(ns.L(formatKey), count, needed))
+        row.missing:SetText(string.format(ns.L("TRACK_MISSING"),
+            math.max(0, needed - count)))
     else
-        local missing = math.max(0, needed - available)
-        if not bankIncluded then
-            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BAGS"),
-                bags, needed, missing))
-        elseif observation.bankStatus == "confirmed"
-            and type(observation.bank) == "number" then
-            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BANK"),
-                bags, observation.bank, needed, missing))
-        else
-            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BANK_UNKNOWN"),
-                bags, needed, missing))
-        end
-        if type(row.progress.SetValue) == "function" then
-            row.progress:SetValue(needed > 0 and math.min(available, needed) / needed * 100 or 0)
-        end
+        row.amount:SetText(string.format(ns.L("TRACK_AVAILABLE_UNKNOWN"), needed))
+        row.missing:SetText("")
     end
-    row.progress:Show()
+    if type(row.bar.SetMinMaxValues) == "function" then
+        row.bar:SetMinMaxValues(0, math.max(1, needed))
+    end
+    if type(row.bar.SetValue) == "function" then
+        row.bar:SetValue(type(count) == "number" and math.min(needed, count) or 0)
+    end
+    row:Show()
 end
 
 local function font(parent, style)
@@ -159,30 +176,29 @@ local function render()
                     (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
                     (valid and "" or (" · " .. ns.L("TRACK_UNVERIFIED"))))
             end
+            if type(view.trackerBar.SetMinMaxValues) == "function" then
+                view.trackerBar:SetMinMaxValues(0, 100)
+            end
             if type(view.trackerBar.SetValue) == "function" then
                 view.trackerBar:SetValue(percent or 0)
             end
-            if view.bankCheckbox then
-                local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
-                setCheck(view.bankCheckbox, ns.GetCraftBankPreference
-                    and ns.GetCraftBankPreference() or false)
-                if type(view.bankCheckbox.SetEnabled) == "function" then
-                    view.bankCheckbox:SetEnabled(supported == true)
-                end
-                view.bankLabel:SetText(supported and ns.L("TRACK_INCLUDE_BANK")
-                    or ns.L("TRACK_BANK_UNAVAILABLE"))
-                view.bankLabel:SetTextColor(supported and 0.94 or 0.55,
-                    supported and 0.89 or 0.55, supported and 0.75 or 0.55)
+            local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
+            setCheck(view.bankCheckbox, ns.GetCraftBankPreference
+                and ns.GetCraftBankPreference() or false)
+            if type(view.bankCheckbox.SetEnabled) == "function" then
+                view.bankCheckbox:SetEnabled(supported == true)
             end
+            view.bankLabel:SetText(supported and ns.L("TRACK_INCLUDE_BANK")
+                or ns.L("TRACK_BANK_UNAVAILABLE"))
             local bankIncluded = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
-            if bankIncluded and view.bankStatus then
+            if bankIncluded then
                 local confirmed = true
                 for _, observation in pairs(view.trackingCounts) do
                     if observation.bankStatus ~= "confirmed" then confirmed = false break end
                 end
                 view.bankStatus:SetText(confirmed and ns.L("TRACK_BANK_CURRENT")
-                    or ns.L("TRACK_BANK_UNKNOWN"))
-            elseif view.bankStatus then
+                    or ns.L("TRACK_BANK_OPEN_HINT"))
+            else
                 view.bankStatus:SetText("")
             end
         else
@@ -199,22 +215,34 @@ local function render()
             local name, icon = ns.GetItemDisplay(ingredient.itemID)
             row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. ingredient.itemID))
             row.professions:SetText(string.format(ns.L("RECIPE_QUANTITY"), ingredient.quantity))
-            styleTrackingRow(row, ingredient, tracking)
-            row.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
+             row.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
             row:Show()
         else
-            styleTrackingRow(row, nil, false)
-            row:Hide()
+             row:Hide()
         end
     end
     ns.UpdateExplorerPager(view.pager, page, pages)
-    -- Position the tracking section directly below the current ingredient page,
-    -- rather than marooning the summary against the bottom pager.
     if view.trackerFooter then
-        local footerTop = -(#visible * 39 + 10)
+        local footerTop = -(#visible * 39 + 8)
         view.trackerFooter:ClearAllPoints()
         view.trackerFooter:SetPoint("TOPLEFT", view.itemList, "TOPLEFT", 0, footerTop)
         view.trackerFooter:SetPoint("TOPRIGHT", view.itemList, "TOPRIGHT", 0, footerTop)
+        view.trackerFooter:SetHeight(TRACKER_TOP_HEIGHT
+            + #visible * TRACKER_ROW_HEIGHT + TRACKER_BOTTOM_HEIGHT)
+        local includeBank = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
+        for i, trackerRow in ipairs(view.trackerRows) do
+            updateTrackingMaterial(trackerRow, tracking and visible[i] or nil,
+                tracking and visible[i] and view.trackingCounts[visible[i].itemID],
+                includeBank)
+        end
+        view.totalLabel:SetText(ns.L("TRACK_TOTAL"))
+        view.totalLabel:ClearAllPoints()
+        view.totalLabel:SetPoint("TOPLEFT", view.trackerFooter, "TOPLEFT", 8,
+            -(TRACKER_TOP_HEIGHT + #visible * TRACKER_ROW_HEIGHT + 1))
+        view.trackerBar:ClearAllPoints()
+        view.trackerBar:SetPoint("TOPLEFT", view.totalLabel, "BOTTOMLEFT", 0, -4)
+        view.trackerBar:SetPoint("TOPRIGHT", view.trackerFooter, "TOPRIGHT", -8,
+            -(TRACKER_TOP_HEIGHT + #visible * TRACKER_ROW_HEIGHT + 16))
     end
     updateIngredientSectionVisibility()
 end
@@ -316,25 +344,6 @@ function ns.InitRecipeDetail(parent)
             if self.ingredient then ns.ShowOutputTooltip(self, self.ingredient.itemID) end
         end)
         row:SetScript("OnLeave", clearTooltip)
-        local progress = CreateFrame("StatusBar", nil, row)
-        progress:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 1)
-        progress:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -5, 1)
-        progress:SetHeight(7)
-        local track = progress:CreateTexture(nil, "BACKGROUND")
-        track:SetAllPoints(progress)
-        track:SetColorTexture(0.16, 0.13, 0.09, 0.95)
-        local trackBorder = progress:CreateTexture(nil, "BORDER")
-        trackBorder:SetPoint("BOTTOMLEFT", progress, "BOTTOMLEFT", 0, 0)
-        trackBorder:SetPoint("BOTTOMRIGHT", progress, "BOTTOMRIGHT", 0, 0)
-        trackBorder:SetHeight(1)
-        trackBorder:SetColorTexture(0.49, 0.39, 0.23, 0.75)
-        if type(progress.SetStatusBarTexture) == "function" then
-            progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-            progress:SetStatusBarColor(0.76, 0.60, 0.22)
-            progress:SetMinMaxValues(0, 100)
-        end
-        progress:Hide()
-        row.progress = progress
         view.rows[i] = row
     end
     view.pager = ns.CreateExplorerPager(frame, function()
@@ -347,13 +356,11 @@ function ns.InitRecipeDetail(parent)
     end)
 
     local trackerFooter = CreateFrame("Frame", nil, frame)
-    trackerFooter:SetPoint("TOPLEFT", itemList, "TOPLEFT", 0, -49)
-    trackerFooter:SetPoint("TOPRIGHT", itemList, "TOPRIGHT", 0, -49)
-    trackerFooter:SetHeight(66)
+    trackerFooter:SetPoint("TOPLEFT", itemList, "TOPLEFT", 0, -47)
+    trackerFooter:SetPoint("TOPRIGHT", itemList, "TOPRIGHT", 0, -47)
+    trackerFooter:SetHeight(TRACKER_TOP_HEIGHT + TRACKER_BOTTOM_HEIGHT)
     view.trackerFooter = trackerFooter
-    local panelBackground = trackerFooter:CreateTexture(nil, "BACKGROUND")
-    panelBackground:SetAllPoints(trackerFooter)
-    panelBackground:SetColorTexture(0.11, 0.095, 0.078, 0.94)
+
     local separator = trackerFooter:CreateTexture(nil, "ARTWORK")
     separator:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 0, 0)
     separator:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", 0, 0)
@@ -361,21 +368,20 @@ function ns.InitRecipeDetail(parent)
     separator:SetColorTexture(0.72, 0.54, 0.24, 0.95)
 
     local trackerLabel = font(trackerFooter, "GameFontNormal")
-    trackerLabel:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 8, -9)
+    trackerLabel:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 8, -7)
     trackerLabel:SetTextColor(1, 0.82, 0.30)
     view.trackerLabel = trackerLabel
 
     local trackerPercent = font(trackerFooter, "GameFontHighlightSmall")
-    trackerPercent:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -10)
+    trackerPercent:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -8)
     trackerPercent:SetJustifyH("RIGHT")
     view.trackerPercent = trackerPercent
 
     local bankCheckbox = CreateFrame("CheckButton", nil, trackerFooter, "UICheckButtonTemplate")
-    bankCheckbox:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 3, -29)
+    bankCheckbox:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 4, -26)
     bankCheckbox:SetSize(17, 17)
     local bankLabel = font(trackerFooter, "GameFontDisableSmall")
     bankLabel:SetPoint("LEFT", bankCheckbox, "RIGHT", 2, 0)
-    bankLabel:SetText(ns.L("TRACK_INCLUDE_BANK"))
     view.bankCheckbox, view.bankLabel = bankCheckbox, bankLabel
     bankCheckbox:SetScript("OnClick", function(self)
         if ns.SetCraftBankPreference then
@@ -383,29 +389,39 @@ function ns.InitRecipeDetail(parent)
         end
         render()
     end)
-
     local bankStatus = font(trackerFooter, "GameFontDisableSmall")
-    bankStatus:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -32)
+    bankStatus:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -30)
     bankStatus:SetJustifyH("RIGHT")
     view.bankStatus = bankStatus
 
-    local trackerBar = CreateFrame("StatusBar", nil, trackerFooter)
-    trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 8, 6)
-    trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", -8, 6)
-    trackerBar:SetHeight(9)
-    local background = trackerBar:CreateTexture(nil, "BACKGROUND")
-    background:SetAllPoints(trackerBar)
-    background:SetColorTexture(0.24, 0.20, 0.15, 1)
-    local outline = trackerBar:CreateTexture(nil, "BORDER")
-    outline:SetPoint("BOTTOMLEFT", trackerBar, "BOTTOMLEFT", 0, 0)
-    outline:SetPoint("BOTTOMRIGHT", trackerBar, "BOTTOMRIGHT", 0, 0)
-    outline:SetHeight(1)
-    outline:SetColorTexture(0.52, 0.42, 0.24, 0.95)
-    if type(trackerBar.SetStatusBarTexture) == "function" then
-        trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        trackerBar:SetStatusBarColor(0.76, 0.59, 0.20)
-        trackerBar:SetMinMaxValues(0, 100)
+    view.trackerRows = {}
+    for i = 1, ITEMS_PER_PAGE do
+        local row = CreateFrame("Frame", nil, trackerFooter)
+        row:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 8,
+            -(TRACKER_TOP_HEIGHT + (i - 1) * TRACKER_ROW_HEIGHT))
+        row:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8,
+            -(TRACKER_TOP_HEIGHT + (i - 1) * TRACKER_ROW_HEIGHT))
+        row:SetHeight(TRACKER_ROW_HEIGHT)
+        row.name = font(row, "GameFontHighlightSmall")
+        row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
+        row.name:SetJustifyH("LEFT")
+        row.amount = font(row, "GameFontHighlightSmall")
+        row.amount:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, 0)
+        row.amount:SetJustifyH("RIGHT")
+        row.missing = font(row, "GameFontDisableSmall")
+        row.missing:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -15)
+        row.bar = createNativeBar(row)
+        row.bar:SetHeight(9)
+        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -16)
+        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -16)
+        row:Hide()
+        view.trackerRows[i] = row
     end
+
+    local totalLabel = font(trackerFooter, "GameFontNormalSmall")
+    view.totalLabel = totalLabel
+    local trackerBar = createNativeBar(trackerFooter)
+    trackerBar:SetHeight(10)
     view.trackerBar = trackerBar
     trackerFooter:Hide()
 
