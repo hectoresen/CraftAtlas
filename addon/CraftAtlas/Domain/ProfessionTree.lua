@@ -2,17 +2,16 @@ local _, ns = ...
 
 -- Pure grouping: the caller supplies already filtered, uniquely keyed material IDs.
 function ns.BuildProfessionGroups(ids, materials, professionOrder)
-    local allowed = {}
-    for _, itemID in ipairs(ids or {}) do allowed[itemID] = true end
     local groups = {}
     for _, professionKey in ipairs(professionOrder or {}) do
-        local members = {}
+        local members, seen = {}, {}
         for _, itemID in ipairs(ids or {}) do
             local professions = materials and materials[itemID]
-            if allowed[itemID] and type(professions) == "table" then
+            if not seen[itemID] and type(professions) == "table" then
                 for _, key in ipairs(professions) do
                     if key == professionKey then
                         members[#members + 1] = itemID
+                        seen[itemID] = true
                         break
                     end
                 end
