@@ -18,6 +18,19 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 Spec PR #52 was owner-merged. The implementation introduces `tests/test_chat_links.lua` for native item-vs-spell link selection, unsafe/missing API no-op behavior, chat editor handling and current-row identity contracts. **Standalone Lua command: NOT RUN in the connector-only authoring environment**; GitHub `lua-compatibility`/`lua-regressions` will provide CI evidence only when executed and observed. **Forever: NOT RUN** for Shift + left-click across Materiales/Fabricables uses, rows, ingredients, detail titles/icons, chat open/closed, two locales and UI scales; the exact client build has not been recorded. The removal of the extra `UI-Quickslot2` slot texture is source-confirmed, not yet visually verified in Forever. No release/live compatibility claim is made.
 
+## Native AddOns list registration
+
+Spec [PR #44](https://github.com/hectoresen/CraftAtlas/pull/44) was approved by the owner and merged. The source manifest declares the localized categories and uses the same `Trade_BlackSmithing` texture path as the minimap. The list uses manifest metadata, so this change does not require addon Lua to run. The source and package checks do not establish that the client resolves the category and draws the icon.
+
+- **Offline: PASS.** `bash scripts/validate_release_checks.sh` passed. `python3 scripts/package_release.py --version 0.2.0 --output <zip>` built an installable test ZIP. Its `CraftAtlas/CraftAtlas.toc` matched source except for the stamped `Version`; `Title`, `Category`, `Category-esES` and `IconTexture` matched exactly, and the icon path matched `MinimapButton.lua` after decoding the Lua string.
+- **Installation: PASS.** Extracted the test ZIP into `Interface/AddOns/` and verified that all 28 installed files matched the archive. The local installation's `.build.info` identified Forever **1.60.1.70938**; the configured text locale was esES. The build was read from disk, and no client acceptance test was executed.
+
+| Required check from the installed ZIP after a fresh start | Result |
+| --- | --- |
+| esES, character selection, addon disabled: one disabled `CraftAtlas` row under **Profesiones**; title search keeps the row under that category; the blacksmithing icon renders. | **NOT RUN** |
+| enUS, in game, addon enabled: one enabled `CraftAtlas` row under **Professions** with the blacksmithing icon. | **NOT RUN** |
+| With CraftAtlas enabled, compare the list icon to the minimap, open the explorer with the minimap button, and check for Lua errors. | **NOT RUN** |
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
