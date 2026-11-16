@@ -10,6 +10,7 @@ Core/Init.lua
 Data/Professions.lua
 Domain/MaterialLookup.lua
 Domain/MaterialSearch.lua
+Domain/ProfessionTree.lua
 Data/Materials.lua
 Data/RecipeUses.lua
 Data/Recipes.lua
