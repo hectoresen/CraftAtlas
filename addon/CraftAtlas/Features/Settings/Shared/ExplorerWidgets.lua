@@ -244,6 +244,33 @@ function ns.ClearExplorerSearch(search)
     return true
 end
 
+-- The client already ships the same close glyph used by its native panels.
+-- Embed it into the edit box and show it only when there is text to clear.
+function ns.CreateExplorerSearchClear(search, onClick)
+    local button = CreateFrame("Button", nil, search)
+    button:SetSize(18, 18)
+    button:SetPoint("RIGHT", search, "RIGHT", -5, 0)
+    local texture = button:CreateTexture(nil, "ARTWORK")
+    texture:SetAllPoints()
+    texture:SetTexture("Interface\\Buttons\\UI-Panel-CloseButton-Up")
+    button.icon = texture
+    if type(button.SetHighlightTexture) == "function" then
+        button:SetHighlightTexture("Interface\\Buttons\\UI-Panel-CloseButton-Highlight")
+    end
+    if type(search.SetTextInsets) == "function" then
+        search:SetTextInsets(6, 25, 0, 0)
+    end
+    button:SetScript("OnClick", function()
+        if onClick then onClick() else ns.ClearExplorerSearch(search) end
+    end)
+    local function refresh()
+        if search:GetText() == "" then button:Hide() else button:Show() end
+    end
+    search:HookScript("OnTextChanged", refresh)
+    refresh()
+    return button
+end
+
 function ns.CreateExplorerSearchBox(header, onChange)
     local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
     search:SetPoint("LEFT", header, "LEFT", 13, 0)
