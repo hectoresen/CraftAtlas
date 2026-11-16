@@ -6,7 +6,7 @@
 
 ## Owner GitHub Settings (manual administrative actions)
 - [ ] B1 Verify current `main protect` ruleset targeting and list actual collaborator permissions.
-- [ ] B2 Set a PR-review ruleset on `main`: one independent approval, stale-dismissal, resolved conversations and owner/admin review-only bypass (if supported).
+- [ ] B2 Set a PR-review ruleset on `main`: one independent approval, stale-dismissal, resolved conversations and owner/admin **For pull requests only** review bypass (if supported); verify no direct pushes become allowed.
 - [ ] B3 Set a second technical-checks ruleset on `main` without bypass, requiring stable CI/SDD/Lua check contexts only after those jobs exist and pass.
 - [ ] B4 Confirm external contributors lack merge-capable permissions; optionally enable GitHub auto-merge in repository settings for owner's eligible PRs.
 - [ ] B5 Test contributor versus owner PR merge eligibility and record results; do not claim effective protection until confirmed.
