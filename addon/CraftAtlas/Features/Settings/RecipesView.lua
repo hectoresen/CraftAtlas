@@ -123,7 +123,7 @@ function ns.InitRecipeDetail(parent)
     titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -15)
     titleLink:SetHeight(27)
     titleLink:SetScript("OnClick", function(_, button)
-        if not ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then return end
+        if not (ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button)) then return end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
