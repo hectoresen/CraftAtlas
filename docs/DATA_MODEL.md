@@ -35,7 +35,7 @@ Example: item **14044** (Cindercloth Cloak) is consumed by Leatherworking spell 
 
 ## Runtime behavior and constraints
 
-`Domain/MaterialSearch.lua` filters source-backed inputs by itemID/client name and profession. `Domain/RecipeUsage.lua` identifies actual consuming recipes and provides deterministic page slicing. `Domain/RecipeCatalog.lua` supplies unique recipe identity, name/output/profession search and ingredient lists. UI modules use `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua` and `RecipeNameCache.lua` for guarded native client names/icons/tooltips.
+`Domain/MaterialSearch.lua` filters source-backed inputs by itemID/client name and profession. `Domain/ProfessionTree.lua` then groups those unique filtered IDs in registry order; per-group counts are distinct within each profession while the global result count stays deduplicated. Expanded/collapsed visibility never changes itemID identity or the underlying licensed catalog. `Domain/RecipeUsage.lua` identifies actual consuming recipes and provides deterministic page slicing. `Domain/RecipeCatalog.lua` supplies unique recipe identity, name/output/profession search and ingredient lists. UI modules use `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua` and `RecipeNameCache.lua` for guarded native client names/icons/tooltips.
 
 If a spell or item name is missing from the client's cache, text search is incomplete; numeric-ID search and factual fallback remain available. Rarity, stats, learned recipes, craftability and stock counts are **not inferred** from the pinned source.
 
