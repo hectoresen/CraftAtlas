@@ -3,13 +3,19 @@ local _, ns = ...
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
 function ns.GetExplorerClearIcon(fileLookup)
-    local broom = "Interface\\Icons\\INV_Misc_Broom_01"
+    -- Historical native broom artwork may vary between Classic/Forever clients.
+    local candidates = {
+        "Interface\\Icons\\Achievement_Halloween_Witch_01",
+        "Interface\\Icons\\INV_Misc_Broom_01",
+    }
     local probe = fileLookup or GetFileIDFromPath
     if type(probe) == "function" then
-        local ok, fileID = pcall(probe, broom)
-        if ok and type(fileID) == "number" and fileID > 0 then return broom end
+        for _, path in ipairs(candidates) do
+            local ok, fileID = pcall(probe, path)
+            if ok and type(fileID) == "number" and fileID > 0 then return path end
+        end
     end
-    -- Known Classic asset; a missing optional broom path must never show as a green square.
+    -- Available native cleansing/action icon, never missing art or a textual X.
     return "Interface\\Icons\\Spell_Holy_DispelMagic"
 end
 
