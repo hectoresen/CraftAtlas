@@ -4,7 +4,7 @@ local ITEMS_PER_PAGE = 5
 local function trackedPageSize(availableHeight)
     -- Keep the aggregate tracker above the native bottom pager.
     return math.max(1, math.min(ITEMS_PER_PAGE,
-        math.floor((availableHeight - 143 - 106) / 39)))
+        math.floor((availableHeight - 143 - 80) / 39)))
 end
 
 local function setCheck(button, checked)
@@ -145,9 +145,13 @@ local function render()
         if tracking then
             local percent = coverage and coverage.percent
             local valid = coverage and coverage.verified
-            view.trackerLabel:SetText(ns.L("TRACK_PROGRESS") .. ": " ..
-                (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
-                (valid and "" or (" (" .. ns.L("TRACK_UNVERIFIED") .. ")")))
+            if #view.ingredients == 0 then
+                view.trackerLabel:SetText(ns.L("TRACK_NO_INGREDIENTS"))
+            else
+                view.trackerLabel:SetText(ns.L("TRACK_PROGRESS") .. ": " ..
+                    (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
+                    (valid and "" or (" (" .. ns.L("TRACK_UNVERIFIED") .. ")")))
+            end
             view.trackerBar:SetValue(percent or 0)
             if view.bankCheckbox then
                 local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
@@ -313,9 +317,9 @@ function ns.InitRecipeDetail(parent)
     end)
 
     local trackerFooter = CreateFrame("Frame", nil, frame)
-    trackerFooter:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 15, 41)
-    trackerFooter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 41)
-    trackerFooter:SetHeight(58)
+    trackerFooter:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 15, 36)
+    trackerFooter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 36)
+    trackerFooter:SetHeight(42)
     view.trackerFooter = trackerFooter
     local trackerLabel = font(trackerFooter, "GameFontHighlightSmall")
     trackerLabel:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 22)
