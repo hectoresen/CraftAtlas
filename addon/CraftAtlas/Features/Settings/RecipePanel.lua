@@ -2,7 +2,7 @@ local _, ns = ...
 
 -- A bounded pool of native rows, never one frame per recipe use.
 local MAX_ROWS = 5
-local ROW_HEIGHT = 35
+local ROW_HEIGHT = 39
 local state = {selectedID = nil, page = 1, pageSize = 3, uses = {}, rows = {}}
 
 local function font(parent, style)
