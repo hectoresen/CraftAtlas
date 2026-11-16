@@ -70,7 +70,7 @@ print("Craftable tracking domain/adapter/preferences PASS")
 -- actual Blizzard StatusBars. No live-client claims are made by these mocks.
 local frames = {}
 local function widget(kind,parent)
-    local w = {kind=kind,parent=parent,shown=true,width=460,height=500}
+    local w = {kind=kind,parent=parent,shown=true,width=460,height=440}
     function w:SetAllPoints() end
     function w:SetPoint(which, relative, relativePoint, x, y)
         self.points=self.points or {}
@@ -219,4 +219,19 @@ assert(findLabel("Material progress") and findLabel("Total progress"),
 assert(findLabel("Track crafting") and findLabel("Missing: 2"),
     "tracker label and missing quantity localized")
 assert(findLabel("Ingredients (2)"),"original ingredient section localizes")
+-- Compact pane: three ingredient and tracking rows must fit on one page.
+recipe.ingredients[#recipe.ingredients + 1] = {itemID=5,quantity=1}
+stock[5]={bags=0,available=0,bankStatus="excluded"}
+uiNs.RefreshRecipeDetail()
+local rowsWithThird = ingredientRows()
+eq(#rowsWithThird,3,"all three original ingredient rows remain visible at 440px")
+eq(rowsWithThird[3].professions.text,"x1","third ingredient remains unmodified")
+local progressBars=0
+for _,w in ipairs(frames) do
+    if w.kind=="StatusBar" and w.shown and (not w.parent or w.parent.shown) then
+        progressBars=progressBars+1
+    end
+end
+eq(progressBars,4,"three material progress bars plus total on one page")
+assert(findLabel("0/1"),"third material progress belongs in separate section")
 print("Craftable tracking native separate material rows PASS")
