@@ -10,7 +10,7 @@ Official upstream OpenSpec CLI change names reject uppercase letters. Therefore 
 | Bugfix | `fix002-repair-tooltip` | `SPEC/FIX002-repair-tooltip` | `FIX/002-repair-tooltip` |
 | CI/tooling | `chore001-agent-pr-checks` | `SPEC/CHORE001-agent-pr-checks` | `CHORE/001-agent-pr-checks` |
 
-New identity grammar: `^(feat|fix|chore|upd|del)(0{0,2}[1-9]|[1-9][0-9]{2,})-[a-z0-9]+(?:-[a-z0-9]+)*$` with stricter canonical zero-padding: any number under 1000 must use three digits; numbers over 999 are unpadded. The parser SHALL not accept `feat000`, `feat01`, `feat0001`, uppercase spec names or malformed separator/case. Agent numbering is per type, `max+1`, considering active+archived specs and concurrent PRs, with deterministic collision failures.
+New identity grammar: `^(feat|fix|chore|upd|del)(?:00[1-9]|0[1-9][0-9]|[1-9][0-9]{2,})-[a-z0-9]+(?:-[a-z0-9]+)*$` with stricter canonical zero-padding: any number under 1000 must use three digits; numbers over 999 are unpadded. The parser SHALL not accept `feat000`, `feat01`, `feat0001`, uppercase spec names or malformed separator/case. Agent numbering is per type, `max+1`, considering active+archived specs and concurrent PRs, with deterministic collision failures.
 
 The proposal stage uses actual event `pull_request.head.ref` and PR body `OpenSpec-Change` plus one matching new spec folder; the implementation stage uses approved spec change metadata and `TYPE/SEQ-SLUG`. The existing owner-merged approval PR check, code path scope, correct phase, and atomic archival transaction are independent.
 
