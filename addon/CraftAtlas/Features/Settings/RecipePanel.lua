@@ -85,6 +85,7 @@ end
 function ns.InitRecipePanel(parent, availableHeight)
     if state.grid then return end
     local headingY, listY = ns.MaterialDetailSectionOffsets(availableHeight)
+    state.availableHeight = availableHeight
     state.pageSize = calculatePageSize(availableHeight)
     state.section = ns.CreateExplorerSection(parent, "CRAFTABLE_USES_HEADING", headingY, function()
         setContentVisible()
@@ -129,6 +130,24 @@ function ns.InitRecipePanel(parent, availableHeight)
     ns.RefreshRecipePanel(nil)
     state.visible = true
     setContentVisible()
+end
+
+-- Reclaim unused space when the profession-use section is collapsed.
+function ns.SetRecipePanelCompact(compact)
+    if not state.grid or state.compact == compact then return end
+    state.compact = compact
+    local headingY, listY = ns.MaterialDetailSectionOffsets(state.availableHeight)
+    if compact then headingY, listY = headingY + 39, listY + 39 end
+    local parent = state.grid:GetParent()
+    state.section:ClearAllPoints()
+    state.section:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, headingY)
+    state.section:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, headingY)
+    state.grid:ClearAllPoints()
+    state.grid:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, listY)
+    state.grid:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -15, 39)
+    state.pageSize = math.max(1, math.min(MAX_ROWS,
+        math.floor((state.availableHeight + listY - 39) / ROW_HEIGHT)))
+    renderPage()
 end
 
 function ns.SetRecipePanelVisible(visible)
