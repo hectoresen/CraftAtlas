@@ -2,7 +2,7 @@
 
 This file summarizes implemented source changes. Historical PRs are not active feature proposals; source data coverage and test evidence remain separate questions.
 
-## [Unreleased] — `0.1.0-dev`
+## [Unreleased] — `0.2.0-dev`
 
 ### Material and craftable exploration
 - Added **Materiales**: functional material name/itemID search, profession filter, native detail view, and profession uses.
@@ -21,7 +21,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Added OpenSpec/SDD approval gating, Python generator/package tests and Lua domain/UI regressions. Automated checks alone do not certify client behavior.
 
 ### Evidence and remaining limitations
-- Maintainer reported earlier addon UI tested and accepted in Forever, including PR #23 and #25. The new grouped-tree/redesigned-detail view has not yet been manually verified inside the game. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
+- Maintainer reported earlier addon UI tested and accepted in Forever, including PR #23 and #25. The owner has manually checked successive Materiales and Fabricables redesigns in Forever and supplied screenshots, but has not recorded full acceptance of the final four-profession layout, centered title and release-version footer or the exact client build. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
 - No crafting automation, inventory availability, player-known recipe validation, dependency graph or external syncing is implemented.
 
 ## Historical milestones
