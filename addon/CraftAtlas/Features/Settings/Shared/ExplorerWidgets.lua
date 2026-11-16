@@ -246,20 +246,27 @@ end
 -- Small native status bar occupies the free center strip between search and language.
 -- It never moves the centered title or replaces any Classic control.
 function ns.CreateExplorerCatalogProgress(header)
+    -- Keep the title centered; the narrow track lives below its baseline,
+    -- within the free horizontal band between search and language controls.
     local holder = CreateFrame("Frame", nil, header)
-    holder:SetSize(214, 16)
-    holder:SetPoint("BOTTOM", header, "BOTTOM", 0, 1)
+    holder:SetSize(224, 14)
+    holder:SetPoint("BOTTOM", header, "BOTTOM", 0, 5)
+
+    local track = holder:CreateTexture(nil, "BACKGROUND")
+    track:SetAllPoints()
+    track:SetColorTexture(0.055, 0.048, 0.039, 0.94)
+
     local bar = CreateFrame("StatusBar", nil, holder)
-    bar:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 0, 0)
-    bar:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", 0, 0)
-    bar:SetHeight(4)
+    bar:SetAllPoints()
     bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    bar:SetStatusBarColor(0.80, 0.60, 0.22)
+    bar:SetStatusBarColor(0.53, 0.38, 0.12, 0.64)
     bar:SetMinMaxValues(0, 100)
-    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    label:SetPoint("BOTTOM", bar, "TOP", 0, 1)
+
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("CENTER", holder, "CENTER", 0, 0)
     label:SetJustifyH("CENTER")
-    holder.label, holder.bar = label, bar
+    label:SetTextColor(0.98, 0.89, 0.68)
+    holder.label, holder.bar, holder.track = label, bar, track
     function holder:SetProgress(status, percent, caption)
         if status ~= "active" and status ~= "incomplete" then
             self:Hide()
