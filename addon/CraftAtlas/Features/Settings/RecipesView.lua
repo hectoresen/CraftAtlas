@@ -139,7 +139,9 @@ local function render()
     view.trackingActive = tracking
     if view.trackCheckbox then
         showControl(view.trackCheckbox, recipe ~= nil)
+        showControl(view.trackLabel, recipe ~= nil)
         setCheck(view.trackCheckbox, tracking)
+        view.trackLabel:SetText(ns.L("TRACK_CRAFTING"))
     end
     view.pageSize = tracking and trackedPageSize(view.availableHeight) or view.normalPageSize
     local coverage = tracking and refreshTrackingCounts(recipe) or nil
@@ -273,6 +275,7 @@ function ns.InitRecipeDetail(parent)
         end
     end)
     view.trackCheckbox = trackCheckbox
+    view.trackLabel = trackLabel
 
     view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -103, function()
         updateIngredientSectionVisibility()
@@ -303,7 +306,15 @@ function ns.InitRecipeDetail(parent)
         local progress = CreateFrame("StatusBar", nil, row)
         progress:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 1)
         progress:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -5, 1)
-        progress:SetHeight(3)
+        progress:SetHeight(5)
+        local track = progress:CreateTexture(nil, "BACKGROUND")
+        track:SetAllPoints(progress)
+        track:SetColorTexture(0.16, 0.13, 0.09, 0.95)
+        local trackBorder = progress:CreateTexture(nil, "BORDER")
+        trackBorder:SetPoint("BOTTOMLEFT", progress, "BOTTOMLEFT", 0, 0)
+        trackBorder:SetPoint("BOTTOMRIGHT", progress, "BOTTOMRIGHT", 0, 0)
+        trackBorder:SetHeight(1)
+        trackBorder:SetColorTexture(0.49, 0.39, 0.23, 0.75)
         if type(progress.SetStatusBarTexture) == "function" then
             progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
             progress:SetStatusBarColor(0.66, 0.54, 0.24)
@@ -327,8 +338,16 @@ function ns.InitRecipeDetail(parent)
     trackerFooter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 36)
     trackerFooter:SetHeight(42)
     view.trackerFooter = trackerFooter
-    local trackerLabel = font(trackerFooter, "GameFontHighlightSmall")
-    trackerLabel:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 22)
+
+    -- A separate native-style section, visually distinct from ingredient rows.
+    local separator = trackerFooter:CreateTexture(nil, "ARTWORK")
+    separator:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 0, 0)
+    separator:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", 0, 0)
+    separator:SetHeight(2)
+    separator:SetColorTexture(0.74, 0.54, 0.20, 0.95)
+    local trackerLabel = font(trackerFooter, "GameFontNormal")
+    trackerLabel:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 3, 22)
+    trackerLabel:SetTextColor(1, 0.82, 0.30)
     view.trackerLabel = trackerLabel
     local bankCheckbox = CreateFrame("CheckButton", nil, trackerFooter, "UICheckButtonTemplate")
     bankCheckbox:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -132, 2)
@@ -349,7 +368,16 @@ function ns.InitRecipeDetail(parent)
     local trackerBar = CreateFrame("StatusBar", nil, trackerFooter)
     trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 6)
     trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 6)
-    trackerBar:SetHeight(7)
+    trackerBar:SetHeight(9)
+    -- The full-width track remains visible even at exactly 0% progress.
+    local background = trackerBar:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints(trackerBar)
+    background:SetColorTexture(0.14, 0.11, 0.08, 0.98)
+    local outline = trackerBar:CreateTexture(nil, "BORDER")
+    outline:SetPoint("BOTTOMLEFT", trackerBar, "BOTTOMLEFT", 0, 0)
+    outline:SetPoint("BOTTOMRIGHT", trackerBar, "BOTTOMRIGHT", 0, 0)
+    outline:SetHeight(1)
+    outline:SetColorTexture(0.5, 0.37, 0.18, 0.95)
     if type(trackerBar.SetStatusBarTexture) == "function" then
         trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
         trackerBar:SetStatusBarColor(0.67, 0.52, 0.21)
