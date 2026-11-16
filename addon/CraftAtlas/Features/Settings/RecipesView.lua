@@ -1,9 +1,11 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
-local TRACKER_ROW_HEIGHT = 19
-local TRACKER_TOP_HEIGHT = 39
-local TRACKER_BOTTOM_HEIGHT = 24
+-- Each row needs two readable text baselines and an independent status bar.
+-- The geometry fits three rows in a 440px logical pane without overlapping.
+local TRACKER_ROW_HEIGHT = 23
+local TRACKER_TOP_HEIGHT = 34
+local TRACKER_BOTTOM_HEIGHT = 19
 
 local function trackedPageSize(availableHeight)
     -- Pair each paged ingredient with one independently rendered tracker row.
@@ -251,7 +253,7 @@ local function render()
         view.trackerBar:ClearAllPoints()
         view.trackerBar:SetPoint("TOPLEFT", view.totalLabel, "BOTTOMLEFT", 0, -4)
         view.trackerBar:SetPoint("TOPRIGHT", view.trackerFooter, "TOPRIGHT", -8,
-            -(TRACKER_TOP_HEIGHT + #visible * TRACKER_ROW_HEIGHT + 12))
+            -(TRACKER_TOP_HEIGHT + #visible * TRACKER_ROW_HEIGHT + 16))
     end
     updateIngredientSectionVisibility()
 end
@@ -387,7 +389,7 @@ function ns.InitRecipeDetail(parent)
     view.trackerPercent = trackerPercent
 
     local bankCheckbox = CreateFrame("CheckButton", nil, trackerFooter, "UICheckButtonTemplate")
-    bankCheckbox:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 4, -18)
+    bankCheckbox:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 4, -16)
     bankCheckbox:SetSize(17, 17)
     local bankLabel = font(trackerFooter, "GameFontDisableSmall")
     bankLabel:SetPoint("LEFT", bankCheckbox, "RIGHT", 2, 0)
@@ -399,7 +401,7 @@ function ns.InitRecipeDetail(parent)
         render()
     end)
     local bankStatus = font(trackerFooter, "GameFontDisableSmall")
-    bankStatus:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -22)
+    bankStatus:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -20)
     bankStatus:SetJustifyH("RIGHT")
     view.bankStatus = bankStatus
 
@@ -418,11 +420,11 @@ function ns.InitRecipeDetail(parent)
         row.amount:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, 0)
         row.amount:SetJustifyH("RIGHT")
         row.missing = font(row, "GameFontDisableSmall")
-        row.missing:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -11)
+        row.missing:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -12)
         row.bar = createNativeBar(row)
-        row.bar:SetHeight(13)
-        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -7)
-        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -7)
+        row.bar:SetHeight(10)
+        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -12)
+        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -12)
         row:Hide()
         view.trackerRows[i] = row
     end
@@ -430,7 +432,7 @@ function ns.InitRecipeDetail(parent)
     local totalLabel = font(trackerFooter, "GameFontNormalSmall")
     view.totalLabel = totalLabel
     local trackerBar = createNativeBar(trackerFooter)
-    trackerBar:SetHeight(11)
+    trackerBar:SetHeight(9)
     view.trackerBar = trackerBar
     trackerFooter:Hide()
 
