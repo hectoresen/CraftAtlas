@@ -1,0 +1,11 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Features/Tooltip/Tooltip.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "tests/test_material_tooltips.lua",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/TESTING.md"
+  ]
+}
