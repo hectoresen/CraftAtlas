@@ -187,7 +187,7 @@ local statusbars={}
 for _,w in ipairs(frames) do
     if w.kind=="StatusBar" and w.shown and (not w.parent or w.parent.shown) then
         eq(w.barTexture,"Interface\\TargetingFrame\\UI-StatusBar","Blizzard bar texture")
-        eq(w.backdrop.edgeFile,"Interface\\\\Tooltips\\\\UI-Tooltip-Border","Blizzard frame")
+        eq(w.backdrop.edgeFile,"Interface\\Tooltips\\UI-Tooltip-Border","Blizzard frame")
         statusbars[#statusbars+1]=w
     end
 end
