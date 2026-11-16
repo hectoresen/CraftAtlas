@@ -34,6 +34,10 @@ Functional behavior, schema, client compatibility or nontrivial refactors requir
 
 The official OpenSpec CLI (`@fission-ai/openspec`, using a supported Node.js version) can provide `/opsx:propose`, `/opsx:apply`, `/opsx:verify`, `/opsx:sync` and `/opsx:archive` according to installed profile. Do not invent commands when unsupported. See `openspec/README.md` and `docs/SDD_COMPLIANCE.md`. Documentation-only and tiny maintenance exemptions are narrowly restricted.
 
+## Contributor review and non-bypassable checks
+
+`main` has two independent active rulesets: one requires independent approval for contributors (owner/admin bypass **for pull requests only**), and the other requires CI/SDD status checks with **no bypass, even for the owner**. A PR author can never record a GitHub self-approval. Review requests in root `CODEOWNERS` do not replace actual ruleset permissions. Never enable auto-merge or merge contributors' PRs without explicit owner direction. For updates to required checks consult `docs/GITHUB_SETTINGS.md`; the dedicated Lua check names must exist and pass before the owner adds them to the mandatory checks ruleset.
+
 ## Skill catalog and mandatory pre-PR gate
 
 | Skill | When to use | Path |
