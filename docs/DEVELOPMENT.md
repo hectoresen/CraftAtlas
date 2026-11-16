@@ -18,15 +18,19 @@ texlua tests/test_explorer_layout.lua
 texlua tests/test_profession_tree.lua
 texlua tests/test_release_version.lua
 texlua tests/test_recipe_cards.lua
+texlua tests/test_catalog_progress.lua
+texlua tests/test_catalog_preparation.lua
+texlua tests/test_catalog_scheduler_failure.lua
+texlua tests/test_catalog_header.lua
 ```
 
-The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. For the full matrix see [testing](TESTING.md).
+The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. `/craftatlas perf` prints in-memory session counters (attempted/total units, batches, full-search and refresh counts) on demand, without sending or persisting diagnostics. Compare the same cache/build conditions before and after an optimization; a reduction in refreshes is not proof of increased FPS. For the full matrix see [testing](TESTING.md).
 
 ## Implementation boundaries
 
 - `Core/`: initialization, wiring and lifecycle.
 - `Data/`: pinned source/license evidence and deterministic generated runtime indices.
-- `Domain/`: pure material lookup, filtering, profession grouping/expansion and recipe identity/ingredient logic, no WoW globals.
+- `Domain/`: pure material lookup, filtering, profession grouping/expansion, recipe identity/ingredient logic and catalog progress/coalescing arithmetic, no WoW globals.
 - `Infrastructure/`: guarded client APIs, asynchronous names/icons/tooltips, minimap and preferences.
 - `Features/`: native Materiales and Fabricables UI and tooltip annotation.
 - `Features/Settings/Shared/ExplorerWidgets.lua`: reusable native search, inline clear X, profession layout, filter, virtualized rows, pager and layout; avoid duplicating a separate explorer implementation.
