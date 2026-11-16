@@ -67,8 +67,11 @@ local frames = {}
 local function widget(kind, parent)
     local self = {kind = kind, parent = parent, width = 400, height = 343, shown = true}
     function self:SetAllPoints() end
-    function self:SetPoint() end
-    function self:ClearAllPoints() end
+    function self:SetPoint(point, relative, relativePoint, x, y)
+        self.points = self.points or {}
+        self.points[point] = {relative = relative, x = x, y = y}
+    end
+    function self:ClearAllPoints() self.points = {} end
     function self:SetSize(w,h) self.width=w self.height=h end
     function self:SetHeight(h) self.height=h end
     function self:GetHeight() return self.height end
@@ -160,6 +163,8 @@ end
 assert(progressCount>=3, "both per-ingredient and aggregate bars are visible at 0%")
 assert(divider>=3, "native-style section divider and bar outlines")
 assert(trackCheck and trackCheck.checked and bankText, "tracking controls visible")
+assert(bankText.parent.points.TOPLEFT.y == -84,
+    "tracking subsection follows two visible ingredient rows rather than the pager")
 local function labelFound(value)
     for _, frame in ipairs(frames) do
         if frame.kind=="FontString" and frame.text==value then return true end
