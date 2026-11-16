@@ -2,7 +2,7 @@
 ## Title: CraftAtlas
 ## Notes: Offline profession usage across supported item tooltips
 ## Author: CraftAtlas contributors
-## Version: 0.1.0-dev
+## Version: 0.2.0-dev
 ## IconTexture: Interface\\Icons\\Trade_BlackSmithing
 ## SavedVariables: CraftAtlasDB
 
