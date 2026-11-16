@@ -11,7 +11,7 @@
 - [ ] B4 Add positive/negative Python fixtures for complete, incomplete, unrelated, altered, unauthorized and pending-evidence archive cases.
 
 ## C. Agent process
-- [ ] C1 Update `AGENTS.md`, `CONTRIBUTING.md`, `docs/AGENT_WORKFLOW.md`, `openspec/README.md` and `docs/SDD_COMPLIANCE.md` to prepare sync/archive **before** opening implementation PR when eligible.
+- [ ] C1 Update `AGENTS.md`, `CONTRIBUTING.md`, `docs/AGENT_WORKFLOW.md`, `docs/SDD_COMPLIANCE.md` and other approved agent guidance (leave `openspec/README.md` untouched under current SDD guard) to prepare sync/archive **before** opening implementation PR when eligible.
 - [ ] C2 Update `skills/documentation-sync/SKILL.md` and `docs/DOCUMENTATION_PROTOCOL.md` with evidence-to-task verification, archive eligibility and explicit non-archive blockers.
 - [ ] C3 Update README/CHANGELOG/ROADMAP/TESTING and status ledger **only as warranted**; leave incomplete historical changes OPEN.
 - [ ] C4 Keep updated docs compatible with Codex, Claude, Copilot and generic agents using the canonical skill file directly.
