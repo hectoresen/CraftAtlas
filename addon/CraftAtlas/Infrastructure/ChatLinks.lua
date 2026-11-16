@@ -42,7 +42,8 @@ function ns.InsertEntityChatLink(kind, id)
     if not link or type(ChatEdit_InsertLink) ~= "function" then return false end
     -- Blizzard's native insertion works with an active editor; open the
     -- default chat editor when none is active. Never send a message.
-    if ChatEdit_GetActiveWindow and not ChatEdit_GetActiveWindow()
+    if (type(ChatEdit_GetActiveWindow) ~= "function"
+        or not ChatEdit_GetActiveWindow())
         and type(ChatFrame_OpenChat) == "function" then
         pcall(ChatFrame_OpenChat, "")
     end
