@@ -105,7 +105,7 @@ function ns.InitRecipePanel(parent, availableHeight)
 
     for index = 1, MAX_ROWS do
         local row = ns.CreateExplorerRow(grid, ROW_HEIGHT, function(self, button)
-            if self.use and ns.IsEntityChatLinkClick(button) then
+            if self.use and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
                 ns.InsertRecipeChatLink(self.use)
                 return
             end
