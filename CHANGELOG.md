@@ -11,6 +11,13 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Craftable material tracking (implementation candidate; not merged)
+
+- Optional per-character, per-recipe Fabricables tracking toggle and unit-weighted ingredients progress; displays needed versus current bags and missing quantities, with native bars and paged ingredient rows.
+- Conditional bank breakdown only when the bank is open and the client can return consistent counts; closed/unsupported bank availability is explicitly unknown, never silently reused or counted.
+- Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; live Forever client acceptance is NOT RUN.
+
+
 ### Native chat linking and craftable detail icon (implementation awaiting owner merge)
 
 - Added Shift + left-click support for client-native item/spell links in clickable Materiales/Fabricables rows, uses, ingredients and detail icon/title surfaces; normal navigation remains unchanged.
