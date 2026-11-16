@@ -1,6 +1,6 @@
 # Typed OpenSpec identity and PR check discovery
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Typed and stable OpenSpec change identifiers
 
@@ -28,8 +28,6 @@ The proposal and implementation PR head branches SHALL derive deterministically 
 #### Scenario: Unmatched metadata or branch
 - **WHEN** head branch, change folder or PR body disagree
 - **THEN** SDD rejects the PR without disabling any required check.
-
-## ADDED Requirements
 
 ### Requirement: Verify required Actions contexts after agent-created PR
 
