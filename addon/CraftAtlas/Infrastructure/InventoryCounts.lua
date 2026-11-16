@@ -36,7 +36,9 @@ local function scanOpenBank(itemID)
     local sawBank = false
     for _, container in ipairs(indices) do
         local ok, slots = pcall(getSlots, container)
-        if not ok or not validCount(slots) then return nil end
+        if not ok then return nil end
+        if slots == nil and container ~= -1 then slots = 0 end
+        if not validCount(slots) then return nil end
         if container == -1 and slots > 0 then sawBank = true end
         for slot = 1, slots do
             local itemInSlot
