@@ -484,15 +484,7 @@ local function createPanel()
     search:HookScript("OnEditFocusLost", function()
         if search:GetText() == "" then hint:Show() end
     end)
-    local clear = ns.CreateExplorerClassicButton(header)
-    clear:SetPoint("LEFT", search, "RIGHT", 4, 0)
-    clear:SetSize(28, 28)
-    -- Use a native action icon, never a second textual close X.
-    local broom = clear:CreateTexture(nil, "ARTWORK")
-    broom:SetPoint("TOPLEFT", clear, "TOPLEFT", 3, -3)
-    broom:SetPoint("BOTTOMRIGHT", clear, "BOTTOMRIGHT", -3, 3)
-    broom:SetTexture(ns.GetExplorerClearIcon())
-    ui.clearIcon = broom
+    local clear = ns.CreateExplorerSearchClear(search)
     clear:SetScript("OnEnter", function(self)
         if GameTooltip then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -503,14 +495,8 @@ local function createPanel()
     clear:SetScript("OnLeave", function()
         if GameTooltip then GameTooltip:Hide() end
     end)
-    clear:SetScript("OnClick", function()
-        ns.ClearExplorerSearch(search)
-    end)
     ui.clear = clear
-    search:HookScript("OnTextChanged", function(self)
-        clear:SetEnabled(self:GetText() ~= "")
-    end)
-    clear:SetEnabled(false)
+    ui.clearIcon = clear.icon
     createLanguageMenu(header)
 
     local materialsTab = ns.CreateExplorerClassicButton(panel)
