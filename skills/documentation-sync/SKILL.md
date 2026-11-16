@@ -62,3 +62,7 @@ Documentation-Evidence: <specific source-to-doc review, why no user-visible docu
 ## Blockers and hard limits
 
 If a functional change lacks an approved spec, scope, or adequate evidence, **stop before PR** and report what must be resolved. Never fabricate tests/game evidence, invent files or PR approvals, skip copyright attribution, grant approval to yourself, push to main, merge, publish releases, change protected settings, or use PR metadata to bypass SDD. Read the compatible provider's filesystem/connector APIs; this Markdown protocol does not require a proprietary multiagent runtime.
+
+## Action-cost awareness
+
+OpenSpec-only proposal PRs should not force unrelated Lua/client test execution. Documentation-only PRs should not require full catalog/Lua regressions. The workflow classifies actual changed paths and retains a minimal required-status job; any mixed source/technical change receives the full suite. **This optimization never waives the skill review**: spec-only and docs-only changes still require the appropriate documentation/scope audit and truthful test evidence. Do not falsely claim intentionally skipped checks were executed.
