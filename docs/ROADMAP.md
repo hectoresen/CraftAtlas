@@ -24,7 +24,7 @@ These are **implemented in `main`** and do not imply that every source change ha
 
 ## Current implementation candidate (pending owner review)
 
-- Owner-approved `feat001-track-craftable-materials` spec #54: opt-in current-character ingredient tracking in Fabricables, with bags-only reliable baseline and bank freshness gating. Code exists on the implementation branch, **not yet merged or client-accepted**. It is not the previously discussed multi-recipe planner.
+- Owner-approved `feat001-track-craftable-materials` spec #54 is implemented and **merged in PR #55**. The maintainer verified its bank-count correction in Forever; full client test coverage is not implied. The approved `upd001-global-craftable-tracking` spec #62 now updates the tracking checkbox to one persisted opt-in per character, across Fabricables recipes. Implementation is pending owner acceptance; this is not a multi-recipe planner.
 
 ## Future work (not implemented)
 
