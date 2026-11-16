@@ -156,7 +156,8 @@ local function showDetail()
     else
         ui.detailTitle:SetTextColor(1, 0.82, 0.30)
     end
-    ui.detailHeading:SetText(ns.L("USED_BY"))
+    -- The profession section owns its localized heading; no legacy detailHeading frame.
+    ui.professionUses.section:Refresh()
     local keys = ns.FindProfessions(itemID, ns.materials, ns.professionOrder)
     local professionState = ui.professionUses
     if professionState.itemID ~= itemID then professionState.page = 1 end
