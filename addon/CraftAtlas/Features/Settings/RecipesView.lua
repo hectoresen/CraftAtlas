@@ -21,6 +21,23 @@ local function describe(recipe)
         (outputIcon or spellIcon or "Interface\\Icons\\INV_Misc_QuestionMark"), name
 end
 
+local function updateIngredientSectionVisibility()
+    if not view.section or not view.itemList then return end
+    local expanded = view.section.expanded
+    if expanded then
+        view.itemList:Show()
+        view.pager.previous:Show()
+        view.pager.next:Show()
+        view.pager.label:Show()
+    else
+        view.itemList:Hide()
+        view.pager.previous:Hide()
+        view.pager.next:Hide()
+        view.pager.label:Hide()
+        clearTooltip()
+    end
+end
+
 local function render()
     if not view.frame then return end
     local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
@@ -30,7 +47,7 @@ local function render()
         view.output:SetText("")
         view.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
         view.ingredients = {}
-        view.heading:SetText("")
+        view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), 0))
     else
         local name, icon, spellName = describe(recipe)
         view.title:SetText(name)
@@ -44,7 +61,7 @@ local function render()
         else
             view.output:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN") .. "  |  " .. recipeLabel)
         end
-        view.heading:SetText(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
+        view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
     local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.page, view.pageSize)
@@ -64,6 +81,7 @@ local function render()
         end
     end
     ns.UpdateExplorerPager(view.pager, page, pages)
+    updateIngredientSectionVisibility()
 end
 
 function ns.SetRecipeDetail(key)
@@ -91,8 +109,13 @@ function ns.InitRecipeDetail(parent)
         math.floor((availableHeight - 138 - 40) / 39)))
 
     view.icon = frame:CreateTexture(nil, "ARTWORK")
-    view.icon:SetSize(48, 48)
+    view.icon:SetSize(52, 52)
     view.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -16)
+    local iconBorder = frame:CreateTexture(nil, "OVERLAY")
+    iconBorder:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    iconBorder:SetSize(58, 58)
+    iconBorder:SetPoint("CENTER", view.icon, "CENTER", 0, 0)
+
     view.title = font(frame, "GameFontNormalLarge")
     view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -18)
     view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -18)
@@ -105,11 +128,13 @@ function ns.InitRecipeDetail(parent)
     view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
     view.output:SetJustifyH("LEFT")
     view.output:SetWordWrap(false)
-    view.heading = font(frame, "GameFontNormal")
-    view.heading:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -108)
+    view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -103, function()
+        updateIngredientSectionVisibility()
+    end)
 
     local itemList = CreateFrame("Frame", nil, frame)
-    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -138)
+    view.itemList = itemList
+    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -143)
     itemList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 40)
 
     local count = ITEMS_PER_PAGE
