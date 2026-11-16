@@ -1,0 +1,26 @@
+{
+  "allowed_paths": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/spec-compliance.yml",
+    ".github/CODEOWNERS",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/DOCUMENTATION_PROTOCOL.md",
+    "docs/GITHUB_SETTINGS.md",
+    "docs/SDD_COMPLIANCE.md",
+    "docs/CODE_QUALITY.md",
+    "docs/TESTING.md",
+    "docs/DEVELOPMENT.md",
+    "docs/ROADMAP.md",
+    "docs/ARCHITECTURE.md",
+    "skills/documentation-sync/SKILL.md",
+    "scripts/validate_documentation.py",
+    "scripts/validate_sdd.py",
+    "scripts/validate_repo.py",
+    "scripts/validate_release_checks.sh",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
