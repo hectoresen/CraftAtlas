@@ -46,6 +46,66 @@ local function containsSelected()
     end
 end
 
+local function refreshProfessionDetail()
+    if not ui.professionUses then return end
+    local state = ui.professionUses
+    local first = (state.page - 1) * 2 + 1
+    for i, cell in ipairs(state.cells) do
+        local key = state.keys[first + i - 1]
+        if key and state.section.expanded then
+            cell.icon:SetTexture(ns.GetExplorerProfessionIcon(key))
+            cell.label:SetText(labelProfession(key))
+            cell:Show()
+        else
+            cell:Hide()
+        end
+    end
+    local pages = math.max(1, math.ceil(#state.keys / 2))
+    state.previous:SetEnabled(state.section.expanded and state.page > 1)
+    state.next:SetEnabled(state.section.expanded and state.page < pages)
+    if state.section.expanded and pages > 1 then
+        state.previous:Show()
+        state.next:Show()
+    else
+        state.previous:Hide()
+        state.next:Hide()
+    end
+end
+
+local function createProfessionDetail(right)
+    local state = {keys = {}, page = 1, cells = {}}
+    ui.professionUses = state
+    state.section = ns.CreateExplorerSection(right, "USED_BY", -92, function()
+        refreshProfessionDetail()
+    end)
+    for i = 1, 2 do
+        local cell = CreateFrame("Frame", nil, right)
+        cell:SetPoint("TOPLEFT", right, "TOPLEFT", 18 + (i - 1) * 155, -124)
+        cell:SetSize(150, 29)
+        cell.icon = cell:CreateTexture(nil, "ARTWORK")
+        cell.icon:SetSize(25, 25)
+        cell.icon:SetPoint("LEFT", cell, "LEFT", 0, 0)
+        cell.label = font(cell, "GameFontHighlightSmall")
+        cell.label:SetPoint("LEFT", cell.icon, "RIGHT", 7, 0)
+        cell.label:SetPoint("RIGHT", cell, "RIGHT", 0, 0)
+        cell.label:SetJustifyH("LEFT")
+        cell.label:SetWordWrap(false)
+        state.cells[i] = cell
+    end
+    for _, direction in ipairs({"previous", "next"}) do
+        local button = CreateFrame("Button", nil, state.section, "UIPanelButtonTemplate")
+        button:SetSize(21, 19)
+        button:SetPoint("RIGHT", state.section, "RIGHT", direction == "previous" and -77 or -50, 0)
+        button:SetText(direction == "previous" and "<" or ">")
+        button:SetScript("OnClick", function()
+            state.page = state.page + (direction == "previous" and -1 or 1)
+            refreshProfessionDetail()
+        end)
+        state[direction] = button
+    end
+    refreshProfessionDetail()
+end
+
 local function showDetail()
     if not ui.detailTitle then return end
     if currentView == "recipes" then
@@ -60,8 +120,9 @@ local function showDetail()
         ui.detailTitle:SetTextColor(1, 0.82, 0.30)
         ui.detailMeta:SetText("")
         ui.detailID:SetText("")
-        ui.detailProfessions:SetText("")
-        ui.detailHeading:SetText("")
+        ui.professionUses.keys = {}
+        ui.professionUses.page = 1
+        refreshProfessionDetail()
         ns.RefreshRecipePanel(nil)
         return
     end
@@ -90,11 +151,11 @@ local function showDetail()
     end
     ui.detailHeading:SetText(ns.L("USED_BY"))
     local keys = ns.FindProfessions(itemID, ns.materials, ns.professionOrder)
-    local professions = {}
-    for _, key in ipairs(keys) do
-        professions[#professions + 1] = labelProfession(key)
-    end
-    ui.detailProfessions:SetText(table.concat(professions, ", "))
+    local professionState = ui.professionUses
+    if professionState.itemID ~= itemID then professionState.page = 1 end
+    professionState.itemID = itemID
+    professionState.keys = keys
+    refreshProfessionDetail()
     ns.RefreshRecipePanel(itemID)
 end
 
@@ -211,6 +272,11 @@ local function refreshResults(resetOffset)
     end
     if not stillMatches and not forcedSelection then
         selected = results[1]
+        if currentView == "materials" then
+            for _, entry in ipairs(treeEntries) do
+                if entry.itemID then selected = entry.itemID break end
+            end
+        end
         index = nil
     end
     if currentView == "recipes" then selectedRecipe = selected else selectedID = selected end
@@ -491,16 +557,7 @@ local function createPanel()
     detailMeta:SetJustifyH("LEFT")
     detailMeta:SetWordWrap(false)
     ui.detailMeta = detailMeta
-    local heading = font(right, "GameFontNormal")
-    heading:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -91)
-    ui.detailHeading = heading
-    local professions = font(right, "GameFontHighlightSmall")
-    professions:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -115)
-    professions:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -115)
-    professions:SetJustifyH("LEFT")
-    professions:SetWordWrap(false)
-    professions:SetHeight(18)
-    ui.detailProfessions = professions
+    createProfessionDetail(right)
     ns.InitRecipePanel(right, panel:GetHeight() - 167)
     ns.InitRecipeDetail(right)
     ui.right = right
@@ -533,8 +590,15 @@ end
 local function showActiveDetail()
     local material = currentView == "materials"
     for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailMeta,
-        ui.detailHeading, ui.detailProfessions}) do
+        ui.professionUses.section}) do
         if material then element:Show() else element:Hide() end
+    end
+    if not material then
+        for _, cell in ipairs(ui.professionUses.cells) do cell:Hide() end
+        ui.professionUses.previous:Hide()
+        ui.professionUses.next:Hide()
+    else
+        refreshProfessionDetail()
     end
     if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
     ns.ShowRecipeDetailView(not material)
@@ -617,6 +681,7 @@ function ns.RefreshSettings()
         and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
     ui.resultsHeading:SetText(ns.L(currentView == "materials"
         and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
+    ui.professionUses.section:Refresh()
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
     ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
