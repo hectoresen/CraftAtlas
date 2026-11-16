@@ -39,6 +39,52 @@ combined = 1
 eq(ns.ReadCraftInventoryCount(3,true).available,2,"inconsistent combined count")
 ns.SetCraftBankOpen(false)
 eq(ns.ReadCraftInventoryCount(3,true).bank,nil,"no cached bank stock")
+-- Regression from the in-game bank screenshot: combined item count returned
+-- bag-only for Silverleaf even while bank slots visibly held multiple stacks.
+-- Prefer a full scan of actual bank slots to C_Item.GetItemCount(true).
+C_Container = {}
+local bankStacks = {
+    [-1] = {
+        [1] = {itemID=765,stackCount=20},
+        [2] = {itemID=765,stackCount=11},
+        [3] = {itemID=2449,stackCount=6},
+    },
+    [5] = {[1] = {itemID=765,stackCount=4}},
+}
+C_Container.GetContainerNumSlots = function(container)
+    if container == -1 then return 28 end
+    if container == 5 then return 4 end
+    return 0
+end
+C_Container.GetContainerItemInfo = function(container,slot)
+    return bankStacks[container] and bankStacks[container][slot]
+end
+C_Container.GetContainerItemID = function(container,slot)
+    local v=bankStacks[container] and bankStacks[container][slot]
+    return v and v.itemID
+end
+local oldGetter = C_Item.GetItemCount
+C_Item.GetItemCount = function(item, withBank)
+    if item == 2449 then return 1 end
+    if item == 765 then return 0 end -- known broken aggregated path
+    return 0
+end
+ns.SetCraftBankOpen(true)
+local silverleaf = ns.ReadCraftInventoryCount(765,true)
+eq(silverleaf.bags,0,"silverleaf missing from bags")
+eq(silverleaf.bank,35,"main-bank and bank-bag stacks must be scanned")
+eq(silverleaf.available,35,"fresh scan overrides broken includeBank count")
+eq(silverleaf.bankStatus,"confirmed","bank scan is current")
+local earthroot = ns.ReadCraftInventoryCount(2449,true)
+eq(earthroot.available,7,"bag and bank combined without double counting")
+local absent = ns.ReadCraftInventoryCount(3371,true)
+eq(absent.bank,0,"an empty but accessible bank is confirmed zero")
+ns.SetCraftBankOpen(false)
+eq(ns.ReadCraftInventoryCount(765,true).available,0,
+    "closed bank does not use previously observed bank stacks")
+C_Item.GetItemCount = oldGetter
+C_Container = nil
+
 C_Item = nil
 GetItemCount = nil
 eq(ns.ReadCraftInventoryCount(3,false).bags,nil,"missing API unknown not zero")
