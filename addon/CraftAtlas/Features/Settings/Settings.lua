@@ -5,6 +5,8 @@ local searchQuery = ""
 local selectedID
 local selectedProfession = ""
 local results = {}
+local treeEntries = {}
+local treeState = ns.NewProfessionTreeState()
 local unresolved = 0
 local scrollOffset = 0
 local currentView = "materials"
@@ -79,13 +81,23 @@ end
 
 local function updateRows()
     if not ui.rows then return end
-    local count = #results
-    if scrollOffset > math.max(0, count - VISIBLE_ROWS) then
-        scrollOffset = math.max(0, count - VISIBLE_ROWS)
-    end
+    local count = currentView == "materials" and #treeEntries or #results
+    scrollOffset = math.min(scrollOffset, math.max(0, count - VISIBLE_ROWS))
     for index, row in ipairs(ui.rows) do
-        local itemID = results[index + scrollOffset]
-        if itemID then
+        local entry = currentView == "materials" and treeEntries[index + scrollOffset] or nil
+        local itemID = entry and entry.itemID or (currentView == "recipes" and results[index + scrollOffset])
+        if entry and not itemID then
+            row.itemID = nil
+            row.groupKey = entry.group
+            row.name:SetText((treeState.searchOverrides[entry.group] == false
+                or (searchQuery == "" and treeState.expanded[entry.group] == false))
+                and ("+ " .. labelProfession(entry.group)) or ("- " .. labelProfession(entry.group)))
+            row.professions:SetText(string.format(ns.L("PROFESSION_GROUP_COUNT"), entry.count))
+            row.icon:Hide()
+            row.highlight:Hide()
+            row:Show()
+        elseif itemID then
+            row.groupKey = nil
             local name, icon, subtitle
             if currentView == "recipes" then
                 local recipe = ns.GetCatalogRecipe(itemID)
@@ -118,6 +130,7 @@ local function updateRows()
             row:Show()
         else
             row.itemID = nil
+            row.groupKey = nil
             row:Hide()
         end
     end
@@ -126,7 +139,7 @@ local function updateRows()
         ui.scrollbar:SetValue(scrollOffset)
         if count > VISIBLE_ROWS then ui.scrollbar:Show() else ui.scrollbar:Hide() end
     end
-    ui.count:SetText(string.format(ns.L("RESULT_COUNT"), count))
+    ui.count:SetText(string.format(ns.L("RESULT_COUNT"), #results))
     if unresolved > 0 then
         if currentView == "recipes" then
             ui.incomplete:SetText(ns.L("RECIPE_NAME_RESULTS_INCOMPLETE"))
@@ -164,10 +177,16 @@ local function refreshResults(resetOffset)
             searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
             not numberQuery, labels, ns.recipeUses)
     end
+    if currentView == "materials" then
+        local groups = ns.BuildProfessionGroups(results, ns.materials, ns.professionOrder)
+        treeEntries = ns.FlattenProfessionGroups(groups, treeState, searchQuery ~= "")
+    end
     local selected = currentView == "recipes" and selectedRecipe or selectedID
     local index
-    for i, key in ipairs(results) do
-        if key == selected then index = i break end
+    local visible = currentView == "materials" and treeEntries or results
+    for i, key in ipairs(visible) do
+        if (currentView == "materials" and key.itemID == selected)
+            or (currentView == "recipes" and key == selected) then index = i break end
     end
     if not index and not forcedSelection then
         selected = results[1]
@@ -175,7 +194,7 @@ local function refreshResults(resetOffset)
     end
     if currentView == "recipes" then selectedRecipe = selected else selectedID = selected end
     if resetOffset then scrollOffset = 0 end
-    if index and (index <= scrollOffset or index > scrollOffset + VISIBLE_ROWS) then
+    if index and resetOffset and (index <= scrollOffset or index > scrollOffset + VISIBLE_ROWS) then
         scrollOffset = math.max(0, index - 1)
     end
     updateRows()
@@ -221,10 +240,21 @@ local function createProfessionMenu(left)
     ui.professionButton, ui.professionMenu, ui.professionChoices = button, menu, choices
 end
 
+local function updateRowsAfterGroupToggle()
+    local groups = ns.BuildProfessionGroups(results, ns.materials, ns.professionOrder)
+    treeEntries = ns.FlattenProfessionGroups(groups, treeState, searchQuery ~= "")
+    updateRows()
+end
+
 local function createRows(left)
     ui.rows = {}
     for index = 1, VISIBLE_ROWS do
         local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self)
+            if currentView == "materials" and self.groupKey and not self.itemID then
+                ns.ToggleProfessionTreeGroup(treeState, self.groupKey, searchQuery ~= "")
+                updateRowsAfterGroupToggle()
+                return
+            end
             forcedSelection = false
             if currentView == "recipes" then selectedRecipe = self.itemID
             else selectedID = self.itemID end
@@ -252,7 +282,8 @@ local function createRows(left)
     ui.scrollbar = scrollbar
     left:EnableMouseWheel(true)
     left:SetScript("OnMouseWheel", function(_, delta)
-        scrollOffset = math.max(0, math.min(#results - VISIBLE_ROWS, scrollOffset - delta * 2))
+        local total = currentView == "materials" and #treeEntries or #results
+        scrollOffset = math.max(0, math.min(total - VISIBLE_ROWS, scrollOffset - delta * 2))
         scrollOffset = math.max(0, scrollOffset)
         updateRows()
     end)
@@ -322,6 +353,8 @@ local function createPanel()
 
     local search = ns.CreateExplorerSearchBox(header, function(value)
         if switching or value == searchQuery then return end
+        if value == "" and searchQuery ~= "" then ns.ClearProfessionTreeSearch(treeState) end
+        if value ~= "" and searchQuery == "" then ns.ClearProfessionTreeSearch(treeState) end
         searchQuery = value
         forcedSelection = false
         refreshResults(true)
@@ -342,12 +375,31 @@ local function createPanel()
     local clear = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
     clear:SetPoint("LEFT", search, "RIGHT", 4, 0)
     clear:SetSize(28, 28)
-    clear:SetText("X")
+    -- Use a native action icon, never a second textual close X.
+    local broom = clear:CreateTexture(nil, "ARTWORK")
+    broom:SetPoint("TOPLEFT", clear, "TOPLEFT", 5, -5)
+    broom:SetPoint("BOTTOMRIGHT", clear, "BOTTOMRIGHT", -5, 5)
+    broom:SetTexture(ns.GetExplorerClearIcon())
+    ui.clearIcon = broom
+    clear:SetScript("OnEnter", function(self)
+        if GameTooltip then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(ns.L("CLEAR_SEARCH"))
+            GameTooltip:Show()
+        end
+    end)
+    clear:SetScript("OnLeave", function()
+        if GameTooltip then GameTooltip:Hide() end
+    end)
     clear:SetScript("OnClick", function()
         search:SetText("")
         search:SetFocus()
     end)
     ui.clear = clear
+    search:HookScript("OnTextChanged", function(self)
+        clear:SetEnabled(self:GetText() ~= "")
+    end)
+    clear:SetEnabled(false)
     createLanguageMenu(header)
 
     local materialsTab = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
@@ -423,9 +475,12 @@ local function createPanel()
     ns.InitRecipeDetail(right)
     ui.right = right
 
-    local version = font(panel, "GameFontDisableSmall")
-    version:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
-    version:SetText("v" .. ns.version)
+    local version = ns.GetInstalledReleaseVersion(ns.name)
+    if version then
+        local caption = font(panel, "GameFontDisableSmall")
+        caption:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
+        caption:SetText(version)
+    end
 
     ui.itemListener = CreateFrame("Frame", nil, panel)
     ui.itemListener:RegisterEvent("GET_ITEM_INFO_RECEIVED")
