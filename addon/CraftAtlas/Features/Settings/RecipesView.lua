@@ -171,6 +171,8 @@ local function render()
                 end
                 view.bankLabel:SetText(supported and ns.L("TRACK_INCLUDE_BANK")
                     or ns.L("TRACK_BANK_UNAVAILABLE"))
+                view.bankLabel:SetTextColor(supported and 0.94 or 0.55,
+                    supported and 0.89 or 0.55, supported and 0.75 or 0.55)
             end
             local bankIncluded = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
             if bankIncluded and view.bankStatus then
