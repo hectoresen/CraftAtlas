@@ -1,6 +1,6 @@
 # Developer setup and repository conventions
 
-CraftAtlas is a **Lua World of Warcraft: Forever addon**, source version `0.2.0-dev`. Source code, PRs, agent instructions and engineering documentation use English; user-facing strings support enUS/esES. The maintainer has accepted the Materiales/Fabricables UI in-game, but dataset completeness, every tooltip origin and exact game-build compatibility remain separate QA tasks.
+CraftAtlas is a **Lua World of Warcraft: Forever addon**, source version `0.2.0-dev`. Source code, PRs, agent instructions and engineering documentation use English; user-facing strings support enUS/esES. The maintainer has reviewed and approved the overall Materiales/Fabricables UI in-game, but dataset completeness, every tooltip origin and exact game-build compatibility remain separate QA tasks.
 
 ## Local environment
 
