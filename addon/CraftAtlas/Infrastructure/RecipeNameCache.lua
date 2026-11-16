@@ -22,13 +22,18 @@ local function readSpell(spellID)
     if C_Spell and type(C_Spell.GetSpellInfo) == "function" then
         local ok, value = pcall(C_Spell.GetSpellInfo, spellID)
         if ok and type(value) == "table" then
-            if value.name then spellNames[spellID] = value.name end
+            if type(value.name) == "string" and value.name ~= "" then
+                spellNames[spellID] = value.name
+            end
             if value.iconID then spellIcons[spellID] = value.iconID end
         end
     end
     if not spellNames[spellID] and type(GetSpellInfo) == "function" then
         local ok, name, _, icon = pcall(GetSpellInfo, spellID)
-        if ok then spellNames[spellID], spellIcons[spellID] = name, icon end
+        if ok then
+            if type(name) == "string" and name ~= "" then spellNames[spellID] = name end
+            if icon then spellIcons[spellID] = icon end
+        end
     end
     return oldName ~= spellNames[spellID] or oldIcon ~= spellIcons[spellID]
 end
