@@ -118,7 +118,7 @@ local strings = {
         RECIPE_QUANTITY="x%d",RECIPE_PAGE_STATUS="Página %d / %d",
         TRACK_CRAFTING="Seguir fabricación",
         TRACK_PROGRESS="Progreso de materiales",TRACK_TOTAL="Progreso total",
-        TRACK_INCLUDE_BANK="Incluir banco",TRACK_AVAILABLE_BAGS="%d/%d",
+        TRACK_INCLUDE_BANK="Incluir banco",TRACK_ROW_SUMMARY="%d/%d · Faltan %d",TRACK_AVAILABLE_BAGS="%d/%d",
         TRACK_AVAILABLE_BANK="%d/%d",TRACK_AVAILABLE_UNKNOWN="?/%d",
         TRACK_MISSING="Faltan: %d",TRACK_BANK_CURRENT="Banco actualizado",
         TRACK_BANK_OPEN_HINT="Abre el banco para actualizar"},
@@ -126,7 +126,7 @@ local strings = {
         RECIPE_QUANTITY="x%d",RECIPE_PAGE_STATUS="Page %d / %d",
         TRACK_CRAFTING="Track crafting",
         TRACK_PROGRESS="Material progress",TRACK_TOTAL="Total progress",
-        TRACK_INCLUDE_BANK="Include bank",TRACK_AVAILABLE_BAGS="%d/%d",
+        TRACK_INCLUDE_BANK="Include bank",TRACK_ROW_SUMMARY="%d/%d · Missing %d",TRACK_AVAILABLE_BAGS="%d/%d",
         TRACK_AVAILABLE_BANK="%d/%d",TRACK_AVAILABLE_UNKNOWN="?/%d",
         TRACK_MISSING="Missing: %d",TRACK_BANK_CURRENT="Bank current",
         TRACK_BANK_OPEN_HINT="Open bank to update"}
@@ -181,7 +181,7 @@ for _,w in ipairs(ingredient) do
 end
 assert(findLabel("Progreso de materiales") and findLabel("Progreso total"),
     "distinct tracking section in Spanish")
-assert(findLabel("0/2") and findLabel("0/3"),
+assert(findLabel("0/2 · Faltan 2") and findLabel("0/3 · Faltan 3"),
     "zero-stock tracker shows required quantities")
 local statusbars={}
 for _,w in ipairs(frames) do
@@ -196,16 +196,16 @@ for _,w in ipairs(statusbars) do eq(w.value,0,"empty bar really at zero") end
 stock[3]={bags=4,available=4,bankStatus="excluded"}
 stock[4]={bags=1,available=1,bankStatus="excluded"}
 uiNs.RefreshRecipeDetail()
-assert(findLabel("4/2") and findLabel("1/3"),"show uncapped bags in dedicated tracker")
+assert(findLabel("4/2 · Faltan 0") and findLabel("1/3 · Faltan 2"),"show uncapped bags in dedicated tracker")
 assert(findLabel("60%"),"weighted overall percent is 3/5")
-assert(findLabel("Faltan: 0") and findLabel("Faltan: 2"),"missing counts")
+assert(findLabel("4/2 · Faltan 0") and findLabel("1/3 · Faltan 2"),"missing counts")
 eq(ingredient[1].professions.text,"x2","Ingredients stays unchanged on stock refresh")
 includeBank=true
 stock[3]={bags=4,bank=0,available=4,bankStatus="confirmed"}
 stock[4]={bags=1,bank=2,available=3,bankStatus="confirmed"}
 uiNs.RefreshRecipeDetail()
 assert(findLabel("100%"),"bank increment completes the overall total")
-assert(findLabel("3/3"),"bank added to item availability")
+assert(findLabel("3/3 · Faltan 0"),"bank added to item availability")
 includeBank=false
 uiNs.RefreshRecipeDetail()
 -- Adapter observations change from combined stock to bags-only on opt-out.
@@ -216,7 +216,7 @@ locale="enUS"
 uiNs.RefreshRecipeDetail()
 assert(findLabel("Material progress") and findLabel("Total progress"),
     "locale refresh retranslates separate tracker")
-assert(findLabel("Track crafting") and findLabel("Missing: 2"),
+assert(findLabel("Track crafting") and findLabel("1/3 · Missing 2"),
     "tracker label and missing quantity localized")
 assert(findLabel("Ingredients (2)"),"original ingredient section localizes")
 -- Compact pane: three ingredient and tracking rows must fit on one page.
@@ -233,13 +233,13 @@ for _,w in ipairs(frames) do
     end
 end
 eq(progressBars,4,"three material progress bars plus total on one page")
-assert(findLabel("0/1"),"third material progress belongs in separate section")
+assert(findLabel("0/1 · Missing 1"),"third material progress belongs in separate section")
 -- Prevent the previous visual regression: compact row math alone is
 -- insufficient when second-line text and bars intersect the next row.
 local trackerRows = {}
 local bankButton
 for _,w in ipairs(frames) do
-    if w.kind=="Frame" and w.shown and w.height==23 and w.name and w.bar then
+    if w.kind=="Frame" and w.shown and w.height==25 and w.name and w.bar then
         trackerRows[#trackerRows+1]=w
     elseif w.kind=="CheckButton" and w.parent and w.parent.points
         and w.points and w.points.TOPLEFT and w.points.TOPLEFT.y == -16 then
@@ -249,11 +249,12 @@ end
 eq(#trackerRows,3,"three separately spaced tracker rows are visible")
 for _,w in ipairs(trackerRows) do
     local point = w.bar.points.TOPLEFT
-    assert(point and point.y <= -11,"material bar must be below first text baseline")
+    assert(point and point.y <= -12,"material bar must be below summary baseline")
     assert(-point.y + w.bar.height <= w.height,
         "material bar must end inside its own row, before the next material")
-    assert(w.missing.points.TOPLEFT.y <= -11,
-        "missing stock must occupy a separate second text baseline")
+    assert(w.amount.points.TOPRIGHT and w.name.points.TOPRIGHT,
+        "name and available/missing summary share one baseline")
+    eq(w.missing.text,"","missing quantity must not create a third text line")
 end
 assert(bankButton and bankButton.points.TOPLEFT.y + -bankButton.height >= -34,
     "bank checkbox must not extend into the first tracker row")
