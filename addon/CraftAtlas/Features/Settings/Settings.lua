@@ -429,12 +429,9 @@ local function createPanel()
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:Hide()
     if panel.TitleText then panel.TitleText:Hide() end
-    -- Use the existing client art instead of distributing copied UI textures.
-    local emblem = panel:CreateTexture(nil, "ARTWORK")
-    emblem:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -4)
-    emblem:SetSize(31, 31)
-    emblem:SetTexture("Interface\\Icons\\Trade_BlackSmithing")
-        -- Bind the close handler after creating overlays, so it wins the click area.
+    -- Do not place a raw icon over the BasicFrameTemplate frame border.
+    -- A framed crest requires a separate verified client-compatible widget.
+    -- Bind the close handler after creating overlays, so it wins the click area.
 
     local header = CreateFrame("Frame", nil, panel)
     header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
@@ -468,6 +465,7 @@ local function createPanel()
     local hint = font(header, "GameFontDisableSmall")
     hint:SetPoint("LEFT", search, "LEFT", 7, 0)
     hint:SetText(ns.L("SEARCH_PLACEHOLDER"))
+    hint:SetTextColor(0.70, 0.67, 0.60)
     ui.searchHint = hint
     search:HookScript("OnTextChanged", function(self)
         if self:GetText() == "" then hint:Show() else hint:Hide() end
@@ -481,8 +479,8 @@ local function createPanel()
     clear:SetSize(28, 28)
     -- Use a native action icon, never a second textual close X.
     local broom = clear:CreateTexture(nil, "ARTWORK")
-    broom:SetPoint("TOPLEFT", clear, "TOPLEFT", 5, -5)
-    broom:SetPoint("BOTTOMRIGHT", clear, "BOTTOMRIGHT", -5, 5)
+    broom:SetPoint("TOPLEFT", clear, "TOPLEFT", 3, -3)
+    broom:SetPoint("BOTTOMRIGHT", clear, "BOTTOMRIGHT", -3, 3)
     broom:SetTexture(ns.GetExplorerClearIcon())
     ui.clearIcon = broom
     clear:SetScript("OnEnter", function(self)
@@ -533,7 +531,7 @@ local function createPanel()
     local right = CreateFrame("Frame", nil, panel)
     right:SetPoint("TOPLEFT", left, "TOPRIGHT", 9, 0)
     right:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -14, 30)
-    paint(right, 0.09, 0.07, 0.05, 0.65)
+    paint(right, 0.075, 0.064, 0.055, 0.88)
     createProfessionMenu(left)
 
     local resultsHeading = font(left, "GameFontNormal")
@@ -553,7 +551,7 @@ local function createPanel()
     createRows(left)
 
     local detailIcon = right:CreateTexture(nil, "ARTWORK")
-    detailIcon:SetSize(48, 48)
+    detailIcon:SetSize(52, 52)
     detailIcon:SetPoint("TOPLEFT", right, "TOPLEFT", 16, -16)
     ui.detailIcon = detailIcon
     local detailTitle = font(right, "GameFontNormalLarge")
