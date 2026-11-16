@@ -4,7 +4,7 @@ The policy in scripts/validate_sdd.py is enforced by .github/workflows/spec-comp
 
 ## Governance changes and review protection (approved spec #41)
 
-The repository now uses independent `main` review and status-check rulesets; their actual configuration is recorded in `docs/GITHUB_SETTINGS.md`. Reviewer bypass for repository admins applies **for pull requests only**, never to status checks. The author cannot approve their own PR. SDD validates **scope and provenance**, not a GitHub human approval.
+The repository now uses independent `main` review and status-check rulesets; their actual configuration is recorded in `docs/GITHUB_SETTINGS.md`. Reviewer bypass for repository admins applies **for pull requests only**, never to status checks. The author cannot approve their own PR. SDD validates **scope, specification PR owner-review provenance, and chronology**; GitHub's code-owner ruleset separately enforces merge-time review for every contributor-authored PR.
 
 The owner-approved `harden-contributor-pr-governance` change is a **narrow exception** to governance-file restrictions: its implementation may update `AGENTS.md` and root `CODEOWNERS` only when each path is explicitly listed in its approved `sdd-scope.json`. Unrelated OpenSpec changes remain prohibited from modifying AGENTS and hidden `.github/` governance paths. See regression fixtures in `tests/test_validate_sdd.py`.
 
@@ -30,9 +30,9 @@ The change directory must contain proposal.md, design.md, tasks.md, at least one
 }
 ~~~
 
-Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. GitHub Actions changes require a **single explicit** `.github/workflows/<name>.yml` or `.yaml` path in the approved scope; `.github/workflows/**`, `.github/**` and arbitrary hidden paths are forbidden. This approval does not relax owner/chronology/approval gates or allow other governance files. The owner reviews the requirements, proposed paths, tests and dataset rights, then merges the spec-only PR. Do not implement before owner approval.
+Only an explicit file or a bounded directory/** pattern is accepted; * and ** alone are rejected. GitHub Actions changes require a **single explicit** `.github/workflows/<name>.yml` or `.yaml` path in the approved scope; `.github/workflows/**`, `.github/**` and arbitrary hidden paths are forbidden. This approval does not relax owner/chronology/approval gates or allow other governance files. The owner reviews the requirements, proposed paths, tests and dataset rights, then approves the spec-only PR; an authorized contributor may merge after required checks pass. Do not implement before owner approval.
 
-**Phase B: implementation.** Begin only after the approved specification PR has been merged into main by @hectoresen. Run the official /opsx:apply (or generated equivalent). Create a separate code PR with:
+**Phase B: implementation.** Begin only after the approved specification PR has been approved by @hectoresen and merged into main. Run the official /opsx:apply (or generated equivalent). Create a separate code PR with:
 
 ~~~text
 OpenSpec-Change: add-material-profession-tooltips
@@ -40,7 +40,7 @@ OpenSpec-Phase: implementation
 OpenSpec-Approval-PR: 17
 ~~~
 
-Use the REAL number of the earlier merged spec PR. It must target main, have been merged by @hectoresen, and have modified the exact named OpenSpec change. The change's proposal, design, delta specs and scope must already exist in main. Implementation cannot change them; tasks.md may be updated as work progresses. Any changed files outside the pre-approved manifest cause CI failure. A spec needing revision requires a new reviewed specification proposal; do not silently modify its scope in the implementation PR.
+Use the REAL number of the earlier merged spec PR. It must target main, have a valid pre-merge APPROVED review by @hectoresen (or have been authored by the owner using the PR-only admin review bypass), and have modified the exact named OpenSpec change. The change's proposal, design, delta specs and scope must already exist in main. Implementation cannot change them; tasks.md may be updated as work progresses. Any changed files outside the pre-approved manifest cause CI failure. A spec needing revision requires a new reviewed specification proposal; do not silently modify its scope in the implementation PR.
 
 ## How the validator works, exactly
 
@@ -82,7 +82,7 @@ No automated check can prove semantic parity between all source code and current
 
 On 2026-11-15, @hectoresen explicitly approved implementing the V3 visual material explorer and its behavior in the existing specification PR #14. `OpenSpec-Phase: combined` is accepted **only** when the PR number is 14 and the change ID is `improve-material-explorer-ui`. The PR must introduce its own proposal, design, delta specs, tasks and bounded scope, and contain real non-spec implementation changes within that scope. The only additional governance edits permitted here are the validator, its tests, AGENTS.md and this policy document. Any GitHub workflow change, unrelated change ID, different PR number or unrelated file still fails. This exception does not apply to future proposals; the two-PR contract remains in force otherwise.
 
-The owner explicitly authorized this exception before implementation. Passing CI does not replace manual review or in-game verification, and only @hectoresen can merge.
+The owner explicitly authorized this exception before implementation. Passing CI does not replace manual review or in-game verification, and only @hectoresen may authorize contributor PRs; authorized contributors may merge after approval and CI.
 
 ## Small exceptions
 
@@ -124,7 +124,7 @@ The PR event JSON must contain number and pull_request.body. Implementation chec
 ## Threat model and limits
 
 - File paths and explicit approval evidence can be validated; **semantic equivalence of implementation and specs cannot**. The owner must review scenarios and implementation.
-- GitHub confirms the approval PR was merged by the owner. This does not prove the original specification was *read* by a person or that implementation started only afterwards. Human review checks chronology.
+- GitHub confirms the spec PR was merged and checks owner review provenance, independently of the merge actor. This does not prove the original specification was *read* by a person or that implementation started only afterwards. Human review checks chronology.
 - This workflow runs code from a proposed branch. A malicious contributor with write permissions might change its own validator or workflow, so for hard enforcement configure branch rulesets and protect the required check against bypass. We will do that later with GitHub CLI as requested.
 - Until main is protected, a failing CI does not technically forbid merging or direct pushes. CODEOWNERS and Markdown policies do not enforce owner-only merging.
 - A scope manifest proves only file boundaries, not that every changed line is justified. Broad directory scopes require careful human review.
@@ -161,3 +161,7 @@ The historical `OpenSpec-Phase: lifecycle` approval #13 remains separate and unc
 
 **Agent-created PRs:** each agent must query the four exact required check contexts on the current PR head commit. Missing runs can arise from GitHub automation token/event behavior; missing is **not** skipped. A safe **single** PR metadata update can re-trigger the configured `pull_request` workflows; re-query and report any pending/missing/failed context as a blocker without changing required checks or GitHub rulesets. `repository-validation` and `traceability` must pass; Lua checks may be skipped on specs-only PRs but must appear as actual job records. SDD cannot certify its own asynchronous check materialization; agents perform this after PR creation.
 
+
+## Reviewed-spec provenance and contributor merges (approved #58)
+
+For contributor-authored specs, SDD reads the GitHub specification PR author, merge timestamp, and submitted owner review history. A valid @hectoresen APPROVED decision submitted before merge is required; dismissed/replaced approvals or newer changes requests do not count. The merge actor is intentionally ignored. An owner-authored spec can be merged under the existing PR-only administrator review bypass, because self-approval is impossible; required status checks must still pass. The original merged #44 includes an owner APPROVED review and does not require a duplicate proposal #57. GitHub's main review ruleset MUST separately require code-owner approval for every contributor-authored PR; SDD provenance is not a replacement for current-PR GitHub ruleset enforcement.
