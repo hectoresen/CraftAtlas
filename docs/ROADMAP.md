@@ -22,6 +22,10 @@ These are **implemented in `main`** and do not imply that every source change ha
 
 - OpenSpec `fix001-native-chat-links-and-recipe-icon` (#52 merged) is being implemented separately: native Shift-click chat links on clickable item/recipe entities and removal of a duplicate Fabricables detail icon overlay. Client confirmation is pending; do not describe it as shipped until its implementation PR merges.
 
+## Current implementation candidate (pending owner review)
+
+- Owner-approved `feat001-track-craftable-materials` spec #54: opt-in current-character ingredient tracking in Fabricables, with bags-only reliable baseline and bank freshness gating. Code exists on the implementation branch, **not yet merged or client-accepted**. It is not the previously discussed multi-recipe planner.
+
 ## Future work (not implemented)
 
 - Reconcile imported recipe/material data with a newer licensed Forever build, record live mapping exceptions and improve coverage.
@@ -49,7 +53,6 @@ Merged proposal #45 and implementation #47 established a transactional archive w
 ## Agent naming governance
 
 Approved proposals #48/#49 and merged implementation #50 enforce deterministic typed OpenSpec IDs and Git branches, with #49 correcting change IDs to lowercase for official CLI compatibility. Existing in-flight/historical proposals remain unchanged. Agent PR creation now includes a mandatory four-context Actions check-run discovery gate; missing checks receive one safe metadata retry, never forged PASS. This is governance/agent development and does not change CraftAtlas's in-game functionality.
-
 
 ### Contributor governance correction (approved spec #58)
 

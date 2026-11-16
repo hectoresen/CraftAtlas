@@ -18,4 +18,11 @@ for _, key in ipairs({"CATALOG_PREPARING_MATERIALS", "CATALOG_PREPARING_CRAFTABL
 end
 assert(string.format(ns.Text("CATALOG_PREPARING_MATERIALS","esES","enUS"),42)
     == "Preparando materiales... 42%")
+for _, key in ipairs({"TRACK_CRAFTING", "TRACK_PROGRESS", "TRACK_INCLUDE_BANK",
+    "TRACK_BANK_UNKNOWN", "TRACK_INGREDIENT_UNKNOWN", "TRACK_UNVERIFIED"}) do
+    local en = ns.Text(key, "enUS", "enUS")
+    local es = ns.Text(key, "esES", "esES")
+    assert(en ~= key and es ~= key and en ~= es,
+        "localized craft tracker text required: " .. key)
+end
 print("Explorer locale regression PASS")
