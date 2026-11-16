@@ -49,6 +49,7 @@ end
 local function refreshProfessionDetail()
     if not ui.professionUses then return end
     local state = ui.professionUses
+    if ns.SetRecipePanelCompact then ns.SetRecipePanelCompact(not state.section.expanded) end
     local first = (state.page - 1) * 2 + 1
     for i, cell in ipairs(state.cells) do
         local key = state.keys[first + i - 1]
