@@ -2,10 +2,6 @@
 
 This ledger is an evidence record, **not** an automatic certification of requirements. Last reconciled against merged `main` PRs on 2026-11-16. The current source feature summary lives in [README](../README.md), and the documented Python/Forever test distinction lives in [TESTING](TESTING.md). The historical proposal, designs, delta specs and original tasks are retained unmodified except additive status checkpoints.
 
-## In-progress Shift-click/native icon correction
-
-Owner-merged spec [#52](https://github.com/hectoresen/CraftAtlas/pull/52), `fix001-native-chat-links-and-recipe-icon`, authorizes a separate implementation of native item/spell chat links and removal of the Fabricables inset icon overlay. Implementation evidence: `tests/test_chat_links.lua` added on the implementation branch; Lua CI and Forever interaction/visual acceptance are **not confirmed** at authoring time. The change stays **active/unarchived** pending exact in-game compatibility and acceptance evidence; no historical spec is affected.
-
 ## Historical owner-approved changes
 
 | Change | Spec PR | Implementation PR | Evidence and limits | Disposition |
