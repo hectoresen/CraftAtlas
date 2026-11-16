@@ -556,6 +556,7 @@ class AtomicArchiveTests(unittest.TestCase):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
                         "merged_by": {"login": "hectoresen"},
+                         "user": {"login": "hectoresen"},
                         "base": {"ref": "main"}}
             return [{"filename": self.prefix + "proposal.md"}]
         def git_mock(cmd, text=False, **kwargs):
