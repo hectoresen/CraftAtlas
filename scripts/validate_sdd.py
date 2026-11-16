@@ -27,9 +27,9 @@ TYPED_CHANGE = re.compile(
 )
 ROLLOUT_BASE_SHA = "a2085951b4010d17b525edd6b58b13f4aff900c3"
 LEGACY_OPEN_PROPOSALS = {
-    43: "refine-minimap-button",
-    44: "add-addon-list-identity",
-    46: "add-addon-configuration",
+    "43": "refine-minimap-button",
+    "44": "add-addon-list-identity",
+    "46": "add-addon-configuration",
 }
 REQUIRED_PR_CONTEXTS = (
     "repository-validation", "traceability",
@@ -125,7 +125,7 @@ def _typed_reserved_ids(base, api, token, pr_number, change):
 
 
 def validate_pr_identity(change, phase, pr_number, head_ref, base,
-                         token, api, exists_in_base):
+                         token, api, approval):
     """Apply the new convention without renaming already-approved legacy specs."""
     identity = typed_identity(change)
     if phase not in ("proposal", "implementation"):
@@ -138,8 +138,11 @@ def validate_pr_identity(change, phase, pr_number, head_ref, base,
         if phase == "proposal":
             errors.extend(_typed_reserved_ids(base, api, token, pr_number, change))
         return errors
-    # A legacy implementation is valid only for a change present at rollout.
     if phase == "implementation":
+        # In-flight proposals may have merged after the frozen rollout commit.
+        # The implementation gate independently verifies approval and base artifacts.
+        if LEGACY_OPEN_PROPOSALS.get(approval) == change:
+            return []
         try:
             subprocess.check_output(["git", "cat-file", "-e",
                                      ROLLOUT_BASE_SHA + ":openspec/changes/" +
@@ -147,7 +150,7 @@ def validate_pr_identity(change, phase, pr_number, head_ref, base,
             return []
         except (OSError, subprocess.CalledProcessError):
             return ["New implementation needs a CLI-safe typed OpenSpec ID"]
-    if pr_number in LEGACY_OPEN_PROPOSALS and change == LEGACY_OPEN_PROPOSALS[pr_number]:
+    if LEGACY_OPEN_PROPOSALS.get(str(pr_number)) == change:
         return []
     return ["New proposal must use lowercase typed OpenSpec ID (e.g. feat001-menu) "
             "and SPEC/TYPEddd-slug branch; existing legacy PRs are grandfathered"]
@@ -182,6 +185,7 @@ METADATA = {
 
 
 def parse_metadata(body):
+    body = body.replace("\r\n", "\n")
     # Remove fenced code blocks so sample values cannot count as declarations.
     body = re.sub(r"(?ms)^(\x60{3,}|~{3,})[^\n]*\n.*?^\1[^\n]*$", "", body)
     return {k: pattern.findall(body) for k, pattern in METADATA.items()}
@@ -223,17 +227,47 @@ def github_api(path, token):
 
 
 def verify_approval(pr_number, change_id, token, api=github_api, implementation_created=None):
+    """Verify an owner-authorized spec without constraining who merged it."""
     if not token:
-        return ["GITHUB_TOKEN is required to verify owner-merged specification PR"]
+        return ["GITHUB_TOKEN is required to verify specification PR approval"]
     try:
         pr = api("pulls/" + str(pr_number), token)
         errors = []
-        if not pr.get("merged_at") or (pr.get("merged_by") or {}).get("login") != "hectoresen":
-            errors.append("Specification PR must be merged by @hectoresen")
-        if implementation_created and pr.get("merged_at") and pr["merged_at"] >= implementation_created:
+        merged_at = pr.get("merged_at")
+        if not merged_at:
+            errors.append("Specification PR must be merged before implementation")
+        if implementation_created and merged_at and merged_at >= implementation_created:
             errors.append("Specification must have been merged before implementation PR creation")
         if (pr.get("base") or {}).get("ref") != "main":
             errors.append("Specification PR must target main")
+        author = (pr.get("user") or {}).get("login", "").lower()
+        if not author:
+            errors.append("Cannot verify specification PR author")
+        elif author != "hectoresen" and merged_at:
+            # GitHub does not allow PR self-approval. The owner-authored PR
+            # exception is subject to the PR-only admin bypass, never CI bypass.
+            owner_reviews = []
+            for page in range(1, 11):
+                reviews = api("pulls/" + str(pr_number) +
+                              "/reviews?per_page=100&page=" + str(page), token)
+                for review in reviews:
+                    if (review.get("user") or {}).get("login", "").lower() != "hectoresen":
+                        continue
+                    submitted = review.get("submitted_at")
+                    if submitted and submitted <= merged_at:
+                        owner_reviews.append(review)
+                if len(reviews) < 100:
+                    break
+            else:
+                errors.append("Cannot verify complete specification owner review history")
+            # Review state reflects later dismissal; use the most recent
+            # substantive owner decision submitted before the merge.
+            decisions = [r for r in owner_reviews if
+                         r.get("state", "").upper() in
+                         ("APPROVED", "CHANGES_REQUESTED", "DISMISSED")]
+            decisions.sort(key=lambda r: r["submitted_at"])
+            if not decisions or decisions[-1].get("state", "").upper() != "APPROVED":
+                errors.append("Specification PR requires a valid @hectoresen APPROVED review before merge")
         related = False
         for page in range(1, 11):
             items = api("pulls/" + str(pr_number) + "/files?per_page=100&page=" +
@@ -642,7 +676,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 return False
     if head_ref is not None or typed_identity(change):
         errors.extend(validate_pr_identity(
-            change, phase, pr_number, head_ref, base, token, api, exists_in_base))
+            change, phase, pr_number, head_ref, base, token, api, approval))
     if phase == "proposal":
         if approval:
             errors.append("Proposal may not claim pre-approval")
@@ -719,6 +753,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
             "harden-contributor-pr-governance",
             "archive-openspec-with-implementation",
             "resolve-typed-openspec-cli-compatibility",
+            "chore001-require-owner-review-not-merge",
         )
         # Only this explicitly owner-approved change may introduce the root
         # CODEOWNERS file; hidden .github policy files remain forbidden.

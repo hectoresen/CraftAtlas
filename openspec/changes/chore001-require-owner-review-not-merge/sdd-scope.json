@@ -1,0 +1,16 @@
+{
+  "allowed_paths": [
+    "scripts/validate_sdd.py",
+    "tests/test_validate_sdd.py",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "docs/SDD_COMPLIANCE.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/GITHUB_SETTINGS.md",
+    "docs/TESTING.md",
+    "docs/OPENSPEC_STATUS.md",
+    "docs/ROADMAP.md",
+    "CHANGELOG.md",
+    "skills/documentation-sync/SKILL.md"
+  ]
+}

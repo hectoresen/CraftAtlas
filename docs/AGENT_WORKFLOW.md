@@ -36,7 +36,7 @@ DISCOVER → EXPLORE (optional) → PROPOSE → OWNER_APPROVAL
                                           |
                                   OWNER REVIEWS
                                           |
-                               OWNER MERGES (only)
+                               AUTHORIZED MERGE AFTER OWNER APPROVAL
                                           |
                                    ARCHIVE / RELEASE
 ```
@@ -77,7 +77,7 @@ Before proposing changes, cross-check the current feature claims in `README.md` 
 
 ## Atomic sync and archive within the implementation PR
 
-The default state machine is now: `APPROVED SPEC → IMPLEMENT → VERIFY → documentation-sync → SYNC & PREPARE ARCHIVE (if eligible) → IMPLEMENTATION PR → OWNER MERGE`. Do **not** schedule a routine third PR after owner acceptance. The same implementation PR must include its approved canonical capability delta and its matching lossless dated archive when all mandatory evidence is available. Closing/rejecting the PR leaves the original active spec on `main` unchanged. For incomplete mandatory client acceptance, do not archive; state the precise blocker and keep relevant tasks unchecked. Every implementation PR carries exactly one machine-readable `OpenSpec-Archive: prepared|blocked` and `OpenSpec-Archive-Evidence` line. The owner merges only after deciding whether the evidence supports acceptance.
+The default state machine is now: `APPROVED SPEC → IMPLEMENT → VERIFY → documentation-sync → SYNC & PREPARE ARCHIVE (if eligible) → IMPLEMENTATION PR → OWNER-APPROVED MERGE`. Do **not** schedule a routine third PR after owner acceptance. The same implementation PR must include its approved canonical capability delta and its matching lossless dated archive when all mandatory evidence is available. Closing/rejecting the PR leaves the original active spec on `main` unchanged. For incomplete mandatory client acceptance, do not archive; state the precise blocker and keep relevant tasks unchecked. Every implementation PR carries exactly one machine-readable `OpenSpec-Archive: prepared|blocked` and `OpenSpec-Archive-Evidence` line. The owner approves, authorized user merges only after deciding whether the evidence supports acceptance.
 
 The prior `openspec/README.md` describes the legacy order; the newer project-specific implementation policy in `docs/SDD_COMPLIANCE.md` and `skills/documentation-sync/SKILL.md` governs this transaction. Do not modify protected root OpenSpec documentation without another approved scope.
 
@@ -87,3 +87,7 @@ Pre-branch: read the trusted default branch's active/archive changes and concurr
 
 After opening/updating the PR: query the PR's current `head.sha` check-runs (not only `status` on a previous commit). Required names are `repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`. Classify statuses as **absent**, queued/in_progress, success, skipped, failed, or cancelled. Do not confuse absent with skipped. If absent, make one idempotent PR-body metadata update through an authorized GitHub connector to request Actions dispatch; preserve declarations and reviewer evidence, then re-query the head. If still missing, or if any context fails, halt ready-for-merge handoff and report it; do not bypass branch rules or self-approve. If jobs are pending, label them pending, never PASS. A second metadata update is not an automated fallback.
 
+
+## Contributor workflow correction (spec #58)
+
+Any contributor may create proposal and implementation PRs. Before starting implementation, the associated specification PR must already be merged into main and either be authored by @hectoresen under the review-only admin bypass or contain an APPROVED review by @hectoresen submitted before merge. Do not require @hectoresen to perform the merge or duplicate a previously owner-approved spec. Every contributor PR requires owner code-owner review and all mandatory CI checks; an authorized contributor may merge only after those gates pass. Tagging and releases remain owner-only. The administrator must enable the GitHub review ruleset's Require review from Code Owners option; CODEOWNERS alone does not enforce it.

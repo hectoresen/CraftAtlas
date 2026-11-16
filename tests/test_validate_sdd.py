@@ -39,7 +39,7 @@ class SddPolicyTests(unittest.TestCase):
     def api(path, token):
         if path == "pulls/9":
             return {"merged_at": "2026-11-01T00:00:00Z",
-                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                    "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
         if path.startswith("pulls/9/files"):
             return [{"filename": "openspec/changes/add-material-tooltip/proposal.md"}]
         raise AssertionError(path)
@@ -62,6 +62,42 @@ class SddPolicyTests(unittest.TestCase):
     def test_implementation_with_existing_approved_spec_passes(self):
         self.assertEqual(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                     self.implementation, present=True), [])
+
+    def test_minimap_implementation_requires_its_merged_owner_review_and_scope(self):
+        change = "refine-minimap-button"
+        prefix = "openspec/changes/" + change + "/"
+        (self.root / self.prefix).rename(self.root / prefix)
+        body = self.implementation.replace(self.change, change).replace("PR: 9", "PR: 43")
+
+        def api(path, token):
+            if path == "pulls/43":
+                return {"merged_at": "2026-11-16T16:06:10Z",
+                        "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if path.startswith("pulls/43/reviews?"):
+                return [{"user": {"login": "hectoresen"}, "state": review,
+                         "submitted_at": "2026-11-16T14:18:26Z"}]
+            if path.startswith("pulls/43/files?"):
+                return [{"filename": prefix + "proposal.md"}]
+            raise AssertionError(path)
+
+        def validate(path, spec_present=True, metadata=body):
+            return gate.validate({path}, metadata, 60, root=self.root, token="mock-token",
+                                 api=api, exists_in_base=lambda _: spec_present,
+                                 implementation_created="2026-11-16T18:59:00Z",
+                                 head_ref="fix/refine-minimap-button")
+
+        source = "addon/CraftAtlas/Infrastructure/MinimapButton.lua"
+        with patch.object(gate.subprocess, "check_output",
+                          side_effect=subprocess.CalledProcessError(1, ["git"])):
+            review = "APPROVED"
+            self.assertEqual(validate(source), [])
+            self.assertEqual(validate(source, metadata=body.replace("\n", "\r\n")), [])
+            self.assertIn("Approved proposal.md not present on main", validate(source, False))
+            self.assertIn("Changed files outside approved sdd-scope.json",
+                          validate("scripts/validate_sdd.py"))
+            review = "COMMENTED"
+            self.assertIn("Specification PR requires a valid @hectoresen APPROVED review before merge",
+                          validate(source))
 
     def test_code_without_spec_metadata_fails(self):
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"}, ""))
@@ -88,16 +124,89 @@ class SddPolicyTests(unittest.TestCase):
         def other_owner(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "someone-else"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "someone-else"}, "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
             return [{"filename": self.prefix + "proposal.md"}]
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True, api=other_owner))
+
+    def test_contributor_merge_with_owner_review_passes(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "user": {"login": "sebasgrios"},
+                        "merged_by": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if "/reviews?" in path:
+                return [{"user": {"login": "hectoresen"}, "state": "APPROVED",
+                         "submitted_at": "2026-10-31T12:00:00Z"}]
+            if "/files?" in path:
+                return [{"filename": self.prefix + "proposal.md"}]
+            raise AssertionError(path)
+        self.assertEqual(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                    self.implementation, present=True, api=api), [])
+
+    def test_contributor_merge_requires_owner_review(self):
+        for state in ("COMMENTED", "CHANGES_REQUESTED", "DISMISSED"):
+            with self.subTest(state=state):
+                def api(path, token):
+                    if path == "pulls/9":
+                        return {"merged_at": "2026-11-01T00:00:00Z",
+                                "user": {"login": "sebasgrios"},
+                                "merged_by": {"login": "hectoresen"},
+                                "base": {"ref": "main"}}
+                    if "/reviews?" in path:
+                        return [{"user": {"login": "hectoresen"}, "state": state,
+                                 "submitted_at": "2026-10-31T12:00:00Z"}]
+                    if "/files?" in path:
+                        return [{"filename": self.prefix + "proposal.md"}]
+                    raise AssertionError(path)
+                errors = self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                    self.implementation, present=True, api=api)
+                self.assertTrue(any("APPROVED" in e for e in errors), errors)
+
+    def test_review_after_merge_and_different_reviewer_are_rejected(self):
+        for login, timestamp in (("another-user", "2026-10-31T12:00:00Z"),
+                                 ("hectoresen", "2026-11-02T12:00:00Z")):
+            with self.subTest(login=login, timestamp=timestamp):
+                def api(path, token):
+                    if path == "pulls/9":
+                        return {"merged_at": "2026-11-01T00:00:00Z",
+                                "user": {"login": "sebasgrios"},
+                                "base": {"ref": "main"}}
+                    if "/reviews?" in path:
+                        return [{"user": {"login": login}, "state": "APPROVED",
+                                 "submitted_at": timestamp}]
+                    return [{"filename": self.prefix + "proposal.md"}]
+                self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                           self.implementation, present=True, api=api))
+
+    def test_owner_approval_then_changes_requested_is_rejected(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if "/reviews?" in path:
+                return [
+                    {"user": {"login": "hectoresen"}, "state": "APPROVED",
+                     "submitted_at": "2026-10-29T12:00:00Z"},
+                    {"user": {"login": "hectoresen"}, "state": "CHANGES_REQUESTED",
+                     "submitted_at": "2026-10-31T12:00:00Z"}]
+            return [{"filename": self.prefix + "proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=api))
+
+    def test_missing_pr_author_fails_closed(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z", "base": {"ref": "main"}}
+            return [{"filename": self.prefix + "proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=api))
 
     def test_implementation_unrelated_approval_fails(self):
         def unrelated(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": "openspec/changes/unrelated/proposal.md"}]
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True, api=unrelated))
@@ -121,7 +230,7 @@ class SddPolicyTests(unittest.TestCase):
         def approved(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": "openspec/changes/" + change + "/proposal.md"}]
         try:
             self.assertEqual(self.check({"AGENTS.md", "CODEOWNERS"}, body,
@@ -278,7 +387,7 @@ class SddPolicyTests(unittest.TestCase):
         def approved_api(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": prefix + "proposal.md"}]
 
         self.assertEqual(self.check({"AGENTS.md", "skills/documentation-sync/SKILL.md"},
@@ -319,7 +428,7 @@ class SddPolicyTests(unittest.TestCase):
     def lifecycle_api(path, token):
         if path == "pulls/13":
             return {"merged_at": "2026-11-15T12:31:03Z",
-                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                    "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
         if path.startswith("pulls/13/files"):
             return [{"filename": "openspec/changes/reconcile-openspec-lifecycle-and-status/proposal.md"}]
         raise AssertionError(path)
@@ -372,7 +481,7 @@ class SddPolicyTests(unittest.TestCase):
         def other(path, token):
             if path == "pulls/13":
                 return {"merged_at": "2026-11-15T12:31:03Z",
-                        "merged_by": {"login": "someone"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "someone"}, "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
             return self.lifecycle_api(path, token)
         self.assertTrue(self.check({"openspec/config.yaml"}, body,
                                    present=True, api=other))
@@ -483,6 +592,7 @@ class AtomicArchiveTests(unittest.TestCase):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
                         "merged_by": {"login": "hectoresen"},
+                         "user": {"login": "hectoresen"},
                         "base": {"ref": "main"}}
             return [{"filename": self.prefix + "proposal.md"}]
         def git_mock(cmd, text=False, **kwargs):
@@ -659,6 +769,21 @@ class TypedIdentityTests(unittest.TestCase):
             self.assertTrue(gate.validate_pr_identity(
                 "new-legacy-id", "implementation", 51, "feat/old", "main",
                 "token", None, None))
+
+    def test_in_flight_legacy_implementations_require_their_original_proposal_number(self):
+        cases = (("43", "refine-minimap-button"), ("44", "add-addon-list-identity"),
+                 ("46", "add-addon-configuration"))
+        with patch.object(gate.subprocess, "check_output",
+                          side_effect=subprocess.CalledProcessError(1, ["git"])):
+            for approval, change in cases:
+                with self.subTest(change=change):
+                    args = (change, "implementation", 60, "fix/" + change, "main", "token", None)
+                    self.assertEqual(gate.validate_pr_identity(*args, approval), [])
+                    self.assertTrue(gate.validate_pr_identity(*args, "49"))
+                    self.assertTrue(gate.validate_pr_identity(*args, None))
+            self.assertTrue(gate.validate_pr_identity(
+                "new-legacy-id", "implementation", 60, "fix/new-legacy-id", "main",
+                "token", None, "43"))
 
     def test_sequence_collisions_in_base_and_open_prs(self):
         def git_output(args, text=False):
