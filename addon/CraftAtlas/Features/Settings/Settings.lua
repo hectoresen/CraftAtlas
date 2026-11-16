@@ -6,7 +6,7 @@ local selectedID
 local selectedProfession = ""
 local results = {}
 local treeEntries = {}
-local treeState = ns.NewProfessionTreeState()
+local treeState = {expanded = {}, searchOverrides = {}}
 local unresolved = 0
 local scrollOffset = 0
 local currentView = "materials"
