@@ -17,7 +17,7 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 | `Infrastructure/ChatLinks.lua` | Guarded client-provided item/spell hyperlinks, Shift-click detection and native chat-edit insertion without sending |
 | `Infrastructure/InventoryCounts.lua` | Guarded character bag counts, bank-open freshness gating and separate bag/bank observations |
 | `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and native, alphabetized profession rows with localized labels |
-| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference, per-character recipe tracking and movable minimap access |
+| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference, global per-character craft-tracking mode (legacy recipe flags ignored) and movable minimap access |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |
 | `Features/Settings/Settings.lua` | Single native window, tabs, state, selected details, cross-view navigation, working close |
 | `Features/Settings/Shared/ExplorerWidgets.lua` | Reusable native search box, profession selector, result row, pager and layout helpers |
