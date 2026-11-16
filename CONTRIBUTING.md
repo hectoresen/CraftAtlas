@@ -14,14 +14,14 @@ Read `README.md`, `AGENTS.md`, `docs/AGENT_WORKFLOW.md`, `docs/CODE_QUALITY.md`,
 4. Run `python3 scripts/validate_repo.py`, all relevant Lua tests and lint introduced with implementation, and actual Forever client smoke tests for game-facing changes. Clearly report *not run* tests.
 5. **Before opening the PR, explicitly read and execute `skills/documentation-sync/SKILL.md`.** Compare source and accepted spec with README current features, relevant technical docs, changelog, tests and evidence. Update affected documentation; leave `AGENTS.md` as agent instructions only. Follow `docs/DOCUMENTATION_PROTOCOL.md` and include `Documentation-Review: updated|not-applicable` plus a substantive `Documentation-Evidence: ...` declaration for functional PRs.
 6. Open a PR with rationale, OpenSpec change ID, tests/results, Forever build, screenshots where appropriate, risks and rollback.
-7. Re-run the documentation skill after functional review revisions and address reviewer feedback. **Only @hectoresen authorizes merges, tags and releases.** Contributors and agents may not merge or push directly to `main`.
+7. Re-run the documentation skill after functional review revisions and address reviewer feedback. **@hectoresen must approve contributor PRs with a GitHub APPROVED review.** Contributors with merge permission may then merge after all required checks pass. Only @hectoresen may create tags and publish releases; never push directly to `main`.
 
 For functional changes, use the two-PR OpenSpec process in docs/SDD_COMPLIANCE.md. The first PR has exactly these lines:
 
 - OpenSpec-Change: your-change-id
 - OpenSpec-Phase: proposal
 
-After that specification PR is merged by @hectoresen, the implementation PR declares:
+After that specification PR is approved by @hectoresen and merged by an authorized contributor or the owner, the implementation PR declares:
 
 - OpenSpec-Change: your-change-id
 - OpenSpec-Phase: implementation
@@ -33,7 +33,7 @@ A tiny documentation-only or maintenance PR may use OpenSpec-Exemption: docs-onl
 
 ## Review and merge requirements
 
-The default branch is covered by independent GitHub rulesets: contributors need one independent approving review, stale approvals are dismissed after new commits, conversations must be resolved, and every PR must pass mandatory CI/SDD checks. The repository owner may use the **PR-only admin bypass for review**, not for technical validation. No contributor may approve their own PR. A GitHub auto-merge toggle, if enabled, does not waive review/check rules or give contributors merge rights. See `docs/GITHUB_SETTINGS.md`.
+The default branch is covered by independent GitHub rulesets: contributors need an APPROVED review from @hectoresen as code owner, stale approvals are dismissed after new commits, conversations must be resolved, and every PR must pass mandatory CI/SDD checks. The repository owner may use the **PR-only admin bypass for review**, not for technical validation. No contributor may approve their own PR. A GitHub auto-merge toggle, if enabled, does not waive review/check rules or give contributors merge rights. See `docs/GITHUB_SETTINGS.md`.
 
 Every code PR must pass Lua 5.1 syntax and isolated Lua regression jobs as well as Python/documentation, OpenSpec/SDD and release-readiness validation. Existing test failures are blocking work, never an excuse to remove tests. Run the canonical documentation-sync skill again after review revisions and state exactly what was tested; real WoW Forever tests remain distinct from CI.
 
@@ -55,3 +55,7 @@ For new proposals, use `feat001-improve-materials-menu` as the lowercase OpenSpe
 
 After opening or updating a PR, inspect the **latest head SHA** check-runs and confirm all four mandatory contexts exist. A present skipped Lua job is acceptable for a spec-only PR; a missing check stuck at `Expected` is not. If contexts are absent, do **one safe PR body edit** through the connected GitHub integration, preserve original metadata, and re-query. If still absent/failed, mark the PR blocked and give the owner exact context names. Check creation and passing are separate requirements, and GitHub's review rule is independent.
 
+
+## Mandatory owner review (approved governance spec #58)
+
+Every contributor-authored PR needs an actual APPROVED review from @hectoresen and green required checks before anyone with merge rights merges it. The author and merger may be contributors. A specification PR merged by a contributor remains valid approval evidence if the owner reviewed it before merge; do not duplicate proposals because of merger identity (legacy #44 is one such reviewed PR). Owner-authored PRs use the existing review-only admin bypass, never a technical CI bypass. CODEOWNERS must be enforced by the main review ruleset; being listed as a reviewer is not enforcement. Releases remain owner-only.

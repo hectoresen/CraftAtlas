@@ -223,17 +223,47 @@ def github_api(path, token):
 
 
 def verify_approval(pr_number, change_id, token, api=github_api, implementation_created=None):
+    """Verify an owner-authorized spec without constraining who merged it."""
     if not token:
-        return ["GITHUB_TOKEN is required to verify owner-merged specification PR"]
+        return ["GITHUB_TOKEN is required to verify specification PR approval"]
     try:
         pr = api("pulls/" + str(pr_number), token)
         errors = []
-        if not pr.get("merged_at") or (pr.get("merged_by") or {}).get("login") != "hectoresen":
-            errors.append("Specification PR must be merged by @hectoresen")
-        if implementation_created and pr.get("merged_at") and pr["merged_at"] >= implementation_created:
+        merged_at = pr.get("merged_at")
+        if not merged_at:
+            errors.append("Specification PR must be merged before implementation")
+        if implementation_created and merged_at and merged_at >= implementation_created:
             errors.append("Specification must have been merged before implementation PR creation")
         if (pr.get("base") or {}).get("ref") != "main":
             errors.append("Specification PR must target main")
+        author = (pr.get("user") or {}).get("login", "").lower()
+        if not author:
+            errors.append("Cannot verify specification PR author")
+        elif author != "hectoresen" and merged_at:
+            # GitHub does not allow PR self-approval. The owner-authored PR
+            # exception is subject to the PR-only admin bypass, never CI bypass.
+            owner_reviews = []
+            for page in range(1, 11):
+                reviews = api("pulls/" + str(pr_number) +
+                              "/reviews?per_page=100&page=" + str(page), token)
+                for review in reviews:
+                    if (review.get("user") or {}).get("login", "").lower() != "hectoresen":
+                        continue
+                    submitted = review.get("submitted_at")
+                    if submitted and submitted <= merged_at:
+                        owner_reviews.append(review)
+                if len(reviews) < 100:
+                    break
+            else:
+                errors.append("Cannot verify complete specification owner review history")
+            # Review state reflects later dismissal; use the most recent
+            # substantive owner decision submitted before the merge.
+            decisions = [r for r in owner_reviews if
+                         r.get("state", "").upper() in
+                         ("APPROVED", "CHANGES_REQUESTED", "DISMISSED")]
+            decisions.sort(key=lambda r: r["submitted_at"])
+            if not decisions or decisions[-1].get("state", "").upper() != "APPROVED":
+                errors.append("Specification PR requires a valid @hectoresen APPROVED review before merge")
         related = False
         for page in range(1, 11):
             items = api("pulls/" + str(pr_number) + "/files?per_page=100&page=" +
@@ -719,6 +749,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
             "harden-contributor-pr-governance",
             "archive-openspec-with-implementation",
             "resolve-typed-openspec-cli-compatibility",
+            "chore001-require-owner-review-not-merge",
         )
         # Only this explicitly owner-approved change may introduce the root
         # CODEOWNERS file; hidden .github policy files remain forbidden.

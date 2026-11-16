@@ -65,3 +65,8 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - **0.0.0** — repository bootstrap, Lua scaffold, CI and OpenSpec governance; not a playable release.
 
 A tagged GitHub Release is not implied by these development headings. See [roadmap](docs/ROADMAP.md) for future work.
+
+### Unreleased — contributor governance
+
+- Updated the OpenSpec traceability policy to honor owner APPROVED reviews of contributor-merged specification PRs, removing the owner-only merger dependency (approved spec #58).
+- Added tests for review validity and corrected contributor/agent guidance. GitHub code-owner review enforcement still requires administrator verification; release publishing remains owner-only.

@@ -6,7 +6,7 @@ This file is an **agent contract**, not a functional product manual. Read [READM
 
 1. Read `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, `docs/CODE_QUALITY.md`, `docs/DEVELOPMENT.md`, `docs/TESTING.md` and `openspec/README.md`.
 2. Inspect current `main`, branch, PRs, `openspec/changes/`, accepted specifications, tests and relevant code. Do not trust historical roadmap text without verifying code.
-3. For observed implemented behavior consult current source; for intended changes consult the **owner-merged** OpenSpec delta. Report discrepancies rather than silently changing requirements.
+3. For observed implemented behavior consult current source; for intended changes consult the **owner-approved and merged** OpenSpec delta. Report discrepancies rather than silently changing requirements.
 
 All **source code, project documentation, tests, specs and PR text are in English**. Only addon-visible strings are localized (enUS/esES). Keep advice and components small and reusable; favor deterministic, testable domain logic over framework-like abstractions.
 
@@ -28,8 +28,8 @@ Use numeric itemID to identify reagents and profession+spellID to identify recip
 
 Functional behavior, schema, client compatibility or nontrivial refactors require the standard **two PRs**:
 
-1. Propose `openspec/changes/<id>/` with proposal, design, SHALL scenarios, tasks, and `sdd-scope.json`; open a **spec-only PR** and stop for @hectoresen to merge it.
-2. After that owner merge, implement only approved scope in a new branch. Implementation PR must include `OpenSpec-Change: <id>`, `OpenSpec-Phase: implementation`, `OpenSpec-Approval-PR: <owner-merged number>`. Only `tasks.md` may advance; approved specs/design/scope stay unchanged.
+1. Propose `openspec/changes/<id>/` with proposal, design, SHALL scenarios, tasks, and `sdd-scope.json`; open a **spec-only PR** and obtain an APPROVED review from @hectoresen before it is merged. Contributors with merge permission may merge.
+2. After that reviewed spec is merged, implement only approved scope in a new branch. Implementation PR must include `OpenSpec-Change: <id>`, `OpenSpec-Phase: implementation`, `OpenSpec-Approval-PR: <owner-approved spec PR number>`. Only `tasks.md` may advance; approved specs/design/scope stay unchanged.
 3. Verify actual behavior, tests, documentation and acceptance scenarios, then open PR for **owner review**. No combined proposal/code exceptions except the historical PR #14; do not reuse it.
 
 The official OpenSpec CLI (`@fission-ai/openspec`, using a supported Node.js version) can provide `/opsx:propose`, `/opsx:apply`, `/opsx:verify`, `/opsx:sync` and `/opsx:archive` according to installed profile. Do not invent commands when unsupported. See `openspec/README.md` and `docs/SDD_COMPLIANCE.md`. Documentation-only and tiny maintenance exemptions are narrowly restricted.
@@ -56,7 +56,7 @@ Before asking for a merge, summarize: goal, approved spec, branch/PR, source and
 
 ## Mandatory implementation archive readiness
 
-For every implementation PR, explicitly run `skills/documentation-sync/SKILL.md` after code/test changes, verify all approved acceptance criteria and choose **exactly one** OpenSpec archive state. When all mandatory tests and in-game evidence required by the accepted spec are available, prepare same-PR canonical sync + lossless dated archive of **only** the approved change and remove its active folder. If evidence is missing, leave it active, preserve unchecked tasks, and declare `OpenSpec-Archive: blocked` with specific missing tests or acceptance. Never mark `NOT RUN` as passed. `OpenSpec-Archive: prepared` describes a proposed transaction; only the owner merge completes acceptance. Do not archive other active or historical changes. See `docs/SDD_COMPLIANCE.md` for exact contract. Archive preparation is mandatory to assess even when archive is blocked.
+For every implementation PR, explicitly run `skills/documentation-sync/SKILL.md` after code/test changes, verify all approved acceptance criteria and choose **exactly one** OpenSpec archive state. When all mandatory tests and in-game evidence required by the accepted spec are available, prepare same-PR canonical sync + lossless dated archive of **only** the approved change and remove its active folder. If evidence is missing, leave it active, preserve unchecked tasks, and declare `OpenSpec-Archive: blocked` with specific missing tests or acceptance. Never mark `NOT RUN` as passed. `OpenSpec-Archive: prepared` describes a proposed transaction; merge after the owner's mandatory review completes acceptance. Do not archive other active or historical changes. See `docs/SDD_COMPLIANCE.md` for exact contract. Archive preparation is mandatory to assess even when archive is blocked.
 
 ## Typed OpenSpec identities and Git branches (owner-approved naming correction #49)
 
@@ -64,3 +64,7 @@ For every **new** change, choose exactly one lowercase CLI-safe change ID `(feat
 
 After creating/updating any PR, query **the current head SHA** for `repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`. Distinguish missing from queued/running, passed, failed and intentionally skipped Lua. If any check has **not appeared**, perform one safe metadata edit of the PR body using the available GitHub integration, keeping all OpenSpec/Documentation metadata intact; query again. If any required check is still missing/failed or running, explicitly report it and do not claim the PR is ready. Never change main protection, forge check statuses, or endlessly retry. The owner alone reviews and merges.
 
+
+## Contributor owner-review gate (approved spec #58)
+
+Anyone may propose a spec or code PR. For contributor-authored PRs, @hectoresen MUST submit an actual GitHub APPROVED review before an authorized contributor can merge, and required checks must pass. Merging is NOT reserved to the owner. The SDD validator checks owner review provenance on the referenced merged spec PR, not the merger's login. A PR authored by @hectoresen cannot be self-approved; the existing PR-only admin review bypass is used and never exempts CI. Root CODEOWNERS review requests alone are insufficient: the review ruleset must enable **Require review from Code Owners**. Only the owner may publish releases.
