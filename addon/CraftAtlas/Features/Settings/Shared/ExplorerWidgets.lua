@@ -249,8 +249,8 @@ function ns.CreateExplorerCatalogProgress(header)
     -- Keep the title centered; the narrow track lives below its baseline,
     -- within the free horizontal band between search and language controls.
     local holder = CreateFrame("Frame", nil, header)
-    holder:SetSize(224, 14)
-    holder:SetPoint("BOTTOM", header, "BOTTOM", 0, 5)
+    holder:SetSize(224, 12)
+    holder:SetPoint("BOTTOM", header, "BOTTOM", 0, 3)
 
     local track = holder:CreateTexture(nil, "BACKGROUND")
     track:SetAllPoints()
