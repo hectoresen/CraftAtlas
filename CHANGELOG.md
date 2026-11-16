@@ -11,7 +11,11 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
-### Craftable material tracking (implementation candidate; not merged)
+### Global Fabricables tracking mode (implementation of approved spec #62)
+
+- Track crafting is now a single opt-in per character, retained across any Fabricables recipe switch and UI reload. Each recipe still has its own ingredients and calculated stock; Include bank remains independently persisted. Old per-recipe flags do not silently enable this global mode.
+
+### Craftable material tracking (merged PR #55)
 
 - Native per-ingredient and total status bars now use amber for partially covered quantities and green only when all confirmed required units are covered; zero stock renders an empty track.
 
