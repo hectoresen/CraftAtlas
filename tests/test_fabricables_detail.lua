@@ -75,17 +75,26 @@ for _, candidate in ipairs(widgets) do
 end
 assert(section and section.label.text=="Ingredients (3)",
     "ingredient heading is a data-backed native divider with the real count")
-local itemList
+local visibleRows = {}
 for _, candidate in ipairs(widgets) do
-    if candidate.kind=="Frame" and candidate.parent==section.parent and
-        candidate~=section.parent and candidate~=parent then
-        if candidate.height==400 and not candidate.SetTitle then itemList=candidate end
+    if candidate.kind=="Button" and candidate.ingredient then
+        visibleRows[#visibleRows+1] = candidate
     end
 end
+assert(#visibleRows==3, "all three source-backed ingredients are visible")
+assert(visibleRows[1].ingredient.itemID==765 and
+    visibleRows[1].professions.text=="x2",
+    "ingredient identity and quantity are preserved")
+ns.OpenMaterialFromRecipe=function(itemID) ns.navigated=itemID end
+visibleRows[1].OnClick(visibleRows[1])
+assert(ns.navigated==765, "clicking ingredient navigates to its material")
+local itemList=visibleRows[1].parent
 section.OnClick(section)
-assert(section.expanded==false, "ingredients section collapses")
+assert(section.expanded==false and not itemList.shown,
+    "collapsing ingredients also hides their list")
 section.OnClick(section)
-assert(section.expanded==true, "ingredients section reopens")
+assert(section.expanded==true and itemList.shown,
+    "expanding restores ingredient list and selections")
 ns.SetRecipeDetail(nil)
 assert(section.label.text=="Ingredients (0)", "no selection shows zero ingredients")
 ns.SetRecipeDetail("ALCHEMY:2329")
