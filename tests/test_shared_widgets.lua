@@ -99,4 +99,28 @@ assert(ns.ClearExplorerSearch(search) == true)
 assert(current.query == "" and other.query == "blue" and search.focused,
     "broom must clear only active view and preserve inactive view state")
 assert(ns.ClearExplorerSearch(search) == false, "empty search is harmlessly inert")
+local query = {value=""}
+function query:GetText() return self.value end
+function query:SetText(value)
+    self.value = value
+    if self.textChanged then self.textChanged(self) end
+end
+function query:HookScript(name, callback)
+    assert(name == "OnTextChanged")
+    self.textChanged = callback
+end
+function query:SetTextInsets(left,right)
+    self.insets = {left,right}
+end
+function query:SetFocus() self.focused=true end
+local inside = ns.CreateExplorerSearchClear(query)
+assert(inside.HideCalled and query.insets[2] == 25,
+    "empty search has no clear X and reserves space for the input text")
+query:SetText("cloth")
+assert(inside.ShowCalled, "X becomes visible when the user types")
+inside.OnClick()
+assert(query.value == "" and query.focused and inside.HideCalled,
+    "X clears and refocuses the active input, then hides")
+assert(inside.icon.SetTextureCalled,
+    "clear icon uses Blizzard's own panel-close artwork")
 print("Shared native UI widget smoke tests PASS")
