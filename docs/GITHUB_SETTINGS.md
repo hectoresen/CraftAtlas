@@ -53,3 +53,7 @@ Record observed UI results before claiming these end-to-end cases passed.
 Untrusted fork PR code must never run with privileged `pull_request_target` checkout, PATs or access to release tokens. Keep Actions `contents: read` and explicit `pull-requests: read` where needed. If required checks become stuck, confirm actual emitted job names and fix the root cause; do not disable mandatory checks or grant a CI bypass to make the PR green.
 
 Only the owner modifies GitHub rulesets, collaborator permissions and release settings. Save previous Settings before administrative changes.
+
+## Required checks and change-aware fast paths
+
+On a pure OpenSpec proposal, the CI `repository-validation` job completes as a minimal required status while **SDD Compliance / traceability** validates the spec. Both Lua jobs are **skipped**, rather than run. On a Markdown/text-only PR, repository validation only runs a lightweight Markdown/foundation check and SDD verifies path policy; no full OpenSpec CLI install or Lua suite. On code/mixed PRs, all quality gates run. A failed classification fails `repository-validation`, so it cannot be used to evade required checks. GitHub treats an intentionally skipped job's conclusion as acceptable for required status checks; the technical ruleset still enforces the always-present `repository-validation` and `traceability` jobs. Do not replace those with workflow-level `paths-ignore`, because absent required checks can leave a PR stuck awaiting a status.
