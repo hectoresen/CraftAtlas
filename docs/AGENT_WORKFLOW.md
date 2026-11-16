@@ -74,3 +74,10 @@ Provide concise: progress, PR, evidence, unmet acceptance criteria, outstanding 
 ## OpenSpec lifecycle and context drift
 
 Before proposing changes, cross-check the current feature claims in `README.md` with source code and use `docs/OPENSPEC_STATUS.md` to understand historical tasks that are implemented, superseded or still missing live-client evidence. Treat `openspec/config.yaml` as stable project context only, not a second feature-status summary. Do not declare legacy changes archived or complete when acceptance requirements remain open. The lifecycle path is limited to the owner-approved change `reconcile-openspec-lifecycle-and-status` and its fixed SDD allowlist; user acceptance of UI does not prove source-data completeness or individual tooltip-origin support.
+
+## Atomic sync and archive within the implementation PR
+
+The default state machine is now: `APPROVED SPEC → IMPLEMENT → VERIFY → documentation-sync → SYNC & PREPARE ARCHIVE (if eligible) → IMPLEMENTATION PR → OWNER MERGE`. Do **not** schedule a routine third PR after owner acceptance. The same implementation PR must include its approved canonical capability delta and its matching lossless dated archive when all mandatory evidence is available. Closing/rejecting the PR leaves the original active spec on `main` unchanged. For incomplete mandatory client acceptance, do not archive; state the precise blocker and keep relevant tasks unchecked. Every implementation PR carries exactly one machine-readable `OpenSpec-Archive: prepared|blocked` and `OpenSpec-Archive-Evidence` line. The owner merges only after deciding whether the evidence supports acceptance.
+
+The prior `openspec/README.md` describes the legacy order; the newer project-specific implementation policy in `docs/SDD_COMPLIANCE.md` and `skills/documentation-sync/SKILL.md` governs this transaction. Do not modify protected root OpenSpec documentation without another approved scope.
+
