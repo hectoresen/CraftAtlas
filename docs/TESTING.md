@@ -27,6 +27,8 @@ The feature implementation branch introduces `Domain/CraftableTracking.lua`, `In
 
 **Visual regression after compact layout retest (2026-11-16):** Maintainer screenshot shows that 19px tracker rows made material names, missing labels, and bars overlap. The follow-up source fix uses 23px rows with explicit separate baselines, a 10px native bar fully inside each row, and safe spacing after the bank checkbox. Lua regression now checks vertical bounds, not only the number of rows. The corrected appearance in Forever is **NOT RUN** and requires another screenshot/acceptance before merging.
 
+**Further layout revision (2026-11-16):** The maintainer screenshot still showed compressed labels in the 23px two-baseline tracker rows. The feature now renders each tracker as a single line containing material name and available/required/missing, followed by a full-width native status bar, with 25px row spacing. The layout assertions cover title/summary anchoring and bar bounds, including three ingredients at compact UI height. **Forever retest: NOT RUN** for this revision.
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
