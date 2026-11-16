@@ -4,7 +4,7 @@ local function ui()
     local o = {}
     for _, method in ipairs({"SetPoint","SetSize","SetHeight","SetWidth","SetText",
         "SetColorTexture","SetAllPoints","ClearAllPoints","SetTexture","SetHighlightTexture",
-        "SetJustifyH","SetWordWrap","SetEnabled","SetFrameLevel","SetTextColor","Show","Hide"}) do
+        "SetJustifyH","SetWordWrap","SetEnabled","SetFrameLevel","SetTextColor","LockHighlight","UnlockHighlight","Show","Hide"}) do
         o[method]=function(self,...) self[method.."Called"]=true end
     end
     o.CreateTexture=function() return ui() end
@@ -40,13 +40,15 @@ section.OnClick(section)
 assert(section.expanded==false and toggles==1)
 section.OnClick(section)
 assert(section.expanded==true and toggles==2)
-local chrome=ns.CreateExplorerChromeButton(ui())
-chrome:SetText("Materials")
-assert(chrome.label and chrome.label.SetTextCalled, "native chrome owns a reusable label")
-ns.SetExplorerTabSelected(chrome, true)
-assert(chrome.activeEdge.ShowCalled, "active tab has gold highlight")
-ns.SetExplorerTabSelected(chrome, false)
-assert(chrome.activeEdge.HideCalled, "inactive tab hides selection accent")
+local classic = ns.CreateExplorerClassicButton(ui())
+ns.SetExplorerTabSelected(classic, true)
+assert(classic.LockHighlightCalled, "active classic button retains native highlight")
+ns.SetExplorerTabSelected(classic, false)
+assert(classic.UnlockHighlightCalled, "inactive classic button resets native highlight")
+local dropdown = ns.CreateExplorerClassicButton(ui())
+ns.AddExplorerDropdownArrow(dropdown)
+assert(dropdown.dropdownArrow and dropdown.dropdownArrow.SetTextureCalled,
+    "native dropdown arrow is visible on the classic control")
 local pager=ns.CreateExplorerPager(ui(),function() n=n+1 end,function() n=n+2 end)
 pager.previous.OnClick()
 pager.next.OnClick()
