@@ -36,12 +36,13 @@ local function render()
         view.title:SetText(name)
         view.icon:SetTexture(icon)
         view.profession:SetText(ns.ProfessionLabel(recipe.professionKey))
+        local recipeLabel = ns.L("RECIPE_ID") .. " " .. tostring(recipe.spellID)
         if recipe.outputItemID then
-            view.output:SetText(spellName or (ns.L("RECIPE_ID") .. " " .. recipe.spellID))
+            view.output:SetText((spellName and (spellName .. "  |  ") or "") .. recipeLabel)
         elseif recipe.kind == "enchant" then
-            view.output:SetText(ns.L("RECIPE_ENCHANT_ACTION"))
+            view.output:SetText(ns.L("RECIPE_ENCHANT_ACTION") .. "  |  " .. recipeLabel)
         else
-            view.output:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN"))
+            view.output:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN") .. "  |  " .. recipeLabel)
         end
         view.heading:SetText(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
@@ -103,6 +104,7 @@ function ns.InitRecipeDetail(parent)
     view.output:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
     view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
     view.output:SetJustifyH("LEFT")
+    view.output:SetWordWrap(false)
     view.heading = font(frame, "GameFontNormal")
     view.heading:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -108)
 
