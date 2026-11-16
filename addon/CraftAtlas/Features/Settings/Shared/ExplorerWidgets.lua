@@ -96,7 +96,7 @@ function ns.CreateExplorerRow(parent, height, onClick)
     for _, element in ipairs({row.groupArrow, row.groupName, row.groupState}) do
         element:Hide()
     end
-    row:SetScript("OnClick", function(self) if onClick then onClick(self) end end)
+    row:SetScript("OnClick", function(self, button) if onClick then onClick(self, button) end end)
     return row
 end
 
