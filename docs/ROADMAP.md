@@ -2,7 +2,7 @@
 
 ## Current source: `0.2.0-dev`
 
-**Implemented on the PR #36 implementation branch (pending merge):** source-backed tooltip profession annotations, Spanish/English localization and language preferences, draggable minimap launcher, **Materiales** name/itemID search and profession filters, collapsible profession-grouped Materiales list and paginated native crafting-use rows, **Fabricables** output/recipe search and ingredient/quantity detail, native item/spell hover, cross-view navigation, Back, reusable native widgets and owner-only manual release tooling.
+**Implemented on main (merged PR #36):** source-backed tooltip profession annotations, Spanish/English localization and language preferences, draggable minimap launcher, **Materiales** name/itemID search and profession filters, collapsible profession-grouped Materiales list and paginated native crafting-use rows, **Fabricables** output/recipe search and ingredient/quantity detail, native item/spell hover, cross-view navigation, Back, reusable native widgets and owner-only manual release tooling.
 
 **Maintainer validation:** PR #23 and PR #25 *previous* UI changes reported tested and accepted in Forever. The owner has tested and provided in-game screenshots of the evolving grouped-tree redesign, but has not recorded comprehensive acceptance of the final changes across all locales, scales and interactions. The exact build and a complete per-tooltip-origin test matrix have not been collected; the beta import has not been reconciled with every current live-realm recipe.
 
@@ -15,6 +15,8 @@
 - Manual release workflow with runtime-only packaging, SemVer and shared validation.
 
 These are **features of the current development branch** and do not imply separate tagged releases.
+
+**Approved performance change being implemented (not yet on main):** independent genuine active-view preparation progress, coalesced redraws, cache-generation invalidation and optional `/craftatlas perf` counters, tracked by OpenSpec `optimize-catalog-loading-and-progress`. No measured FPS improvement is claimed; final real-client validation is pending.
 
 ## Future work (not implemented)
 

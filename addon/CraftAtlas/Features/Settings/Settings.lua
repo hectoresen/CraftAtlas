@@ -13,6 +13,11 @@ local scrollOffset = 0
 local currentView = "materials"
 local selectedRecipe
 local switching = false
+local catalogGenerations = {materials = 0, recipes = 0}
+local cachedSearch = {materials = nil, recipes = nil}
+local refreshGate
+local catalogMetrics = {materialsSearch = 0, recipesSearch = 0,
+    materialProjections = 0, fullRefreshes = 0, backgroundRefreshes = 0}
 local forcedSelection = false
 local viewState = {
     materials = {query = "", profession = "", selected = nil, offset = 0},
@@ -267,20 +272,37 @@ local function updateRows()
 end
 
 local function refreshResults(resetOffset)
-    local labels = {}
-    for _, key in ipairs(ns.professionOrder or {}) do labels[key] = ns.ProfessionLabel(key) end
-    local numberQuery = string.match(searchQuery, "^%d+$") ~= nil and searchQuery ~= ""
-    if currentView == "recipes" then
-        results, unresolved = ns.SearchCatalogRecipes(searchQuery, selectedProfession,
-            ns.GetRecipeNames(), ns.GetKnownMaterialNames(), labels)
+    catalogMetrics.fullRefreshes = catalogMetrics.fullRefreshes + 1
+    local locale = ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())
+    local cache = cachedSearch[currentView]
+    if cache and cache.query == searchQuery and cache.profession == selectedProfession
+        and cache.locale == locale and cache.generation == catalogGenerations[currentView] then
+        results, unresolved = cache.results, cache.unresolved
     else
-        results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
-            searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
-            not numberQuery, labels, ns.recipeUses)
+        local labels = {}
+        for _, key in ipairs(ns.professionOrder or {}) do labels[key] = ns.ProfessionLabel(key) end
+        local numberQuery = string.match(searchQuery, "^%d+$") ~= nil and searchQuery ~= ""
+        if currentView == "recipes" then
+            results, unresolved = ns.SearchCatalogRecipes(searchQuery, selectedProfession,
+                ns.GetRecipeNames(), ns.GetKnownMaterialNames(), labels)
+            catalogMetrics.recipesSearch = catalogMetrics.recipesSearch + 1
+        else
+            results, unresolved = ns.FilterMaterials(ns.materials, ns.professionOrder,
+                searchQuery, selectedProfession, ns.GetKnownMaterialNames(),
+                not numberQuery, labels, ns.recipeUses)
+            catalogMetrics.materialsSearch = catalogMetrics.materialsSearch + 1
+        end
+        cachedSearch[currentView] = {
+            results = results, unresolved = unresolved, query = searchQuery,
+            profession = selectedProfession, locale = locale,
+            generation = catalogGenerations[currentView]
+        }
     end
     if currentView == "materials" then
+        -- The tree is a cheap projection of the cached filtered list and live collapse state.
         local groups = ns.BuildProfessionGroups(results, ns.materials, ns.professionOrder)
         treeEntries = ns.FlattenProfessionGroups(groups, treeState, searchQuery ~= "")
+        catalogMetrics.materialProjections = catalogMetrics.materialProjections + 1
     end
     local selected = currentView == "recipes" and selectedRecipe or selectedID
     local index
@@ -309,6 +331,63 @@ local function refreshResults(resetOffset)
     end
     updateRows()
     showDetail()
+end
+
+local function showCatalogProgress()
+    if not ui.preparation then return end
+    local progress = currentView == "recipes" and
+        (ns.GetRecipePreparation and ns.GetRecipePreparation()) or
+        (currentView == "materials" and ns.GetMaterialPreparation and ns.GetMaterialPreparation())
+    if not progress or (progress.status ~= "active" and progress.status ~= "incomplete") then
+        ui.preparation:SetProgress("complete", 100, "")
+        return
+    end
+    local percent = ns.CatalogPercent(progress)
+    local caption
+    if progress.status == "incomplete" then
+        caption = ns.L("CATALOG_PREPARATION_PAUSED")
+    else
+        caption = string.format(ns.L(currentView == "materials"
+            and "CATALOG_PREPARING_MATERIALS" or "CATALOG_PREPARING_CRAFTABLES"), percent)
+    end
+    ui.preparation:SetProgress(progress.status, percent, caption)
+end
+
+-- Batch/event callbacks never run a whole search immediately. At most one
+-- visible redraw is scheduled per 0.4 s window; direct user actions stay immediate.
+function ns.OnCatalogDataChanged(_source)
+    catalogGenerations.materials = catalogGenerations.materials + 1
+    catalogGenerations.recipes = catalogGenerations.recipes + 1
+    if not panel or not panel:IsShown() then return end
+    if not refreshGate then refreshGate = ns.NewCatalogRefreshGate() end
+    if not ns.MarkCatalogRefreshDirty(refreshGate) then return end
+    local function flush()
+        if ns.ConsumeCatalogRefresh(refreshGate) and panel and panel:IsShown() then
+            catalogMetrics.backgroundRefreshes = catalogMetrics.backgroundRefreshes + 1
+            refreshResults(false)
+        end
+    end
+    local timer = C_Timer and C_Timer.After
+    if type(timer) == "function" then
+        local ok = pcall(timer, 0.4, flush)
+        if ok then return end
+    end
+    -- Missing timers cannot keep deferred changes pending indefinitely.
+    flush()
+end
+
+function ns.OnCatalogProgressChanged(view)
+    if view == currentView then showCatalogProgress() end
+end
+
+function ns.GetCatalogPerformanceSnapshot()
+    return {
+        materialsSearch = catalogMetrics.materialsSearch,
+        recipesSearch = catalogMetrics.recipesSearch,
+        materialProjections = catalogMetrics.materialProjections,
+        fullRefreshes = catalogMetrics.fullRefreshes,
+        backgroundRefreshes = catalogMetrics.backgroundRefreshes
+    }
 end
 
 local function createLanguageMenu(header)
@@ -532,6 +611,7 @@ local function createPanel()
         end
     end)
     ui.materialsTab, ui.recipesTab, ui.back = materialsTab, recipesTab, back
+    ui.preparation = ns.CreateExplorerCatalogProgress(panel, recipesTab, back)
 
     local left = CreateFrame("Frame", nil, panel)
     left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -137)
@@ -594,9 +674,13 @@ local function createPanel()
     ui.itemListener = CreateFrame("Frame", nil, panel)
     ui.itemListener:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     ui.itemListener:RegisterEvent("ITEM_DATA_LOAD_RESULT")
-    ui.itemListener:SetScript("OnEvent", function(_, _, itemID, success)
-        if ns.UpdateMaterialInfo(itemID, success) then
-            refreshResults(false)
+    -- Some Classic clients emit spell-data events; absence is not an error.
+    pcall(ui.itemListener.RegisterEvent, ui.itemListener, "SPELL_DATA_LOAD_RESULT")
+    ui.itemListener:SetScript("OnEvent", function(_, event, itemID, success)
+        if event == "SPELL_DATA_LOAD_RESULT" then
+            if ns.UpdateRecipeName then ns.UpdateRecipeName(itemID) end
+        elseif ns.UpdateMaterialInfo(itemID, success) then
+            ns.OnCatalogDataChanged("materials")
         end
     end)
     panel:SetScript("OnHide", function()
@@ -633,6 +717,7 @@ local function showActiveDetail()
     if #history > 0 then ui.back:Show() else ui.back:Hide() end
     ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
     ui.resultsHeading:SetText(ns.L(material and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
+    showCatalogProgress()
 end
 
 switchView = function(target, direct, fromBack)
@@ -663,6 +748,7 @@ switchView = function(target, direct, fromBack)
         showDetail()
     end
     if target == "recipes" then ns.PreloadRecipeNames() end
+    showCatalogProgress()
     if fromBack and target == "materials" and ns.SetRecipePanelPage then
         local entry = viewState.materials
         if entry.recipePage then ns.SetRecipePanelPage(entry.recipePage) end
@@ -706,6 +792,7 @@ function ns.RefreshSettings()
     ui.resultsHeading:SetText(ns.L(currentView == "materials"
         and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
     ui.professionUses.section:Refresh()
+    showCatalogProgress()
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
     ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
@@ -735,6 +822,7 @@ function ns.OpenSettings(itemID)
     if currentView == "recipes" then ns.PreloadRecipeNames() end
     ns.RefreshSettings()
     panel:Show()
+    showCatalogProgress()
     panel:Raise()
 end
 
@@ -742,7 +830,21 @@ function ns.InitSettings()
     SLASH_CRAFTATLAS1 = "/craftatlas"
     SlashCmdList = SlashCmdList or {}
     SlashCmdList.CRAFTATLAS = function(input)
-        local id = tonumber(string.match(input or "", "^%s*(%d+)%s*$"))
+        local argument = string.lower(string.match(input or "", "^%s*(.-)%s*$"))
+        if argument == "perf" then
+            local m = ns.GetMaterialPreparationMetrics()
+            local r = ns.GetRecipePreparationMetrics()
+            local u = ns.GetCatalogPerformanceSnapshot()
+            if type(print) == "function" then
+                print("CraftAtlas: " .. string.format(ns.L("CATALOG_DIAGNOSTICS"),
+                    m.attempts, m.units, m.batches,
+                    r.attempts, r.units, r.batches,
+                    u.materialsSearch, u.recipesSearch, u.fullRefreshes,
+                    u.backgroundRefreshes, m.maxBatchMs, r.maxBatchMs))
+            end
+            return
+        end
+        local id = tonumber(string.match(argument, "^%d+$"))
         ns.OpenSettings(id)
     end
 end
