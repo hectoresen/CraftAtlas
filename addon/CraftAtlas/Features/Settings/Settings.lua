@@ -50,7 +50,7 @@ local function refreshProfessionDetail()
     if not ui.professionUses then return end
     local state = ui.professionUses
     if ns.SetRecipePanelCompact then ns.SetRecipePanelCompact(not state.section.expanded) end
-    local first = (state.page - 1) * 2 + 1
+    local first = (state.page - 1) * state.pageSize + 1
     for i, cell in ipairs(state.cells) do
         local key = state.keys[first + i - 1]
         if key and state.section.expanded then
@@ -61,7 +61,7 @@ local function refreshProfessionDetail()
             cell:Hide()
         end
     end
-    local pages = math.max(1, math.ceil(#state.keys / 2))
+    local pages = math.max(1, math.ceil(#state.keys / state.pageSize))
     state.previous:SetEnabled(state.section.expanded and state.page > 1)
     state.next:SetEnabled(state.section.expanded and state.page < pages)
     if state.section.expanded and pages > 1 then
@@ -74,21 +74,22 @@ local function refreshProfessionDetail()
 end
 
 local function createProfessionDetail(right)
-    local state = {keys = {}, page = 1, cells = {}}
+    local width = type(right.GetWidth) == "function" and right:GetWidth() or 0
+    local pageSize = ns.ExplorerProfessionPageSize(width)
+    local state = {keys = {}, page = 1, pageSize = pageSize, cells = {}}
     ui.professionUses = state
     state.section = ns.CreateExplorerSection(right, "USED_BY", -92, function()
         refreshProfessionDetail()
     end)
-    for i = 1, 2 do
+    -- Proportional columns: four professions in one row at normal width,
+    -- two at compact scales. Only page when the real list exceeds capacity.
+    local innerWidth = math.max(0, width - 36)
+    local columnWidth = innerWidth / pageSize
+    for i = 1, pageSize do
         local cell = CreateFrame("Frame", nil, right)
-        if i == 1 then
-            cell:SetPoint("TOPLEFT", right, "TOPLEFT", 18, -124)
-            cell:SetPoint("TOPRIGHT", right, "TOP", -6, -124)
-        else
-            cell:SetPoint("TOPLEFT", right, "TOP", 6, -124)
-            cell:SetPoint("TOPRIGHT", right, "TOPRIGHT", -18, -124)
-        end
-        cell:SetHeight(29)
+        cell:SetPoint("TOPLEFT", right, "TOPLEFT",
+            18 + (i - 1) * columnWidth, -124)
+        cell:SetSize(columnWidth, 29)
         cell.icon = cell:CreateTexture(nil, "ARTWORK")
         cell.icon:SetSize(25, 25)
         cell.icon:SetPoint("LEFT", cell, "LEFT", 0, 0)
@@ -456,7 +457,7 @@ local function createPanel()
     divider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
 
     local title = font(header, GameFontNormalHuge and "GameFontNormalHuge" or "GameFontNormalLarge")
-    title:SetPoint("TOP", header, "TOP", 0, -1)
+    title:SetPoint("CENTER", header, "CENTER", 0, 0)
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
 
