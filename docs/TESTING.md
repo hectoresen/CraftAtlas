@@ -14,6 +14,10 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 **Interpretation:** `NOT RUN` in an older PR implementation environment means that particular command or client scenario was not executed **there**, not that the feature never merged or that subsequent GitHub CI never ran. A screenshot confirms only the specific state it depicts. Source merged ≠ final visual acceptance ≠ full live-catalog verification. Keep those categories separate; do not reopen source implementation tasks simply because client evidence is incomplete.
 
+## Native chat links / Fabricables detail icon — implementation branch evidence
+
+Spec PR #52 was owner-merged. The implementation introduces `tests/test_chat_links.lua` for native item-vs-spell link selection, unsafe/missing API no-op behavior, chat editor handling and current-row identity contracts. **Standalone Lua command: NOT RUN in the connector-only authoring environment**; GitHub `lua-compatibility`/`lua-regressions` will provide CI evidence only when executed and observed. **Forever: NOT RUN** for Shift + left-click across Materiales/Fabricables uses, rows, ingredients, detail titles/icons, chat open/closed, two locales and UI scales; the exact client build has not been recorded. The removal of the extra `UI-Quickslot2` slot texture is source-confirmed, not yet visually verified in Forever. No release/live compatibility claim is made.
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
