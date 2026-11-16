@@ -36,3 +36,11 @@ The lifecycle change reconciles **only** capabilities for which the above approv
 ## Governance rules
 
 The lifecycle mechanism from spec PR #13 permits this evidence-focused update **only** with its owner approval and exact path allowlist. It prohibits rewriting immutable historical proposal/design/delta specs or source scope. Subsequent functional PRs must invoke `skills/documentation-sync/SKILL.md`, report accurate test evidence and keep README/current context aligned.
+
+## Atomic archive protocol — governance change (pending owner implementation merge)
+
+| Change | Approved spec | Implementation | Evidence | Status |
+| --- | --- | --- | --- | --- |
+| `archive-openspec-with-implementation` | [#45](https://github.com/hectoresen/CraftAtlas/pull/45), owner merged | [#47](https://github.com/hectoresen/CraftAtlas/pull/47), owner review pending | `tests/test_validate_sdd.py` PASS via `traceability`; canonical `openspec/specs/atomic-implementation-archival/spec.md` synced; scope and immutable originals retained; no game-facing changes or required Forever acceptance | **archived (prepared for owner merge only)**; active source removed on PR branch, remains open in `main` until PR #47 merges |
+
+Older partially accepted historical changes listed above remain **OPEN**; this PR does not alter their evidence or disposition. This entry records the prepared transaction, **not** prior approval or merge of #47.
