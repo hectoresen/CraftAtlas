@@ -54,3 +54,6 @@ Merged proposal #45 and implementation #47 established a transactional archive w
 
 Approved proposals #48/#49 and merged implementation #50 enforce deterministic typed OpenSpec IDs and Git branches, with #49 correcting change IDs to lowercase for official CLI compatibility. Existing in-flight/historical proposals remain unchanged. Agent PR creation now includes a mandatory four-context Actions check-run discovery gate; missing checks receive one safe metadata retry, never forged PASS. This is governance/agent development and does not change CraftAtlas's in-game functionality.
 
+### Contributor governance correction (approved spec #58)
+
+The implementation of `chore001-require-owner-review-not-merge` changes SDD to require real @hectoresen review on contributor-authored merged specifications rather than requiring the owner to perform every merge. Contributor PR approval will also be enforced by GitHub's code-owner review ruleset **after manual administrator configuration and verification**. Until that setting is confirmed, do not claim the mandatory-review policy is enforced on all PRs. No runtime or release authorization changes.
