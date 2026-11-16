@@ -128,7 +128,7 @@ local function updateRows()
                 subtitle = table.concat(professions, ", ")
             end
             row.itemID = itemID
-            row.name:SetText(name)
+            row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. tostring(itemID)))
             row.professions:SetText(subtitle or "")
             if icon then row.icon:SetTexture(icon) row.icon:Show() else row.icon:Hide() end
             if (currentView == "recipes" and itemID == selectedRecipe)
@@ -198,9 +198,13 @@ local function refreshResults(resetOffset)
         if (currentView == "materials" and key.itemID == selected)
             or (currentView == "recipes" and key == selected) then index = i break end
     end
-    if not index and not forcedSelection then
+    local stillMatches = false
+    for _, key in ipairs(results) do
+        if key == selected then stillMatches = true break end
+    end
+    if not stillMatches and not forcedSelection then
         selected = results[1]
-        index = selected and 1 or nil
+        index = nil
     end
     if currentView == "recipes" then selectedRecipe = selected else selectedID = selected end
     if resetOffset then scrollOffset = 0 end
