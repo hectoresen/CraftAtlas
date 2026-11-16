@@ -11,6 +11,8 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+- Fix SDD validation for approved legacy proposals #43, #44 and #46 that merged after the naming policy rollout, and parse PR declarations with Windows line endings.
+
 ### Minimap button interaction
 
 - Keep the minimap button on the circular edge throughout a drag and restore the release angle on reload.

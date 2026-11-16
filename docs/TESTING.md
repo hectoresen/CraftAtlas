@@ -147,6 +147,8 @@ Archive transaction for merged PR #47: the approved same-change copy and canonic
 
 ## Typed spec/branch and required-check regression tests
 
+The rollout regression covers implementations of the three approved proposals that merged after the frozen naming baseline. It exercises the original PR number and change ID pairs, a mismatched or absent approval reference, owner review, the approved artifacts on `main`, scope enforcement, and LF/CRLF PR metadata. The corrected validator passed a local replay using PR #60's actual diff, Windows line endings, and the approval pulled from GitHub. The validator on `main` failed the same replay with both line-ending variants. The actual `traceability` rerun on #60 is pending the validator change on `main`.
+
 `tests/test_validate_sdd.py` exercises lowercase, padded type IDs for FEAT/FIX/CHORE/UPD/DEL, exact uppercase proposal/implementation branch derivation, rejected malformed/uppercase OpenSpec IDs, per-type sequence reservations against active/archived specs and open GitHub PRs, grandfathered legacy PRs, and the separation of an actual skipped Lua job from an **absent** required check-run. Pure-spec PRs should not execute Lua suites. A repo connector or GitHub Actions permission may prevent automatic event chaining; the agent must re-read actual current-head check-runs after its single metadata edit. No fixture can prove GitHub will dispatch its event.
 
 

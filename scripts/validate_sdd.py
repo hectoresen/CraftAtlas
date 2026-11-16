@@ -27,9 +27,9 @@ TYPED_CHANGE = re.compile(
 )
 ROLLOUT_BASE_SHA = "a2085951b4010d17b525edd6b58b13f4aff900c3"
 LEGACY_OPEN_PROPOSALS = {
-    43: "refine-minimap-button",
-    44: "add-addon-list-identity",
-    46: "add-addon-configuration",
+    "43": "refine-minimap-button",
+    "44": "add-addon-list-identity",
+    "46": "add-addon-configuration",
 }
 REQUIRED_PR_CONTEXTS = (
     "repository-validation", "traceability",
@@ -125,7 +125,7 @@ def _typed_reserved_ids(base, api, token, pr_number, change):
 
 
 def validate_pr_identity(change, phase, pr_number, head_ref, base,
-                         token, api, exists_in_base):
+                         token, api, approval):
     """Apply the new convention without renaming already-approved legacy specs."""
     identity = typed_identity(change)
     if phase not in ("proposal", "implementation"):
@@ -138,8 +138,11 @@ def validate_pr_identity(change, phase, pr_number, head_ref, base,
         if phase == "proposal":
             errors.extend(_typed_reserved_ids(base, api, token, pr_number, change))
         return errors
-    # A legacy implementation is valid only for a change present at rollout.
     if phase == "implementation":
+        # In-flight proposals may have merged after the frozen rollout commit.
+        # The implementation gate independently verifies approval and base artifacts.
+        if LEGACY_OPEN_PROPOSALS.get(approval) == change:
+            return []
         try:
             subprocess.check_output(["git", "cat-file", "-e",
                                      ROLLOUT_BASE_SHA + ":openspec/changes/" +
@@ -147,7 +150,7 @@ def validate_pr_identity(change, phase, pr_number, head_ref, base,
             return []
         except (OSError, subprocess.CalledProcessError):
             return ["New implementation needs a CLI-safe typed OpenSpec ID"]
-    if pr_number in LEGACY_OPEN_PROPOSALS and change == LEGACY_OPEN_PROPOSALS[pr_number]:
+    if LEGACY_OPEN_PROPOSALS.get(str(pr_number)) == change:
         return []
     return ["New proposal must use lowercase typed OpenSpec ID (e.g. feat001-menu) "
             "and SPEC/TYPEddd-slug branch; existing legacy PRs are grandfathered"]
@@ -182,6 +185,7 @@ METADATA = {
 
 
 def parse_metadata(body):
+    body = body.replace("\r\n", "\n")
     # Remove fenced code blocks so sample values cannot count as declarations.
     body = re.sub(r"(?ms)^(\x60{3,}|~{3,})[^\n]*\n.*?^\1[^\n]*$", "", body)
     return {k: pattern.findall(body) for k, pattern in METADATA.items()}
@@ -672,7 +676,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 return False
     if head_ref is not None or typed_identity(change):
         errors.extend(validate_pr_identity(
-            change, phase, pr_number, head_ref, base, token, api, exists_in_base))
+            change, phase, pr_number, head_ref, base, token, api, approval))
     if phase == "proposal":
         if approval:
             errors.append("Proposal may not claim pre-approval")
