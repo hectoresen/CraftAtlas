@@ -44,19 +44,33 @@ local function refreshTrackingCounts(recipe)
 end
 
 local function createNativeBar(parent)
+    -- A Blizzard StatusBar with Blizzard's native tooltip-style frame.
+    -- Keep the frame visible when the fill value is exactly zero.
     local bar = CreateFrame("StatusBar", nil, parent)
     if type(bar.SetStatusBarTexture) == "function" then
         bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        bar:SetStatusBarColor(0.74, 0.56, 0.21)
+        bar:SetStatusBarColor(0.18, 0.68, 0.22)
         bar:SetMinMaxValues(0, 1)
     end
-    -- Match the Blizzard status-bar texture for the empty portion.
-    local empty = bar:CreateTexture(nil, "BACKGROUND")
-    empty:SetAllPoints(bar)
-    empty:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    if type(empty.SetVertexColor) == "function" then
-        empty:SetVertexColor(0.23, 0.23, 0.23, 0.95)
+
+    local frame = CreateFrame("Frame", nil, bar, "BackdropTemplate")
+    frame:SetAllPoints(bar)
+    if type(frame.SetBackdrop) == "function" then
+        frame:SetBackdrop({
+            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            edgeSize = 9,
+            insets = {left = 2, right = 2, top = 2, bottom = 2},
+        })
+        if type(frame.SetBackdropColor) == "function" then
+            frame:SetBackdropColor(0.04, 0.04, 0.04, 0.93)
+        end
+        if type(frame.SetBackdropBorderColor) == "function" then
+            frame:SetBackdropBorderColor(0.55, 0.49, 0.34, 1)
+        end
     end
+    if type(frame.EnableMouse) == "function" then frame:EnableMouse(false) end
+    bar.nativeFrame = frame
     return bar
 end
 
@@ -411,9 +425,9 @@ function ns.InitRecipeDetail(parent)
         row.missing = font(row, "GameFontDisableSmall")
         row.missing:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -15)
         row.bar = createNativeBar(row)
-        row.bar:SetHeight(9)
-        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -16)
-        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -16)
+        row.bar:SetHeight(15)
+        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -15)
+        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -15)
         row:Hide()
         view.trackerRows[i] = row
     end
@@ -421,7 +435,7 @@ function ns.InitRecipeDetail(parent)
     local totalLabel = font(trackerFooter, "GameFontNormalSmall")
     view.totalLabel = totalLabel
     local trackerBar = createNativeBar(trackerFooter)
-    trackerBar:SetHeight(10)
+    trackerBar:SetHeight(15)
     view.trackerBar = trackerBar
     trackerFooter:Hide()
 
