@@ -8,7 +8,7 @@ local function ui(kind,parent)
     function self:SetColorTexture(...) self.fill={...} end
     function self:SetTextColor(...) self.textColor={...} end
     function self:CreateTexture() return ui("Texture",self) end
-    function self:SetPoint(...) self.anchor={...} end
+    function self:SetPoint(...) self.anchors=self.anchors or {} self.anchors[#self.anchors+1]={...} end
     function self:SetStatusBarTexture(texture) self.texture=texture end
     function self:SetStatusBarColor(r,g,b) self.color={r,g,b} end
     function self:SetMinMaxValues(min,max) self.minimum,self.maximum=min,max end
@@ -24,12 +24,18 @@ end
 CreateFrame=function(kind,_,parent) return ui(kind,parent) end
 local ns={}
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
-local header=ui("Header")
-local widget=ns.CreateExplorerCatalogProgress(header)
-assert(#children==5,"one holder, track, status bar and label without extra frames")
-assert(not widget.shown and widget.width==224 and widget.height==12)
-assert(widget.anchor[1]=="BOTTOM" and widget.anchor[2]==header
-    and widget.anchor[5]==3, "track clears the gold header divider")
+local panel=ui("Panel")
+local tabs=ui("RecipesTab",panel)
+local back=ui("Back",panel)
+local widget=ns.CreateExplorerCatalogProgress(panel,tabs,back)
+assert(#children==7,"three existing controls plus reusable holder, track, bar and label")
+assert(not widget.shown and widget.height==20)
+assert(widget.anchors[1][1]=="LEFT" and widget.anchors[1][2]==tabs
+    and widget.anchors[1][3]=="RIGHT" and widget.anchors[1][4]==12,
+    "progress begins after native Fabricables tab")
+assert(widget.anchors[2][1]=="RIGHT" and widget.anchors[2][2]==back
+    and widget.anchors[2][3]=="LEFT" and widget.anchors[2][4]==-12,
+    "progress ends before native Back button")
 assert(widget.track.fill[4]==0.94 and widget.label.textColor[1] > 0.9,
     "high-contrast inline text should remain readable as the bar fills")
 widget:SetProgress("active",42,"Preparing materials... 42%")
@@ -40,5 +46,5 @@ assert(widget.shown and widget.bar.value==24)
 widget:SetProgress("active",999,"Preparing craftables")
 assert(widget.bar.value==100,"progress must be clamped")
 widget:SetProgress("complete",100,"Finished")
-assert(not widget.shown and #children==5,"completed state hides and never reallocates")
+assert(not widget.shown and #children==7,"completed state hides and never reallocates")
 print("Native progress header mock PASS")
