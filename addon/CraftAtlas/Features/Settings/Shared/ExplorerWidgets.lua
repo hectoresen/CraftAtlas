@@ -2,36 +2,17 @@ local _, ns = ...
 
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
+-- Prefer the explicit Magic Broom texture. The previous cache-based lookup could
+-- return the question-mark icon before WoW had loaded the seasonal item.
 function ns.GetExplorerClearIcon(fileLookup)
-    -- Prefer a client-resolved broom item icon, independent of optional file-ID APIs.
-    if fileLookup == nil then
-        local cItem = type(C_Item) == "table" and C_Item or nil
-        local itemIcon = cItem and cItem.GetItemIconByID or GetItemIcon
-        if type(itemIcon) == "function" then
-            local ok, icon = pcall(itemIcon, 37011) -- native Magic Broom item
-            if ok and icon then return icon end
-        end
-        local cSpell = type(C_Spell) == "table" and C_Spell or nil
-        local spellIcon = cSpell and cSpell.GetSpellTexture or GetSpellTexture
-        if type(spellIcon) == "function" then
-            local ok, icon = pcall(spellIcon, 42667) -- native broom mount spell
-            if ok and icon then return icon end
-        end
+    local broom = "Interface\\Icons\\Achievement_Halloween_Witch_01"
+    if type(fileLookup) == "function" then
+        local ok, supported = pcall(fileLookup, broom)
+        if ok and supported then return broom end
+        return "Interface\\Icons\\Spell_Holy_DispelMagic"
     end
-    -- Historical native broom artwork may vary between Classic/Forever clients.
-    local candidates = {
-        "Interface\\Icons\\Achievement_Halloween_Witch_01",
-        "Interface\\Icons\\INV_Misc_Broom_01",
-    }
-    local probe = fileLookup or GetFileIDFromPath
-    if type(probe) == "function" then
-        for _, path in ipairs(candidates) do
-            local ok, fileID = pcall(probe, path)
-            if ok and type(fileID) == "number" and fileID > 0 then return path end
-        end
-    end
-    -- Available native cleansing/action icon, never missing art or a textual X.
-    return "Interface\\Icons\\Spell_Holy_DispelMagic"
+    -- WoW bundles the icon as a client texture; no item cache/API is needed.
+    return broom
 end
 
 -- A minimum logical size is scaled uniformly for smaller physical viewports.
@@ -139,9 +120,9 @@ function ns.StyleExplorerGroupRow(row, label, count, expanded)
     row.name:Hide()
     row.professions:Hide()
     row.highlight:Hide()
-    row.groupArrow:SetText(expanded and "▼" or "▶")
+    row.groupArrow:SetText(expanded and "v" or ">")
     row.groupName:SetText(label .. " (" .. count .. ")")
-    row.groupState:SetText(expanded and "−" or "+")
+    row.groupState:SetText(expanded and "-" or "+")
     row.groupArrow:Show()
     row.groupName:Show()
     row.groupState:Show()
@@ -187,7 +168,7 @@ function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
     section.expanded = true
     function section:Refresh()
         self.label:SetText(ns.L(titleKey))
-        self.arrow:SetText(self.expanded and "−" or "+")
+        self.arrow:SetText(self.expanded and "-" or "+")
     end
     section:SetScript("OnClick", function(self)
         self.expanded = not self.expanded
