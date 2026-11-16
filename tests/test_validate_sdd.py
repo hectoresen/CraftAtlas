@@ -426,13 +426,13 @@ class AtomicArchiveTests(unittest.TestCase):
         self.prefix = "openspec/changes/" + self.change + "/"
         self.destination = "openspec/changes/archive/2026-11-16-" + self.change + "/"
         self.approved = {
-            self.prefix + "proposal.md": b"# Approved proposal\\n",
-            self.prefix + "design.md": b"# Accepted design\\n",
-            self.prefix + "tasks.md": b"- [ ] Implement\\n- [ ] Verify\\n",
-            self.prefix + "sdd-scope.json": b'{"allowed_paths":["addon/CraftAtlas/**"]}\\n',
+            self.prefix + "proposal.md": b"# Approved proposal\n",
+            self.prefix + "design.md": b"# Accepted design\n",
+            self.prefix + "tasks.md": b"- [ ] Implement\n- [ ] Verify\n",
+            self.prefix + "sdd-scope.json": b'{"allowed_paths":["addon/CraftAtlas/**"]}\n',
             self.prefix + "specs/feature/spec.md": (
-                b"## ADDED Requirements\\n### Requirement: Ready\\n"
-                b"#### Scenario: Verified\\n- **WHEN** tested\\n- **THEN** works\\n"),
+                b"## ADDED Requirements\n### Requirement: Ready\n"
+                b"#### Scenario: Verified\n- **WHEN** tested\n- **THEN** works\n"),
         }
         self.base = dict(self.approved)
         self.paths = {"addon/CraftAtlas/Domain/MaterialLookup.lua",
@@ -441,7 +441,7 @@ class AtomicArchiveTests(unittest.TestCase):
         for path, content in self.approved.items():
             rel = path[len(self.prefix):]
             if rel == "tasks.md":
-                content = b"- [x] Implement\\n- [x] Verify\\n"
+                content = b"- [x] Implement\n- [x] Verify\n"
             target = self.destination + rel
             self.paths.add(target)
             (self.root / target).parent.mkdir(parents=True, exist_ok=True)
@@ -449,12 +449,12 @@ class AtomicArchiveTests(unittest.TestCase):
             self.paths.add(path)
         canon = self.root / "openspec/specs/feature/spec.md"
         canon.parent.mkdir(parents=True)
-        canon.write_text("## ADDED Requirements\\n### Requirement: Ready\\n")
+        canon.write_text("## ADDED Requirements\n### Requirement: Ready\n")
         ledger = self.root / "docs/OPENSPEC_STATUS.md"
         ledger.parent.mkdir(parents=True)
         ledger.write_text(
             "| verified-fixture | #9 approved | #42 implementation "
-            "| archived | tests/test_validate_sdd.py PASS acceptance evidence |\\n")
+            "| archived | tests/test_validate_sdd.py PASS acceptance evidence |\n")
         self.evidence = (
             "tests/test_validate_sdd.py PASS all approved scenarios; "
             "docs/OPENSPEC_STATUS.md records complete acceptance with owner review."
@@ -498,15 +498,15 @@ class AtomicArchiveTests(unittest.TestCase):
         for name in ("design.md", "sdd-scope.json", "specs/feature/spec.md"):
             p = self.root / (self.destination + name)
             before = p.read_bytes()
-            p.write_bytes(b"# Malicious edit\\n")
+            p.write_bytes(b"# Malicious edit\n")
             self.assertTrue(self.check(), name)
             p.write_bytes(before)
 
     def test_archive_rejects_unfinished_tasks_or_rewritten_task_names(self):
         p = self.root / (self.destination + "tasks.md")
-        p.write_text("- [x] Implement\\n- [ ] Verify\\n")
+        p.write_text("- [x] Implement\n- [ ] Verify\n")
         self.assertTrue(self.check())
-        p.write_text("- [x] Implement\\n- [x] Rewrite acceptance\\n")
+        p.write_text("- [x] Implement\n- [x] Rewrite acceptance\n")
         self.assertTrue(self.check())
 
     def test_archive_rejects_unrelated_changes_and_bad_dates(self):
@@ -519,15 +519,15 @@ class AtomicArchiveTests(unittest.TestCase):
 
     def test_archive_rejects_incomplete_canonical_sync(self):
         canon = self.root / "openspec/specs/feature/spec.md"
-        canon.write_text("## ADDED Requirements\\n### Requirement: Wrong\\n")
+        canon.write_text("## ADDED Requirements\n### Requirement: Wrong\n")
         self.assertTrue(self.check())
 
     def test_archive_preserves_existing_canonical_requirements(self):
         path = "openspec/specs/feature/spec.md"
-        self.base[path] = b"### Requirement: Existing\\n"
+        self.base[path] = b"### Requirement: Existing\n"
         self.assertTrue(self.check())
         (self.root / path).write_text(
-            "### Requirement: Ready\\n### Requirement: Existing\\n")
+            "### Requirement: Ready\n### Requirement: Existing\n")
         self.assertEqual(self.check(), [])
 
     def test_blocked_cannot_touch_archive_or_canonical(self):
@@ -543,9 +543,9 @@ class AtomicArchiveTests(unittest.TestCase):
 
     def test_requires_ledger_with_current_change_provenance(self):
         ledger = self.root / "docs/OPENSPEC_STATUS.md"
-        ledger.write_text("| unrelated | #9 | archived | tests PASS |\\n")
+        ledger.write_text("| unrelated | #9 | archived | tests PASS |\n")
         self.assertTrue(self.check())
-        ledger.write_text("| verified-fixture | archived | tests PASS |\\n")
+        ledger.write_text("| verified-fixture | archived | tests PASS |\n")
         self.assertTrue(self.check())
 
 if __name__ == "__main__":
