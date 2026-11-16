@@ -8,8 +8,8 @@
 2. Extract or copy the directory under `Interface/AddOns/`. The correct path is `Interface/AddOns/CraftAtlas/CraftAtlas.toc`; avoid a second nested `CraftAtlas/`.
 3. Enable CraftAtlas in the AddOns list and log in.
 4. Use `/craftatlas` or its draggable minimap icon. The window opens on **Materiales**; switch to **Fabricables** to browse what professions produce. Use `/craftatlas 159` to select a known material by itemID.
-5. In Materiales, type a material name or itemID, apply a profession filter, select an item and inspect its fabrication-use cards. Click a card to open the Fabricables detail; click an ingredient to navigate back to its material and **Volver** to return.
-6. Choose Auto, Español or English in the language selector; the preference is saved between reloads. The top-right X closes the window.
+5. In Materiales, type a material name or itemID, optionally filter by profession, expand/collapse the source-backed profession groups and select an item. A material used by multiple professions can appear under each without duplicating its identity. Inspect the vertical fabrication-use rows; click a recipe to enter Fabricables, an ingredient to return to Materiales, or **Volver** to restore the prior browsing state.
+6. Choose Auto, Español or English in the language selector; the preference is saved between reloads. The broom beside search clears only the active query; the top-right X closes the window. Official packaged releases show their locally stamped version; development checkouts hide their version indicator.
 
 ## Diagnostics and limitations
 
