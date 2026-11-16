@@ -44,3 +44,8 @@ Do not copy databases from third-party addons or sites without permission to red
 ## Conduct
 
 Be considerate and constructive. See `CODE_OF_CONDUCT.md` and `SECURITY.md`.
+
+## Same-PR OpenSpec archive protocol
+
+For approved implementation PRs, the contributor must run the documentation-sync skill and report whether the accepted spec is eligible for an **atomic archive in this PR**. Use `OpenSpec-Archive: prepared` with code/test evidence and synchronized canonical capability specs only when every mandatory acceptance criterion is evidenced. Prepare the dated archive before PR review; preserve owner-approved artifacts byte-for-byte. Otherwise use `OpenSpec-Archive: blocked`, name the exact `NOT RUN` or missing client check, leave the active change folder and tasks truthful. A blocked implementation may require additional testing or a separately approved spec revision before the owner may accept it. Neither the author nor CI can substitute offline tests for Forever client proof.
+
