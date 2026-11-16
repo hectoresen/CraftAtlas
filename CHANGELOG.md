@@ -1,6 +1,6 @@
 # Changelog
 
-### Typed agent branch discipline and PR check discovery (pending merge)
+### Typed agent branch discipline and PR check discovery (merged PR #50)
 
 - Define CLI-safe lowercase OpenSpec IDs with type-local three-digit sequences and deterministic `SPEC/TYPEddd-slug` / `TYPE/ddd-slug` branches.
 - Preserve historical approved OpenSpec changes while blocking new arbitrary branch names, malformed typed IDs and sequence collisions.
@@ -9,9 +9,9 @@
 
 This file summarizes implemented source changes. Historical PRs are not active feature proposals; source data coverage and test evidence remain separate questions.
 
-## [Unreleased] — `0.2.0-dev`
+## [Unreleased source changes] — `0.2.0-dev`
 
-### OpenSpec governance (pending implementation merge)
+### OpenSpec governance (merged PR #47)
 
 - Prepare complete canonical spec synchronization and lossless dated archive in the same implementation PR, eliminating routine follow-up archive PRs.
 - Keep incomplete acceptance or `NOT RUN` client checks explicit: archive remains blocked and active artifacts preserved.
@@ -19,14 +19,14 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 
 
-### Contributor governance and validation (pending implementation merge)
+### Contributor governance and validation (merged PR #42)
 - Added separate Lua 5.1 parsing and isolated Lua regression jobs to pull-request CI, with hard failures instead of silent gaps.
 - Added CODEOWNERS review requests and updated agent/contributor documentation to require verifiable documentation-sync evidence before functional PRs.
 - Hardened OpenSpec governance exceptions for the owner-approved CI/security change and documented the active independent review and CI branch rulesets.
 - Replaced a previously malformed Markdown-as-Lua test fixture with a deterministic Lua 5.1 foundation smoke test; no addon gameplay behavior changes.
 
 
-### First-use catalog preparation (implementation PR, not released)
+### First-use catalog preparation (merged PR #38; current development source, release/client evidence separate)
 - Added independent, native-header percent indicators for bounded local Materiales/Fabricables metadata preparation. Percent measures attempted work, not completed client name resolution or remote synchronization. Existing unresolved-name warnings remain.
 - Coalesced background name-cache redraw requests and cached filtered searches with query, profession, effective-locale and data-generation invalidation, preserving immediate user searches and navigation.
 - Added guarded timer fallback, in-memory operational counters accessible only through `/craftatlas perf`, and fake-timer/progress regressions. No gameplay FPS improvement is claimed without in-client comparison.
@@ -49,7 +49,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Added OpenSpec/SDD approval gating, Python generator/package tests and Lua domain/UI regressions. Automated checks alone do not certify client behavior.
 
 ### Evidence and remaining limitations
-- Maintainer reported earlier addon UI tested and accepted in Forever, including PR #23 and #25. The owner has manually checked successive Materiales and Fabricables redesigns in Forever and supplied screenshots, but has not recorded full acceptance of the final four-profession layout, centered title and release-version footer or the exact client build. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
+- Maintainer reported earlier addon UI tested and accepted in Forever, including PR #23 and #25. The owner has manually checked successive Materiales and Fabricables redesigns in Forever and supplied screenshots, but has not recorded full acceptance of the final four-profession layout, centered title, release-version footer, latest progress-bar appearance or the exact client build. The exact game-build number, comprehensive tooltip-origin matrix and individual live-realm recipe verification are not recorded.
 - No crafting automation, inventory availability, player-known recipe validation, dependency graph or external syncing is implemented.
 
 ## Historical milestones
