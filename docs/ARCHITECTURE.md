@@ -26,6 +26,8 @@ The loading order is declared in `addon/CraftAtlas/CraftAtlas.toc`; all addon ru
 
 ## Behavior and UI
 
+The minimap adapter projects the pointer angle onto the circular edge in the minimap's own scale. It samples the pointer only during a drag and once more on release, then stores the angle in the existing account-wide preferences. Missing geometry or a centered pointer preserves the last valid angle. A drag suppresses clicks from its own gesture; the next left-button press starts a new gesture. Hover resolves the title and two control hints in the active locale each time.
+
 Material item tooltips render after the native item lines on the existing `TooltipDataProcessor` path. The presenter reads the CraftAtlas catalog by itemID and appends a separator, the native gold `Used in:` / `Utilizado en:` heading, and one white row per consuming profession. It tracks native clears per tooltip to keep repeat callbacks idempotent and uses the line count and hide hook when the clear script is unavailable. The Spanish tooltip uses `Costura` for Tailoring to match the reference presentation. The explorer uses its existing registry label, `Sastrería`.
 
 The 14 × 14 inline icons use native `SkillLine.SpellIconFileID` identifiers from Forever build `1.60.1.70938`, documented by Profession Reagents 1.0.0 (MIT, copyright 2026 sebasgrios). Detected missing icons fall back to text. [Pinned Profession Reagents reference](https://github.com/sebasgrios/profession-util/tree/66555a5c5c1d4ad3d3c2f8d5d0982beb2b23a4b8/addons/ProfessionReagents) · [CraftAtlas catalog provenance](DATA_MODEL.md)
