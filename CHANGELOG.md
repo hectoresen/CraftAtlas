@@ -4,6 +4,11 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased] — `0.2.0-dev`
 
+### First-use catalog preparation (implementation PR, not released)
+- Added independent, native-header percent indicators for bounded local Materiales/Fabricables metadata preparation. Percent measures attempted work, not completed client name resolution or remote synchronization. Existing unresolved-name warnings remain.
+- Coalesced background name-cache redraw requests and cached filtered searches with query, profession, effective-locale and data-generation invalidation, preserving immediate user searches and navigation.
+- Added guarded timer fallback, in-memory operational counters accessible only through `/craftatlas perf`, and fake-timer/progress regressions. No gameplay FPS improvement is claimed without in-client comparison.
+
 ### Material and craftable exploration
 - Added **Materiales**: functional material name/itemID search, profession filter, native detail view, and profession uses.
 - Added **Se utiliza para fabricar** with paginated vertical source-backed native rows (replacing six-card tiles), native item/spell hover, result icons, exact required quantities and clickable navigation.
