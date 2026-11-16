@@ -232,11 +232,11 @@ def validate_lifecycle(paths, approval, change, root, base, exists_in_base):
 # Same-PR archive policy: bounded to the owner-approved implementation's change.
 # It never grants an exemption for arbitrary paths under openspec/.
 ARCHIVE_ROOT = "openspec/changes/archive/"
-CANONICAL_SPEC = re.compile(r"^openspec/specs/([a-z0-9-]+)/spec\\.md$")
+CANONICAL_SPEC = re.compile(r"^openspec/specs/([a-z0-9-]+)/spec\.md$")
 ARCHIVED_FILE = re.compile(
-    r"^openspec/changes/archive/(\\d{4}-\\d{2}-\\d{2})-([a-z0-9-]+)/(.+)$"
+    r"^openspec/changes/archive/(\d{4}-\d{2}-\d{2})-([a-z0-9-]+)/(.+)$"
 )
-TASK_MARKER = re.compile(r"(?m)^\\s*- \\[([ xX])\\] ")
+TASK_MARKER = re.compile(r"(?m)^\s*- \[([ xX])\] ")
 
 
 def base_archive_files(base, change, file_list=None, file_read=None):
@@ -255,7 +255,7 @@ def base_archive_files(base, change, file_list=None, file_read=None):
 
 def _requirements(content):
     """Conservatively preserve pre-existing named SHALL requirements."""
-    return set(re.findall(r"(?m)^### Requirement: (.+?)\\s*$", content))
+    return set(re.findall(r"(?m)^### Requirement: (.+?)\s*$", content))
 
 
 def validate_implementation_archive(
@@ -274,7 +274,7 @@ def validate_implementation_archive(
     if archive_state not in ("prepared", "blocked"):
         return ["Implementation requires OpenSpec-Archive: prepared|blocked"]
     if len(evidence) < 70 or not re.search(
-        r"(?:tests/|docs/|\\.md|\\b(?:test|scenario|client|NOT RUN|PASS|FAIL|scope|CI)\\b)",
+        r"(?:tests/|docs/|\.md|\b(?:test|scenario|client|NOT RUN|PASS|FAIL|scope|CI)\b)",
         evidence, re.I
     ):
         errors.append("OpenSpec-Archive-Evidence must name concrete acceptance/tests and documentation (70+ chars)")
@@ -340,12 +340,12 @@ def validate_implementation_archive(
             base_text = base_files[relative].decode("utf-8")
             if len(TASK_MARKER.findall(task_text)) != len(TASK_MARKER.findall(base_text)):
                 errors.append("Archive tasks checklist changed count; task provenance must be retained")
-            if re.sub(r"(?m)(^\\s*- \\[)[ xX](\\] )", r"\\1 \\2", task_text) != re.sub(
-                r"(?m)(^\\s*- \\[)[ xX](\\] )", r"\\1 \\2", base_text):
+            if re.sub(r"(?m)(^\s*- \[)[ xX](\] )", r"\1 \2", task_text) != re.sub(
+                r"(?m)(^\s*- \[)[ xX](\] )", r"\1 \2", base_text):
                 # Extra evidence paragraphs after checklists are allowed only
                 # if actual task text retains original names/order.
-                original_items = re.findall(r"(?m)^\\s*- \\[[ xX]\\] (.+)$", base_text)
-                current_items = re.findall(r"(?m)^\\s*- \\[[ xX]\\] (.+)$", task_text)
+                original_items = re.findall(r"(?m)^\s*- \[[ xX]\] (.+)$", base_text)
+                current_items = re.findall(r"(?m)^\s*- \[[ xX]\] (.+)$", task_text)
                 if original_items != current_items:
                     errors.append("Archived tasks must preserve approved task descriptions/order")
             if any(x.lower() != "x" for x in TASK_MARKER.findall(task_text)):
