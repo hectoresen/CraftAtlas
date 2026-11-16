@@ -1,6 +1,63 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
+local function trackedPageSize(availableHeight)
+    -- Keep the aggregate tracker above the native bottom pager.
+    return math.max(1, math.min(ITEMS_PER_PAGE,
+        math.floor((availableHeight - 143 - 106) / 39)))
+end
+
+local function setCheck(button, checked)
+    if button and type(button.SetChecked) == "function" then
+        button:SetChecked(checked)
+    end
+end
+
+local function showControl(control, visible)
+    if not control then return end
+    if visible then control:Show() else control:Hide() end
+end
+
+local function refreshTrackingCounts(recipe)
+    view.trackingCounts = {}
+    if not recipe or not ns.IsCraftableTracked or not ns.IsCraftableTracked(recipe.key) then
+        return nil
+    end
+    local includeBank = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
+    for _, ingredient in ipairs(recipe.ingredients or {}) do
+        if not view.trackingCounts[ingredient.itemID] then
+            view.trackingCounts[ingredient.itemID] =
+                ns.ReadCraftInventoryCount and
+                ns.ReadCraftInventoryCount(ingredient.itemID, includeBank)
+                or {bags = nil, available = nil, bankStatus = "unavailable"}
+        end
+    end
+    if ns.ComputeCraftableCoverage then
+        return ns.ComputeCraftableCoverage(recipe.ingredients, view.trackingCounts)
+    end
+end
+
+local function styleTrackingRow(row, ingredient, tracking)
+    if not row.progress then return end
+    if tracking and ingredient then
+        local observation = view.trackingCounts[ingredient.itemID]
+        local available = observation and observation.available
+        local needed = ingredient.quantity
+        if type(available) == "number" then
+            local covered = math.min(available, needed)
+            row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_STATUS"),
+                covered, needed, math.max(0, needed - available)))
+            row.progress:SetValue(needed > 0 and covered / needed * 100 or 0)
+        else
+            row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_UNKNOWN"), needed))
+            row.progress:SetValue(0)
+        end
+        row.progress:Show()
+    else
+        row.progress:Hide()
+    end
+end
+
 
 local function font(parent, style)
     return parent:CreateFontString(nil, "OVERLAY", style)
@@ -36,6 +93,9 @@ local function updateIngredientSectionVisibility()
         view.pager.label:Hide()
         clearTooltip()
     end
+    if view.trackerFooter then
+        showControl(view.trackerFooter, expanded and view.trackingActive)
+    end
 end
 
 local function render()
@@ -64,7 +124,49 @@ local function render()
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
-    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.page, view.pageSize)
+    local tracking = recipe and ns.IsCraftableTracked
+        and ns.IsCraftableTracked(recipe.key) == true or false
+    view.trackingActive = tracking
+    if view.trackCheckbox then
+        showControl(view.trackCheckbox, recipe ~= nil)
+        setCheck(view.trackCheckbox, tracking)
+    end
+    view.pageSize = tracking and trackedPageSize(view.availableHeight) or view.normalPageSize
+    local coverage = tracking and refreshTrackingCounts(recipe) or nil
+    if view.trackerFooter then
+        if tracking then
+            local percent = coverage and coverage.percent
+            local valid = coverage and coverage.verified
+            view.trackerLabel:SetText(ns.L("TRACK_PROGRESS") .. ": " ..
+                (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
+                (valid and "" or (" (" .. ns.L("TRACK_UNVERIFIED") .. ")")))
+            view.trackerBar:SetValue(percent or 0)
+            if view.bankCheckbox then
+                local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
+                setCheck(view.bankCheckbox, ns.GetCraftBankPreference
+                    and ns.GetCraftBankPreference() or false)
+                if type(view.bankCheckbox.SetEnabled) == "function" then
+                    view.bankCheckbox:SetEnabled(supported == true)
+                end
+                view.bankLabel:SetText(supported and ns.L("TRACK_INCLUDE_BANK")
+                    or ns.L("TRACK_BANK_UNAVAILABLE"))
+            end
+            local bankIncluded = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
+            if bankIncluded and view.bankStatus then
+                local confirmed = true
+                for _, observation in pairs(view.trackingCounts) do
+                    if observation.bankStatus ~= "confirmed" then confirmed = false break end
+                end
+                view.bankStatus:SetText(confirmed and ns.L("TRACK_BANK_CURRENT")
+                    or ns.L("TRACK_BANK_UNKNOWN"))
+            elseif view.bankStatus then
+                view.bankStatus:SetText("")
+            end
+        else
+            view.trackerFooter:Hide()
+        end
+    end
+    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.pageSize and view.page or 1, view.pageSize)
     view.page = page
     clearTooltip()
     for i, row in ipairs(view.rows) do
@@ -74,9 +176,11 @@ local function render()
             local name, icon = ns.GetItemDisplay(ingredient.itemID)
             row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. ingredient.itemID))
             row.professions:SetText(string.format(ns.L("RECIPE_QUANTITY"), ingredient.quantity))
+            styleTrackingRow(row, ingredient, tracking)
             row.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
             row:Show()
         else
+            styleTrackingRow(row, nil, false)
             row:Hide()
         end
     end
@@ -105,8 +209,10 @@ function ns.InitRecipeDetail(parent)
     frame:SetAllPoints(parent)
     view.frame = frame
     local availableHeight = type(parent.GetHeight) == 'function' and parent:GetHeight() or 343
-    view.pageSize = math.max(1, math.min(ITEMS_PER_PAGE,
+    view.availableHeight = availableHeight
+    view.normalPageSize = math.max(1, math.min(ITEMS_PER_PAGE,
         math.floor((availableHeight - 138 - 40) / 39)))
+    view.pageSize = view.normalPageSize
 
     view.icon = frame:CreateTexture(nil, "ARTWORK")
     view.icon:SetSize(52, 52)
@@ -134,6 +240,24 @@ function ns.InitRecipeDetail(parent)
     view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
     view.output:SetJustifyH("LEFT")
     view.output:SetWordWrap(false)
+
+    -- Optional tracker lives in the unused band between profession and metadata.
+    local trackCheckbox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
+    trackCheckbox:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -176, -55)
+    trackCheckbox:SetSize(20, 20)
+    local trackLabel = font(frame, "GameFontHighlightSmall")
+    trackLabel:SetPoint("LEFT", trackCheckbox, "RIGHT", 2, 0)
+    trackLabel:SetText(ns.L("TRACK_CRAFTING"))
+    trackCheckbox:SetScript("OnClick", function(self)
+        local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
+        if recipe and ns.SetCraftableTracked then
+            ns.SetCraftableTracked(recipe.key, self:GetChecked() == true)
+            view.page = 1
+            render()
+        end
+    end)
+    view.trackCheckbox = trackCheckbox
+
     view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -103, function()
         updateIngredientSectionVisibility()
     end)
@@ -160,6 +284,15 @@ function ns.InitRecipeDetail(parent)
             if self.ingredient then ns.ShowOutputTooltip(self, self.ingredient.itemID) end
         end)
         row:SetScript("OnLeave", clearTooltip)
+        local progress = CreateFrame("StatusBar", nil, row)
+        progress:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 1)
+        progress:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -5, 1)
+        progress:SetHeight(3)
+        progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        progress:SetStatusBarColor(0.66, 0.54, 0.24)
+        progress:SetMinMaxValues(0, 100)
+        progress:Hide()
+        row.progress = progress
         view.rows[i] = row
     end
     view.pager = ns.CreateExplorerPager(frame, function()
@@ -170,6 +303,73 @@ function ns.InitRecipeDetail(parent)
             render()
         end
     end)
+
+    local trackerFooter = CreateFrame("Frame", nil, frame)
+    trackerFooter:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 15, 41)
+    trackerFooter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 41)
+    trackerFooter:SetHeight(58)
+    view.trackerFooter = trackerFooter
+    local trackerLabel = font(trackerFooter, "GameFontHighlightSmall")
+    trackerLabel:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 22)
+    view.trackerLabel = trackerLabel
+    local bankCheckbox = CreateFrame("CheckButton", nil, trackerFooter, "UICheckButtonTemplate")
+    bankCheckbox:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -132, 2)
+    bankCheckbox:SetSize(18, 18)
+    local bankLabel = font(trackerFooter, "GameFontDisableSmall")
+    bankLabel:SetPoint("LEFT", bankCheckbox, "RIGHT", 1, 0)
+    bankLabel:SetText(ns.L("TRACK_INCLUDE_BANK"))
+    view.bankCheckbox, view.bankLabel = bankCheckbox, bankLabel
+    bankCheckbox:SetScript("OnClick", function(self)
+        if ns.SetCraftBankPreference then
+            ns.SetCraftBankPreference(self:GetChecked() == true)
+        end
+        render()
+    end)
+    local bankStatus = font(trackerFooter, "GameFontDisableSmall")
+    bankStatus:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 22)
+    view.bankStatus = bankStatus
+    local trackerBar = CreateFrame("StatusBar", nil, trackerFooter)
+    trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 6)
+    trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 6)
+    trackerBar:SetHeight(7)
+    trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    trackerBar:SetStatusBarColor(0.67, 0.52, 0.21)
+    trackerBar:SetMinMaxValues(0, 100)
+    view.trackerBar = trackerBar
+    trackerFooter:Hide()
+
+    local listener = CreateFrame("Frame", nil, frame)
+    local function onInventoryChanged(_, event)
+        if event == "BANKFRAME_OPENED" and ns.SetCraftBankOpen then
+            ns.SetCraftBankOpen(true)
+        elseif event == "BANKFRAME_CLOSED" and ns.SetCraftBankOpen then
+            ns.SetCraftBankOpen(false)
+        end
+        local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
+        if not recipe or not (view.frame and view.frame:IsShown())
+            or not ns.IsCraftableTracked or not ns.IsCraftableTracked(recipe.key)
+            or view.refreshQueued then return end
+        local function update()
+            view.refreshQueued = false
+            if view.frame and view.frame:IsShown() then render() end
+        end
+        local timer = C_Timer and C_Timer.After
+        if type(timer) == "function" then
+            view.refreshQueued = true
+            local ok = pcall(timer, 0.1, update)
+            if ok then return end
+            view.refreshQueued = false
+        end
+        update()
+    end
+    listener:SetScript("OnEvent", onInventoryChanged)
+    for _, event in ipairs({"BAG_UPDATE_DELAYED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED",
+        "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED"}) do
+        if type(listener.RegisterEvent) == "function" then
+            pcall(listener.RegisterEvent, listener, event)
+        end
+    end
+    view.inventoryListener = listener
 
     -- Native result tooltip; only real WoW item data can provide quality/stats.
     local outputHover = CreateFrame("Button", nil, frame)
