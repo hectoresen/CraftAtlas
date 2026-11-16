@@ -203,6 +203,14 @@ local function render()
         end
     end
     ns.UpdateExplorerPager(view.pager, page, pages)
+    -- Position the tracking section directly below the current ingredient page,
+    -- rather than marooning the summary against the bottom pager.
+    if view.trackerFooter then
+        local footerTop = -(#visible * 39 + 6)
+        view.trackerFooter:ClearAllPoints()
+        view.trackerFooter:SetPoint("TOPLEFT", view.itemList, "TOPLEFT", 0, footerTop)
+        view.trackerFooter:SetPoint("TOPRIGHT", view.itemList, "TOPRIGHT", 0, footerTop)
+    end
     updateIngredientSectionVisibility()
 end
 
@@ -334,9 +342,9 @@ function ns.InitRecipeDetail(parent)
     end)
 
     local trackerFooter = CreateFrame("Frame", nil, frame)
-    trackerFooter:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 15, 36)
-    trackerFooter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 36)
-    trackerFooter:SetHeight(42)
+    trackerFooter:SetPoint("TOPLEFT", itemList, "TOPLEFT", 0, -45)
+    trackerFooter:SetPoint("TOPRIGHT", itemList, "TOPRIGHT", 0, -45)
+    trackerFooter:SetHeight(38)
     view.trackerFooter = trackerFooter
 
     -- A separate native-style section, visually distinct from ingredient rows.
