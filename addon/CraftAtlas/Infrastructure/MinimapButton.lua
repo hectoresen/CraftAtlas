@@ -80,7 +80,6 @@ local function createButton()
     button = CreateFrame("Button", "CraftAtlasMinimapButton", minimap)
     button:SetSize(buttonSize, buttonSize)
     button:SetFrameStrata("MEDIUM")
-    positionButton(button, minimap, angle)
     button:RegisterForClicks("LeftButtonUp")
     button:RegisterForDrag("LeftButton")
 
@@ -146,7 +145,12 @@ function ns.InitMinimapButton()
     if not minimapButton then
         return false, "Minimap frame unavailable"
     end
-    minimapButton:Show()
+    if ns.GetDisplayPreference("showMinimapButton") then
+        positionButton(minimapButton, Minimap, savedAngle())
+        minimapButton:Show()
+    else
+        minimapButton:Hide()
+    end
     return true
 end
 

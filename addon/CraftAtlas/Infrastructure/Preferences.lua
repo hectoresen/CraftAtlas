@@ -1,5 +1,12 @@
 local _, ns = ...
 
+local displayDefaults = {
+    showMinimapButton = true,
+    showTooltipProfessions = true,
+    hideTooltipProfessionIcons = false,
+    tooltipProfessionsOnOneLine = false,
+}
+
 function ns.NormalizeLanguage(value)
     if value == "auto" or value == "enUS" or value == "esES" then
         return value
@@ -14,9 +21,24 @@ function ns.InitPreferences()
     CraftAtlasDB.version = 1
     CraftAtlasDB.language = ns.NormalizeLanguage(CraftAtlasDB.language)
     CraftAtlasDB.minimapAngle = tonumber(CraftAtlasDB.minimapAngle) or 45
+    for key, default in pairs(displayDefaults) do
+        if type(CraftAtlasDB[key]) ~= "boolean" then CraftAtlasDB[key] = default end
+    end
     if type(CraftAtlasDB.craftTracking) ~= "table" then CraftAtlasDB.craftTracking = {} end
     ns.state.preferences = CraftAtlasDB
     return CraftAtlasDB
+end
+
+function ns.GetDisplayPreference(key)
+    local preferences = ns.state.preferences
+    if preferences and type(preferences[key]) == "boolean" then return preferences[key] end
+    return displayDefaults[key]
+end
+
+function ns.SetDisplayPreference(key, value)
+    if displayDefaults[key] == nil or type(value) ~= "boolean" then return end
+    local preferences = ns.state.preferences or ns.InitPreferences()
+    preferences[key] = value
 end
 
 function ns.GetLanguage()

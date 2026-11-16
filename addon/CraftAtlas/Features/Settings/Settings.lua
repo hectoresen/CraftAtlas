@@ -11,6 +11,7 @@ local treeState = ns.NewProfessionTreeState and ns.NewProfessionTreeState()
 local unresolved = 0
 local scrollOffset = 0
 local currentView = "materials"
+local configurationOpen = false
 local selectedRecipe
 local switching = false
 local catalogGenerations = {materials = 0, recipes = 0}
@@ -27,8 +28,6 @@ local history = {}
 local switchView
 local ROW_HEIGHT = 38
 local VISIBLE_ROWS = 6
-local languageOptions = {"auto", "esES", "enUS"}
-local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
 
 local function font(parent, fontName)
     return parent:CreateFontString(nil, "OVERLAY", fontName)
@@ -315,7 +314,7 @@ local function refreshResults(resetOffset)
     for _, key in ipairs(results) do
         if key == selected then stillMatches = true break end
     end
-    if not stillMatches and not forcedSelection then
+    if not stillMatches and not forcedSelection and not (configurationOpen and selected) then
         selected = results[1]
         if currentView == "materials" then
             for _, entry in ipairs(treeEntries) do
@@ -335,6 +334,10 @@ end
 
 local function showCatalogProgress()
     if not ui.preparation then return end
+    if configurationOpen then
+        ui.preparation:SetProgress("complete", 100, "")
+        return
+    end
     local progress = currentView == "recipes" and
         (ns.GetRecipePreparation and ns.GetRecipePreparation()) or
         (currentView == "materials" and ns.GetMaterialPreparation and ns.GetMaterialPreparation())
@@ -390,43 +393,34 @@ function ns.GetCatalogPerformanceSnapshot()
     }
 end
 
-local function createLanguageMenu(header)
-    local native, nativeMenu, nativeChoices = ns.CreateExplorerNativeDropdown(
-        header, languageOptions, function(value) ns.SetLanguage(value) end, 108)
-    if native then
-        native:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 5, 2)
-        ui.language = native
-        ui.languageMenu = nativeMenu
-        ui.languageChoices = nativeChoices
-        return
-    end
-    local button = ns.CreateExplorerClassicButton(header)
-    button:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -10, 3)
-    button:SetSize(120, 28)
-    ns.AddExplorerDropdownArrow(button)
-    ui.language = button
+local function updateNavigation()
+    ui.materialsTab:SetText(ns.L("MATERIALS_HEADING"))
+    ui.recipesTab:SetText(ns.L("CRAFTABLES_HEADING"))
+    ui.configurationTab:SetText(ns.L("CONFIGURATION"))
+    ns.SetExplorerTabSelected(ui.materialsTab, not configurationOpen and currentView == "materials")
+    ns.SetExplorerTabSelected(ui.recipesTab, not configurationOpen and currentView == "recipes")
+    ns.SetExplorerTabSelected(ui.configurationTab, configurationOpen)
+    ui.back:SetText(ns.L("BACK"))
+    local canGoBack = configurationOpen or #history > 0
+    ui.back:SetEnabled(canGoBack)
+    ui.back:SetShown(canGoBack)
+    showCatalogProgress()
+end
 
-    local menu = CreateFrame("Frame", nil, panel)
-    menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -3)
-    menu:SetSize(124, 96)
-    menu:SetFrameLevel(header:GetFrameLevel() + 10)
-    paint(menu, 0.09, 0.08, 0.06, 0.98)
-    menu:Hide()
-    ui.languageMenu = menu
-    ui.languageChoices = {}
-    button:SetScript("OnClick", function()
-        if menu:IsShown() then menu:Hide() else menu:Show() end
-    end)
-    for index, value in ipairs(languageOptions) do
-        local choice = ns.CreateExplorerClassicButton(menu)
-        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
-        choice:SetSize(118, 28)
-        choice:SetScript("OnClick", function()
-            menu:Hide()
-            ns.SetLanguage(value)
-        end)
-        ui.languageChoices[value] = choice
+local function setConfigurationVisible(visible)
+    configurationOpen = visible
+    if visible then
+        ui.search:ClearFocus()
+        ui.language.CloseMenu()
+        ui.professionMenu:Hide()
+        if ns.HideRecipePanelTooltip then ns.HideRecipePanelTooltip() end
+        ui.configuration:Refresh()
     end
+    ui.browsingHeader:SetShown(not visible)
+    ui.left:SetShown(not visible)
+    ui.right:SetShown(not visible)
+    ui.configuration:SetShown(visible)
+    updateNavigation()
 end
 
 local function createProfessionMenu(left)
@@ -562,7 +556,10 @@ local function createPanel()
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
 
-    local search = ns.CreateExplorerSearchBox(header, function(value)
+    local browsingHeader = CreateFrame("Frame", nil, header)
+    browsingHeader:SetAllPoints()
+    ui.browsingHeader = browsingHeader
+    local search = ns.CreateExplorerSearchBox(browsingHeader, function(value)
         if switching or value == searchQuery then return end
         if value == "" and searchQuery ~= "" then ns.ClearProfessionTreeSearch(treeState) end
         if value ~= "" and searchQuery == "" then ns.ClearProfessionTreeSearch(treeState) end
@@ -572,9 +569,9 @@ local function createPanel()
     end)
     search:SetSize(math.max(130, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
     search:ClearAllPoints()
-    search:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 13, 3)
+    search:SetPoint("BOTTOMLEFT", browsingHeader, "BOTTOMLEFT", 13, 3)
     ui.search = search
-    local hint = font(header, "GameFontDisableSmall")
+    local hint = font(browsingHeader, "GameFontDisableSmall")
     hint:SetPoint("LEFT", search, "LEFT", 7, 0)
     hint:SetText(ns.L("SEARCH_PLACEHOLDER"))
     hint:SetTextColor(0.70, 0.67, 0.60)
@@ -599,7 +596,15 @@ local function createPanel()
     end)
     ui.clear = clear
     ui.clearIcon = clear.icon
-    createLanguageMenu(header)
+    ui.language = ns.CreateExplorerLanguageSelector(browsingHeader)
+
+    -- The frame's top strip has room for Configuration at the minimum width,
+    -- above the search header and separate from the catalog progress toolbar.
+    local configurationTab = ns.CreateExplorerClassicButton(panel)
+    configurationTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -7)
+    configurationTab:SetSize(136, 24)
+    configurationTab:SetScript("OnClick", function() setConfigurationVisible(not configurationOpen) end)
+    ui.configurationTab = configurationTab
 
     local materialsTab = ns.CreateExplorerClassicButton(panel)
     materialsTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -101)
@@ -613,6 +618,10 @@ local function createPanel()
     back:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -22, -101)
     back:SetSize(76, 26)
     back:SetScript("OnClick", function()
+        if configurationOpen then
+            setConfigurationVisible(false)
+            return
+        end
         local entry = table.remove(history)
         if entry then
             switchView(entry.view, entry.selected, true, true)
@@ -690,6 +699,7 @@ local function createPanel()
     ns.InitRecipePanel(right, panel:GetHeight() - 167)
     ns.InitRecipeDetail(right)
     ui.right = right
+    ui.configuration = ns.CreatePreferencesPanel(panel)
 
     local version = ns.GetInstalledReleaseVersion(ns.name)
     if version then
@@ -711,7 +721,7 @@ local function createPanel()
         end
     end)
     panel:SetScript("OnHide", function()
-        ui.languageMenu:Hide()
+        ui.language.CloseMenu()
         ui.professionMenu:Hide()
         ui.search:ClearFocus()
         if ns.HideRecipePanelTooltip then ns.HideRecipePanelTooltip() end
@@ -744,21 +754,18 @@ local function showActiveDetail()
     end
     if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
     ns.ShowRecipeDetailView(not material)
-    ui.materialsTab:SetText(ns.L("MATERIALS_HEADING"))
-    ui.recipesTab:SetText(ns.L("CRAFTABLES_HEADING"))
-    ns.SetExplorerTabSelected(ui.materialsTab, material)
-    ns.SetExplorerTabSelected(ui.recipesTab, not material)
-    ui.back:SetText(ns.L("BACK"))
-    ui.back:SetEnabled(#history > 0)
-    if #history > 0 then ui.back:Show() else ui.back:Hide() end
     ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
     ui.resultsHeading:SetText(ns.L(material and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
-    showCatalogProgress()
+    updateNavigation()
 end
 
 switchView = function(target, direct, fromBack)
     if not panel then return end
     if target ~= "recipes" then target = "materials" end
+    if configurationOpen then
+        setConfigurationVisible(false)
+        if target == currentView and not direct then return end
+    end
     viewState[currentView] = {
         query = searchQuery, profession = selectedProfession,
         selected = currentView == "recipes" and selectedRecipe or selectedID,
@@ -823,19 +830,11 @@ function ns.RefreshSettings()
     if not panel then return end
     ui.title:SetText(ns.L("TITLE"))
     showActiveDetail()
-    ui.searchHint:SetText(ns.L(currentView == "materials"
-        and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
-    ui.resultsHeading:SetText(ns.L(currentView == "materials"
-        and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
     ui.professionUses.section:Refresh()
-    showCatalogProgress()
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
-    ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
-    local current = ns.GetLanguage()
-    for _, value in ipairs(languageOptions) do
-        ui.languageChoices[value]:SetText((current == value and "> " or "   ") .. ns.L(languageLabels[value]))
-    end
+    ui.language.Refresh()
+    ui.configuration:Refresh()
     ui.professionChoices[""]:SetText(ns.L("ALL_PROFESSIONS"))
     for _, key in ipairs(ns.professionOrder or {}) do
         ui.professionChoices[key]:SetText(labelProfession(key))
@@ -845,6 +844,7 @@ end
 
 function ns.OpenSettings(itemID)
     createPanel()
+    if configurationOpen then setConfigurationVisible(false) end
     if currentView ~= "materials" then switchView("materials") end
     if ns.IsVerifiedReagent(itemID) then
         currentView = "materials"

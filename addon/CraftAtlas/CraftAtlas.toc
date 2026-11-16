@@ -30,6 +30,7 @@ Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua
 Features/Settings/Shared/ExplorerWidgets.lua
+Features/Settings/PreferencesPanel.lua
 Features/Settings/RecipePanel.lua
 Features/Settings/RecipesView.lua
 Features/Settings/Settings.lua

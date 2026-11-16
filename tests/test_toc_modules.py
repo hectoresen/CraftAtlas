@@ -26,6 +26,12 @@ class TocModuleTests(unittest.TestCase):
             "Settings.lua requires ns.InitRecipePanel defined by RecipePanel.lua",
         )
 
+    def test_configuration_panel_loads_between_shared_widgets_and_settings(self):
+        toc = (ADDON / "CraftAtlas.toc").read_text(encoding="utf-8").splitlines()
+        panel = toc.index("Features/Settings/PreferencesPanel.lua")
+        self.assertLess(toc.index("Features/Settings/Shared/ExplorerWidgets.lua"), panel)
+        self.assertLess(panel, toc.index("Features/Settings/Settings.lua"))
+
 
 if __name__ == "__main__":
     unittest.main()

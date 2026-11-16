@@ -16,11 +16,12 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 | `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua`, `RecipeNameCache.lua` | Guarded asynchronous client item/spell names/icons and native tooltips |
 | `Infrastructure/ChatLinks.lua` | Guarded client-provided item/spell hyperlinks, Shift-click detection and native chat-edit insertion without sending |
 | `Infrastructure/InventoryCounts.lua` | Guarded character bag counts, bank-open freshness gating and separate bag/bank observations |
-| `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and native, alphabetized profession rows with localized labels |
-| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference, per-character recipe tracking and movable minimap access |
+| `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and configurable localized profession annotations |
+| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Account-wide display preferences and movable minimap access; character-scoped recipe tracking preferences |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |
 | `Features/Settings/Settings.lua` | Single native window, tabs, state, selected details, cross-view navigation, working close |
-| `Features/Settings/Shared/ExplorerWidgets.lua` | Reusable native search box, profession selector, result row, pager and layout helpers |
+| `Features/Settings/Shared/ExplorerWidgets.lua` | Reusable native search box, language and profession selectors, result row, pager and layout helpers |
+| `Features/Settings/PreferencesPanel.lua` | General and Tooltip controls shown within the explorer window |
 | `Features/Settings/RecipePanel.lua` | Material-detail bounded native vertical fabrication-use rows with pagination |
 | `Features/Settings/RecipesView.lua` | Fabricables detail with ingredient pagination, item hover, localized optional tracker, current inventory counts and bounded native progress bars |
 
@@ -30,7 +31,9 @@ The loading order is declared in `addon/CraftAtlas/CraftAtlas.toc`; all addon ru
 
 The minimap adapter projects the pointer angle onto the circular edge in the minimap's own scale. It samples the pointer only during a drag and once more on release, then stores the angle in the existing account-wide preferences. Missing geometry or a centered pointer preserves the last valid angle. A drag suppresses clicks from its own gesture; the next left-button press starts a new gesture. Hover resolves the title and two control hints in the active locale each time.
 
-Material item tooltips render after the native item lines on the existing `TooltipDataProcessor` path. The presenter reads the CraftAtlas catalog by itemID and appends a separator, the native gold `Used in:` / `Utilizado en:` heading, and one white row per consuming profession. It tracks native clears per tooltip to keep repeat callbacks idempotent and uses the line count and hide hook when the clear script is unavailable. The Spanish tooltip uses `Costura` for Tailoring to match the reference presentation. The explorer uses its existing registry label, `Sastrería`.
+Configuration replaces the browsing panes within the same window while retaining the active view and its Back history. General and the browsing header use the same language selector implementation and read the same saved preference. On initialization, `Preferences.lua` defaults each missing or invalid display flag independently and keeps explicit false values. The minimap visibility preference is applied to the existing button immediately and on load; restoring visibility reapplies the saved angle.
+
+Material item tooltips render after the native item lines on the existing `TooltipDataProcessor` path. When enabled, the presenter reads the CraftAtlas catalog by itemID and appends a separator, the native gold `Used in:` / `Utilizado en:` heading, and the alphabetized professions in white. It renders one row per profession by default or one comma-separated native line that the client can wrap. The icon setting applies to either layout. The presenter tracks native clears per tooltip to keep repeat callbacks idempotent and uses the number of lines added and the hide hook when the clear script is unavailable. The Spanish tooltip uses `Costura` for Tailoring to match the reference presentation. The explorer uses its existing registry label, `Sastrería`.
 
 The 14 × 14 inline icons use native `SkillLine.SpellIconFileID` identifiers from Forever build `1.60.1.70938`, documented by Profession Reagents 1.0.0 (MIT, copyright 2026 sebasgrios). Detected missing icons fall back to text. [Pinned Profession Reagents reference](https://github.com/sebasgrios/profession-util/tree/66555a5c5c1d4ad3d3c2f8d5d0982beb2b23a4b8/addons/ProfessionReagents) · [CraftAtlas catalog provenance](DATA_MODEL.md)
 

@@ -11,6 +11,11 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Addon configuration
+
+- Added a localized Configuration view inside the explorer with shared language selection and an account-wide minimap visibility toggle. Back restores the prior browsing view, and a hidden minimap button can be restored at its saved angle from `/craftatlas`.
+- Made the consuming-profession annotation optional and added independent icon visibility and comma-separated layout choices. Existing installations retain the default appearance and their saved language and minimap position.
+
 ### Craftable material tracking (implementation candidate; not merged)
 
 - Native per-ingredient and total status bars now use amber for partially covered quantities and green only when all confirmed required units are covered; zero stock renders an empty track.

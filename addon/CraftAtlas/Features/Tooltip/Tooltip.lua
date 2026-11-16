@@ -36,7 +36,7 @@ local function trackAnnotation(tooltip)
     return annotation
 end
 
-local function formatProfessions(keys)
+local function formatProfessions(keys, hideIcons)
     local rows = {}
     for index, key in ipairs(keys) do
         local name = key == "TAILORING" and ns.L("MATERIAL_TOOLTIP_TAILORING") or ns.ProfessionLabel(key)
@@ -47,7 +47,12 @@ local function formatProfessions(keys)
         if left.order == right.order then return left.key < right.key end
         return left.order < right.order
     end)
-    return rows
+    local entries = {}
+    for index, row in ipairs(rows) do
+        local prefix = not hideIcons and iconPrefixes[row.key] or ""
+        entries[index] = prefix .. row.name
+    end
+    return entries
 end
 
 local function isReadableTable(value)
@@ -57,6 +62,7 @@ local function isReadableTable(value)
 end
 
 local function onItemTooltip(tooltip, data)
+    if not ns.GetDisplayPreference("showTooltipProfessions") then return end
     if not isReadableTable(tooltip) or type(tooltip.AddLine) ~= "function" then return end
     if type(tooltip.IsForbidden) == "function" and tooltip:IsForbidden() then return end
     if not isReadableTable(data) then return end
@@ -75,16 +81,19 @@ local function onItemTooltip(tooltip, data)
     if annotation.rendered
         and (not count or not annotation.lineCount or count >= annotation.lineCount) then return end
 
-    local rows = formatProfessions(keys)
+    local entries = formatProfessions(keys, ns.GetDisplayPreference("hideTooltipProfessionIcons"))
+    local compact = ns.GetDisplayPreference("tooltipProfessionsOnOneLine")
     local gold = NORMAL_FONT_COLOR
     tooltip:AddLine(" ")
     tooltip:AddLine(ns.L("MATERIAL_TOOLTIP_HEADING"), gold and gold.r or 1, gold and gold.g or 0.82,
         gold and gold.b or 0)
-    for _, row in ipairs(rows) do
-        tooltip:AddLine((iconPrefixes[row.key] or "") .. row.name, 1, 1, 1)
+    if compact then
+        tooltip:AddLine(table.concat(entries, ", "), 1, 1, 1, true)
+    else
+        for _, entry in ipairs(entries) do tooltip:AddLine(entry, 1, 1, 1) end
     end
     annotation.rendered = true
-    annotation.lineCount = count and count + 2 + #rows or nil
+    annotation.lineCount = count and count + 2 + (compact and 1 or #entries) or nil
 end
 
 function ns.InitTooltip()
