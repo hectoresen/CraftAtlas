@@ -13,6 +13,8 @@
 
 ## Diagnostics and limitations
 
+The small header bar briefly reports local preparation attempts for the active Materiales or Fabricables view. It hides after those attempts finish, even if WoW cannot resolve certain names. It does not download or synchronize a database. Run `/craftatlas perf` to print local per-session operation counts for performance diagnostics, not FPS results.
+
 For Lua errors, run `/console scriptErrors 1`, then `/reload`. For bug reports include the game build (`/dump select(4, GetBuildInfo())`), language, material/recipe ID and steps. The `.toc` declares `## Interface: 16001`; the exact tested build is not recorded in the repository.
 
 The bundled offline source has 593 reagent itemIDs, ten professions, 8,455 reagent uses and 2,506 unique recipes from an MIT-licensed Forever 1.60.1.69977 beta database. It does not require a runtime network connection or the source addon. Some client-cached names may be unavailable; the search shows incomplete/unknown states rather than inventing data. Unknown material itemIDs are not annotated. Real craftability, learned recipes, item availability and full server coverage are **not** inferred.
