@@ -62,9 +62,9 @@ local rows={buttons[2],buttons[3],buttons[4],buttons[5],buttons[6]}
 local previous,nextButton=buttons[7],buttons[8]
 ns.RefreshRecipePanel(159)
 section.OnClick(section)
-assert(not rows[1].shown, "collapsing use section hides rows")
+assert(not rows[1].parent.shown, "collapsing use section hides the row container")
 section.OnClick(section)
-assert(rows[1].shown, "expanding use section restores rows")
+assert(rows[1].parent.shown, "expanding use section restores the row container")
 for i=1,4 do
     assert(rows[i].shown,"first page shows bounded vertical rows")
     assert(rows[i].icon.texture==1100+i,"one output icon per row")
