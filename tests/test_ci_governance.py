@@ -23,6 +23,35 @@ class WorkflowGovernanceTests(unittest.TestCase):
         self.assertIn("set -euo pipefail", ci)
         self.assertIn("test \"$count\" -gt 0", ci)
 
+    def test_expensive_jobs_only_run_for_code(self):
+        ci = source(".github/workflows/ci.yml")
+        self.assertIn("name: classify-pr", ci)
+        self.assertIn("mode=spec", ci)
+        self.assertIn("mode=docs", ci)
+        self.assertIn("mode=code", ci)
+        self.assertIn("openspec/changes/*|openspec/specs/*", ci)
+        self.assertIn("*.md|*.txt|CODEOWNERS", ci)
+        self.assertEqual(
+            ci.count("if: needs.classify.outputs.mode == 'code'\n    runs-on:"),
+            2,
+            "both Lua jobs must be skipped for documentation/spec-only changes",
+        )
+        self.assertIn("if: needs.classify.outputs.mode == 'spec'", ci)
+        self.assertIn("if: needs.classify.outputs.mode == 'docs'", ci)
+        self.assertIn("if: always()", ci)
+        self.assertIn('test "$CLASSIFY_RESULT" = success', ci)
+        self.assertIn('test "$total" -gt 0', ci)
+        self.assertIn("if (( code == 0 ))", ci)
+        self.assertIn('if: needs.classify.outputs.mode == \'code\' && github.event_name == \'pull_request\'', ci)
+        self.assertIn('test "$failures" -eq 0', ci)
+
+    def test_sdd_only_installs_openspec_when_relevant(self):
+        sdd = source(".github/workflows/spec-compliance.yml")
+        self.assertIn("Determine whether full OpenSpec CLI validation is needed", sdd)
+        self.assertIn("openspec/*|*.lua|*.py|*.sh|*.yml|*.yaml|CODEOWNERS|AGENTS.md|skills/*", sdd)
+        self.assertEqual(sdd.count("if: steps.changed.outputs.validate == 'true'"), 3)
+        self.assertIn("python3 scripts/validate_sdd.py", sdd)
+
     def test_untrusted_pr_workflow_is_readonly(self):
         for path in (".github/workflows/ci.yml",
                      ".github/workflows/spec-compliance.yml"):
