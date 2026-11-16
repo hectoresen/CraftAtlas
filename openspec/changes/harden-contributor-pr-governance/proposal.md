@@ -35,7 +35,7 @@ Existing owner-only release workflow remains guarded by initiating and triggerin
 - Enhance Python repository tests, generated-data drift checks, source license and packaging regression checks; preserve the current release-readiness parity and SDD checks.
 - Distinguish governance/spec-only, docs-only and implementation PRs; do not force user-facing README edits where no user-visible behavior changed. **But functional PRs must update README/changelog/affected docs or provide a substantive, verifiable no-change rationale**.
 - Require consistent PR metadata: OpenSpec phase/approved spec, documentation attestation, tests actually run, Forever NOT RUN when applicable, rollback and requested owner decision.
-- Optional `.github/CODEOWNERS` can request review from `@hectoresen` for workflows, agent protocol, scripts and core functionality; it cannot make a PR author approve their own work and does not replace ruleset enforcement.
+- Optional root `CODEOWNERS` can request review from `@hectoresen` for workflows, agent protocol, scripts and core functionality; it cannot make a PR author approve their own work and does not replace ruleset enforcement.
 - Never execute third-party PR code with privileged `pull_request_target` write tokens. Set minimum GitHub Actions permissions, avoid unreviewed external action code execution and pin/check tool versions where practical.
 - Maintain native WoW Forever/Lua 5.1 compatibility. Do not change addons' feature semantics, licensed catalog or official release tags.
 
