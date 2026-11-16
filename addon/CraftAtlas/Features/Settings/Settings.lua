@@ -108,14 +108,12 @@ local function updateRows()
         if entry and not itemID then
             row.itemID = nil
             row.groupKey = entry.group
-            row.name:SetText((treeState.searchOverrides[entry.group] == false
-                or (searchQuery == "" and treeState.expanded[entry.group] == false))
-                and ("+ " .. labelProfession(entry.group)) or ("- " .. labelProfession(entry.group)))
-            row.professions:SetText(string.format(ns.L("PROFESSION_GROUP_COUNT"), entry.count))
-            row.icon:Hide()
-            row.highlight:Hide()
+            local collapsed = (searchQuery ~= "" and treeState.searchOverrides[entry.group] == false)
+                or (searchQuery == "" and treeState.expanded[entry.group] == false)
+            ns.StyleExplorerGroupRow(row, labelProfession(entry.group), entry.count, not collapsed)
             row:Show()
         elseif itemID then
+            ns.StyleExplorerItemRow(row)
             row.groupKey = nil
             local name, icon, subtitle
             if currentView == "recipes" then
