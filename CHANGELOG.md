@@ -25,6 +25,11 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 - Fix SDD validation for approved legacy proposals #43, #44 and #46 that merged after the naming policy rollout, and parse PR declarations with Windows line endings.
 
+### Minimap button interaction
+
+- Keep the minimap button on the circular edge throughout a drag and restore the release angle on reload.
+- Open the explorer on the first ordinary left-click after a drag and show separate localized open and move instructions on hover.
+
 ### Native chat linking and craftable detail icon (implementation awaiting owner merge)
 
 - Added Shift + left-click support for client-native item/spell links in clickable Materiales/Fabricables rows, uses, ingredients and detail icon/title surfaces; normal navigation remains unchanged.
