@@ -110,11 +110,11 @@ local uiNs = {
             esES = {TRACK_CRAFTING="Seguir fabricación", TRACK_PROGRESS="Progreso de materiales",
                 TRACK_INCLUDE_BANK="Incluir banco", TRACK_BANK_UNAVAILABLE="Banco no disponible",
                 RECIPE_INGREDIENT_COUNT="Materiales necesarios (%d)",
-                TRACK_INGREDIENT_STATUS="%d/%d · Faltan %d", RECIPE_PAGE_STATUS="Página %d / %d"},
+                TRACK_INGREDIENT_STATUS="%d/%d · Faltan %d", TRACK_STOCK_BAGS="Bolsas: %d  |  Banco: no  |  Necesitas: %d  |  Faltan: %d", TRACK_STOCK_BANK="Bolsas: %d  |  Banco: %d  |  Necesitas: %d  |  Faltan: %d", RECIPE_PAGE_STATUS="Página %d / %d"},
             enUS = {TRACK_CRAFTING="Track crafting", TRACK_PROGRESS="Material progress",
                 TRACK_INCLUDE_BANK="Include bank", TRACK_BANK_UNAVAILABLE="Bank unavailable",
                 RECIPE_INGREDIENT_COUNT="Ingredients (%d)",
-                TRACK_INGREDIENT_STATUS="%d/%d · Missing %d", RECIPE_PAGE_STATUS="Page %d / %d"}
+                TRACK_INGREDIENT_STATUS="%d/%d · Missing %d", TRACK_STOCK_BAGS="Bags: %d  |  Bank: off  |  Need: %d  |  Missing: %d", TRACK_STOCK_BANK="Bags: %d  |  Bank: %d  |  Need: %d  |  Missing: %d", RECIPE_PAGE_STATUS="Page %d / %d"}
         }
         return strings[uiLocale][key] or key
     end,
@@ -172,11 +172,24 @@ local function labelFound(value)
     return false
 end
 assert(labelFound("Seguir fabricación"),"Spanish tracker label")
+assert(labelFound("Bolsas: 0  |  Banco: no  |  Necesitas: 2  |  Faltan: 2"),
+    "visible item counts must identify bag stock and missing quantity")
 uiLocale="enUS"
 uiNs.RefreshRecipeDetail()
 assert(labelFound("Track crafting"),"checkbox text updates on locale change")
 assert(labelFound("Include bank"),"bank label updates on locale change")
 assert(labelFound("Ingredients (2)"),"ingredient section updates on locale change")
 assert(labelFound("Material progress: 0%"),"progress title updates on locale change")
+assert(labelFound("Bags: 0  |  Bank: off  |  Need: 2  |  Missing: 2"),
+    "English item status updates on locale change")
+uiNs.ReadCraftInventoryCount = function(id)
+    return {bags = id == 3 and 4 or 1, available = id == 3 and 4 or 1,
+        bankStatus = "excluded"}
+end
+uiNs.RefreshRecipeDetail()
+assert(labelFound("Bags: 4  |  Bank: off  |  Need: 2  |  Missing: 0"),
+    "actual bag stock must not be capped to required quantity")
+assert(labelFound("Material progress: 60%"),
+    "weighted progress reflects available recipe ingredient units")
 print("Craftable tracking localized native UI regression PASS")
 
