@@ -28,8 +28,8 @@ end
 
 local function newTooltip(supportsClear)
     local tooltip = { lines = {}, scripts = {} }
-    function tooltip:AddLine(text, r, g, b)
-        self.lines[#self.lines + 1] = { text, r, g, b }
+    function tooltip:AddLine(text, r, g, b, wrap)
+        self.lines[#self.lines + 1] = { text, r, g, b, wrap }
     end
     function tooltip:NumLines() return #self.lines end
     function tooltip:HasScript(script) return supportsClear and script == "OnTooltipCleared" end
@@ -99,6 +99,45 @@ assertProfession(tooltip, 7, "Primeros auxilios", 135966)
 assert(ns.ProfessionLabel("TAILORING") == "Sastrería")
 assert(ns.L("USED_BY") == "Utilizado en profesiones")
 
+local spanishEntries = {"Costura", "Herrería", "Ingeniería", "Primeros auxilios"}
+local orderedIcons = {136249, 136241, 136243, 135966}
+for _, compact in ipairs({false, true}) do
+    for _, hideIcons in ipairs({false, true}) do
+        ns.SetDisplayPreference("tooltipProfessionsOnOneLine", compact)
+        ns.SetDisplayPreference("hideTooltipProfessionIcons", hideIcons)
+        tooltip:rebuild()
+        onItem(tooltip, linen)
+        onItem(tooltip, linen)
+        assert(#tooltip.lines == (compact and 4 or 7))
+        assertLine(tooltip, 3, "Utilizado en:", 0.96, 0.81, 0.1)
+        if compact then
+            local entries = {}
+            for index, name in ipairs(spanishEntries) do
+                entries[index] = (hideIcons and "" or ("|T%d:14:14:0:0|t "):format(orderedIcons[index])) .. name
+            end
+            assertLine(tooltip, 4, table.concat(entries, ", "), 1, 1, 1)
+            assert(tooltip.lines[4][5] == true, "compact text allows native wrapping")
+        else
+            for index, name in ipairs(spanishEntries) do
+                assertProfession(tooltip, index + 3, name, not hideIcons and orderedIcons[index])
+            end
+        end
+    end
+end
+tooltip:rebuild()
+tooltip.primary = nil
+onItem(tooltip, {id = 25})
+assert(#tooltip.lines == 1, "unknown items stay unannotated in compact mode")
+ns.SetDisplayPreference("showTooltipProfessions", false)
+onItem(tooltip, linen)
+assert(#tooltip.lines == 1)
+assertLine(tooltip, 1, "Native item name")
+ns.SetDisplayPreference("showTooltipProfessions", true)
+onItem(tooltip, linen)
+assertLine(tooltip, 4, "Costura, Herrería, Ingeniería, Primeros auxilios", 1, 1, 1)
+ns.SetDisplayPreference("tooltipProfessionsOnOneLine", false)
+ns.SetDisplayPreference("hideTooltipProfessionIcons", false)
+
 ns.SetLanguage("auto")
 locale = "frFR"
 tooltip:rebuild()
@@ -124,7 +163,7 @@ NORMAL_FONT_COLOR = nil
 C_Texture = { GetFilenameFromFileDataID = function(id)
     if id ~= 136248 then return "Interface/Icons/profession" end
 end }
-local _, onFallbackItem = boot()
+local fallbackNs, onFallbackItem = boot()
 local fallback = newTooltip(false)
 onFallbackItem(fallback, linen)
 fallback:AddLine("Additional native content")
@@ -139,5 +178,15 @@ fallback.scripts.OnHide(fallback)
 fallback:rebuild()
 onFallbackItem(fallback, copper)
 assert(#fallback.lines == 4)
+
+fallbackNs.SetDisplayPreference("tooltipProfessionsOnOneLine", true)
+fallback:rebuild()
+onFallbackItem(fallback, linen)
+onFallbackItem(fallback, linen)
+assert(#fallback.lines == 4, "fallback suppression counts one compact profession line")
+fallback:rebuild()
+onFallbackItem(fallback, copper)
+assert(#fallback.lines == 4)
+assertProfession(fallback, 4, "Mining")
 
 print("Material tooltip presentation and lifecycle PASS")

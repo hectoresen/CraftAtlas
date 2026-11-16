@@ -26,6 +26,14 @@ class TocModuleTests(unittest.TestCase):
             "Settings.lua requires ns.InitRecipePanel defined by RecipePanel.lua",
         )
 
+    def test_native_options_modules_load_before_bootstrap(self):
+        toc = (ADDON / "CraftAtlas.toc").read_text(encoding="utf-8").splitlines()
+        panel = toc.index("Features/Settings/PreferencesPanel.lua")
+        bootstrap = toc.index("Core/Bootstrap.lua")
+        self.assertLess(toc.index("Features/Settings/Shared/ExplorerWidgets.lua"), panel)
+        self.assertLess(panel, bootstrap)
+        self.assertLess(toc.index("Infrastructure/AddonSettings.lua"), bootstrap)
+
 
 if __name__ == "__main__":
     unittest.main()
