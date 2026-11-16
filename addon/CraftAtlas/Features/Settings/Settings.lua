@@ -57,6 +57,7 @@ local function showDetail()
     ui.detailIcon:Hide()
     if not valid then
         ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
+        ui.detailTitle:SetTextColor(1, 0.82, 0.30)
         ui.detailMeta:SetText("")
         ui.detailID:SetText("")
         ui.detailProfessions:SetText("")
@@ -80,6 +81,13 @@ local function showDetail()
         end
     end
     ui.detailMeta:SetText(table.concat(details, "  |  "))
+    local colors = type(ITEM_QUALITY_COLORS) == "table" and ITEM_QUALITY_COLORS or nil
+    local qualityColor = metadata and colors and colors[metadata.quality]
+    if qualityColor and qualityColor.r and qualityColor.g and qualityColor.b then
+        ui.detailTitle:SetTextColor(qualityColor.r, qualityColor.g, qualityColor.b)
+    else
+        ui.detailTitle:SetTextColor(1, 0.82, 0.30)
+    end
     ui.detailHeading:SetText(ns.L("USED_BY"))
     local keys = ns.FindProfessions(itemID, ns.materials, ns.professionOrder)
     local professions = {}
