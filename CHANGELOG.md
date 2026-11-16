@@ -11,6 +11,18 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Craftable material tracking (implementation candidate; not merged)
+
+- Native per-ingredient and total status bars now use amber for partially covered quantities and green only when all confirmed required units are covered; zero stock renders an empty track.
+
+- Corrected an open-bank inventory discrepancy observed by the maintainer: count actual character-bank and bank-bag slots before falling back to aggregate item-count APIs; multiple bank stacks accumulate by itemID. Bank-contents-in-client retest is pending.
+
+- Optional per-character, per-recipe Fabricables tracking toggle and unit-weighted ingredients progress; displays needed versus current bags and missing quantities, with native bars and paged ingredient rows.
+- Conditional bank breakdown only when the bank is open and the client can return consistent counts; closed/unsupported bank availability is explicitly unknown, never silently reused or counted.
+- Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; live Forever client acceptance is NOT RUN.
+- Rebuilt Material progress as a distinct, compact paged list beneath untouched Ingredients: separate native Blizzard StatusBars for each ingredient and total, visible numeric available/required counts at 0%, localized missing quantities and bank opt-in. Verified-zero bank amounts remain zero, while unavailable closed-bank stock prompts a bank refresh. These corrections await fresh Forever verification. The progress bars now use Blizzard's native StatusBar fill plus Blizzard tooltip-border/backdrop textures; their empty backdrop contrast was increased and the compact row heights tuned to show three ingredients and three tracker bars together at 440px logical detail height. These remain pending in-game retest.
+
+
 - Fix SDD validation for approved legacy proposals #43, #44 and #46 that merged after the naming policy rollout, and parse PR declarations with Windows line endings.
 
 ### Minimap button interaction

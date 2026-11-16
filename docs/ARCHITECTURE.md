@@ -11,16 +11,18 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 | `Domain/MaterialLookup.lua`, `MaterialSearch.lua`, `ProfessionTree.lua` | Source-backed filtering, stable profession grouping and pure expand/search-restore projection |
 | `Domain/RecipeUsage.lua` | Material → actual recipe uses and pure pagination |
 | `Domain/RecipeCatalog.lua` | Unique profession+spellID recipe identity, ingredient detail and recipe search |
+| `Domain/CraftableTracking.lua` | Pure unit-weighted ingredient coverage, unknown-count semantics and duplicate material consolidation |
 | `Domain/CatalogProgress.lua` | Pure per-view attempted-unit percentages and a one-pending-redraw coalescing gate |
 | `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua`, `RecipeNameCache.lua` | Guarded asynchronous client item/spell names/icons and native tooltips |
 | `Infrastructure/ChatLinks.lua` | Guarded client-provided item/spell hyperlinks, Shift-click detection and native chat-edit insertion without sending |
+| `Infrastructure/InventoryCounts.lua` | Guarded character bag counts, bank-open freshness gating and separate bag/bank observations |
 | `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and native, alphabetized profession rows with localized labels |
-| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference and movable minimap access |
+| `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference, per-character recipe tracking and movable minimap access |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |
 | `Features/Settings/Settings.lua` | Single native window, tabs, state, selected details, cross-view navigation, working close |
 | `Features/Settings/Shared/ExplorerWidgets.lua` | Reusable native search box, profession selector, result row, pager and layout helpers |
 | `Features/Settings/RecipePanel.lua` | Material-detail bounded native vertical fabrication-use rows with pagination |
-| `Features/Settings/RecipesView.lua` | Fabricables detail with complete known inputs, item hover and ingredient pagination |
+| `Features/Settings/RecipesView.lua` | Fabricables detail with ingredient pagination, item hover, localized optional tracker, current inventory counts and bounded native progress bars |
 
 The loading order is declared in `addon/CraftAtlas/CraftAtlas.toc`; all addon runtime files belong under `addon/CraftAtlas/`, not in `docs/`.
 

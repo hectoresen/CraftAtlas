@@ -17,8 +17,10 @@ Data/RecipeUses.lua
 Data/Recipes.lua
 Domain/RecipeUsage.lua
 Domain/RecipeCatalog.lua
+Domain/CraftableTracking.lua
 Localization/Locales.lua
 Infrastructure/Preferences.lua
+Infrastructure/InventoryCounts.lua
 Localization/ProfessionLabels.lua
 Infrastructure/ItemInfo.lua
 Infrastructure/RecipeInfo.lua
