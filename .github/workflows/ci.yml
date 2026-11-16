@@ -5,6 +5,9 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   repository-validation:
     runs-on: ubuntu-latest
@@ -26,3 +29,42 @@ jobs:
         run: |
           git fetch origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
           python3 scripts/validate_documentation.py --base "origin/$BASE_REF" --head HEAD --event "$GITHUB_EVENT_PATH"
+
+  lua-compatibility:
+    name: lua-compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the Forever-compatible Lua parser
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          luac5.1 -v
+      - name: Parse every addon and test Lua module
+        run: |
+          set -euo pipefail
+          find addon/CraftAtlas tests -type f -name '*.lua' -print0 |
+            xargs -0 -r -n 1 luac5.1 -p
+
+  lua-regressions:
+    name: lua-regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          lua5.1 -v
+      - name: Execute every isolated Lua fixture (fail on any error)
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r -d '' file; do
+            echo "::group::$file"
+            lua5.1 "$file"
+            echo "::endgroup::"
+            count=$((count + 1))
+          done < <(find tests -maxdepth 1 -type f -name 'test_*.lua' -print0 | sort -z)
+          test "$count" -gt 0
+          echo "PASS: $count isolated Lua 5.1 fixtures"
