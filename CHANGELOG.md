@@ -28,6 +28,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 
 - Fix SDD validation for approved legacy proposals #43, #44 and #46 that merged after the naming policy rollout, and parse PR declarations with Windows line endings.
+- Declare **Professions** (enUS) and **Profesiones** (esES) for CraftAtlas in the native AddOns list, with the same blacksmithing texture path as the minimap button. Packaged metadata verified locally; see the [in-game test evidence](docs/TESTING.md#native-addons-list-registration).
 
 ### Minimap button interaction
 
