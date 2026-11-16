@@ -47,7 +47,7 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 - Inspect Fabricables by spell/name, crafted-output name, numeric ID and profession; distinguish missing spell name cache from genuine empty results.
 - Compare every ingredient and quantity for a selected verified recipe to the current live client (e.g., spell 19093 consumes items 14044, 14341 and 15410 in the pinned source). Confirm correct enchantment/non-item fallback.
 - Verify native tooltip data for items and recipes; no fabricated quality, stats or learned/craftable status.
-- Verify material → craftable → ingredient → material navigation, Back history, preserved searches, languages, clear-search broom (client item/spell icon resolution, empty state and native action fallback), installed release version/hidden development version and X close/reopen from minimap and slash.
+- Verify material → craftable → ingredient → material navigation, Back history, preserved searches, languages, clear-search broom (asset visibility without item-cache metadata, empty state and safe fallback), installed release version/hidden development version and X close/reopen from minimap and slash.
 - Test separate tooltip origins (bags, bank, guild bank, chat, auction, vendor, mail, quest rewards and crafting); record each as PASS/FAIL/NOT RUN.
 - Check source licenses/provenance, current-server recipe mapping and any known gaps before claiming live completeness.
 
@@ -62,3 +62,7 @@ Record build, screenshots, IDs, locale, UI scale, commands executed, results and
 ## In-game defect: opening material detail (owner report, 2026-11-16)
 
 The owner reported a reproducible Lua error opening the redesigned explorer: `Settings.lua:159: attempt to index field 'detailHeading' (a nil value)` with selected material itemID 765. The obsolete heading was removed when `createProfessionDetail()` replaced it. The implementation branch now refreshes `ui.professionUses.section` instead and includes `tests/test_explorer_detail_contract.py` to detect stale frame references. **Fix in Forever: NOT RUN**, awaiting owner retest; CI and local test evidence are separate.
+
+## Owner visual comparison: second in-game capture (2026-11-16)
+
+The owner confirmed the post-crash revision opens and displays a selected material, but does **not** accept the overall visual fidelity to the reference. Observed on the provided capture: a clipped border emblem, an apparent question-mark search-clear icon, unrendered profession disclosure glyph, low-contrast search hint, and weak visual hierarchy/density. The implementation branch removes the clipped border emblem, uses a cache-independent native broom texture path, Classic-safe ASCII disclosure characters, improves group/section contrast and row spacing. **These visual corrections have NOT RUN in the real Forever client**; an owner screenshot from the corrected commit is still required. Do not mark full visual acceptance complete.
