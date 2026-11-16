@@ -39,35 +39,37 @@ end
 
 local function styleTrackingRow(row, ingredient, tracking)
     if not row.progress then return end
-    if tracking and ingredient then
-        local observation = view.trackingCounts[ingredient.itemID]
-        local available = observation and observation.available
-        local needed = ingredient.quantity
-        if type(available) == "number" then
-            local covered = math.min(available, needed)
-            if observation and observation.bankStatus == "confirmed"
-                and type(observation.bags) == "number"
-                and type(observation.bank) == "number" then
-                row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_BANK"),
-                    observation.bags, observation.bank, available, needed,
-                    math.max(0, needed - available)))
-            else
-                row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_STATUS"),
-                    available, needed, math.max(0, needed - available)))
-            end
-            if type(row.progress.SetValue) == "function" then
-                row.progress:SetValue(needed > 0 and covered / needed * 100 or 0)
-            end
-        else
-            row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_UNKNOWN"), needed))
-            if type(row.progress.SetValue) == "function" then row.progress:SetValue(0) end
-        end
-        row.progress:Show()
-    else
+    if not tracking or not ingredient then
         row.progress:Hide()
+        return
     end
+    local observation = view.trackingCounts and view.trackingCounts[ingredient.itemID]
+    local needed = ingredient.quantity
+    local bags = observation and observation.bags
+    local available = observation and observation.available
+    local bankIncluded = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
+    if type(bags) ~= "number" or type(available) ~= "number" then
+        row.professions:SetText(string.format(ns.L("TRACK_STOCK_UNAVAILABLE"), needed))
+        if type(row.progress.SetValue) == "function" then row.progress:SetValue(0) end
+    else
+        local missing = math.max(0, needed - available)
+        if not bankIncluded then
+            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BAGS"),
+                bags, needed, missing))
+        elseif observation.bankStatus == "confirmed"
+            and type(observation.bank) == "number" then
+            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BANK"),
+                bags, observation.bank, needed, missing))
+        else
+            row.professions:SetText(string.format(ns.L("TRACK_STOCK_BANK_UNKNOWN"),
+                bags, needed, missing))
+        end
+        if type(row.progress.SetValue) == "function" then
+            row.progress:SetValue(needed > 0 and math.min(available, needed) / needed * 100 or 0)
+        end
+    end
+    row.progress:Show()
 end
-
 
 local function font(parent, style)
     return parent:CreateFontString(nil, "OVERLAY", style)
