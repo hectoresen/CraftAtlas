@@ -45,8 +45,16 @@ local function styleTrackingRow(row, ingredient, tracking)
         local needed = ingredient.quantity
         if type(available) == "number" then
             local covered = math.min(available, needed)
-            row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_STATUS"),
-                covered, needed, math.max(0, needed - available)))
+            if observation and observation.bankStatus == "confirmed"
+                and type(observation.bags) == "number"
+                and type(observation.bank) == "number" then
+                row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_BANK"),
+                    observation.bags, observation.bank, available, needed,
+                    math.max(0, needed - available)))
+            else
+                row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_STATUS"),
+                    available, needed, math.max(0, needed - available)))
+            end
             row.progress:SetValue(needed > 0 and covered / needed * 100 or 0)
         else
             row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_UNKNOWN"), needed))
@@ -166,7 +174,7 @@ local function render()
             view.trackerFooter:Hide()
         end
     end
-    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.pageSize and view.page or 1, view.pageSize)
+    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.page, view.pageSize)
     view.page = page
     clearTooltip()
     for i, row in ipairs(view.rows) do
