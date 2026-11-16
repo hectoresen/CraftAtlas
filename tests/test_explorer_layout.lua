@@ -16,4 +16,15 @@ for _, paneHeight in ipairs({343, 300, 260}) do
     assert(headingY <= -133, "section header overlaps profession text")
     assert(gridY < headingY - 17, "cards overlap fabrication heading")
 end
+for _, size in ipairs({{800,600}, {430,340}, {1024,768}, {600,500}}) do
+    local viewportWidth, viewportHeight = size[1], size[2]
+    local width, height, scale = ns.ExplorerWindowGeometry(viewportWidth, viewportHeight)
+    assert(width >= 600 and height >= 440 and scale > 0)
+    assert(width * scale <= viewportWidth - 23)
+    assert(height * scale <= viewportHeight - 23)
+    -- Search + broom + language share the lower toolbar with no horizontal collision.
+    local searchWidth = math.max(130, math.min(210, (width - 340) / 2))
+    assert(13 + searchWidth + 4 + 28 + 10 < width - 120 - 10,
+        "search and broom collide with language control")
+end
 print("Explorer layout geometry PASS")
