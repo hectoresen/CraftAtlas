@@ -4,6 +4,13 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased] — `0.2.0-dev`
 
+### OpenSpec governance (pending implementation merge)
+
+- Prepare complete canonical spec synchronization and lossless dated archive in the same implementation PR, eliminating routine follow-up archive PRs.
+- Keep incomplete acceptance or `NOT RUN` client checks explicit: archive remains blocked and active artifacts preserved.
+- Add SDD regression coverage for archival provenance, canonical requirement retention, and malicious/partial archive rejection.
+
+
 
 ### Contributor governance and validation (pending implementation merge)
 - Added separate Lua 5.1 parsing and isolated Lua regression jobs to pull-request CI, with hard failures instead of silent gaps.

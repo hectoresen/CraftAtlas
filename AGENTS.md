@@ -53,3 +53,8 @@ Run `bash scripts/validate_release_checks.sh`, relevant Lua/Python tests, genera
 Before asking for a merge, summarize: goal, approved spec, branch/PR, source and docs changed, tests **passed/failed/not run**, client evidence, unknowns and remaining owner decisions.
 
 **Never** direct-push `main`, self-approve/merge, publish a release, change repository settings/rulesets/permissions, modify secrets or mark unexecuted checks passed without a separate explicit owner instruction. An instruction to implement does **not** authorize merging.
+
+## Mandatory implementation archive readiness
+
+For every implementation PR, explicitly run `skills/documentation-sync/SKILL.md` after code/test changes, verify all approved acceptance criteria and choose **exactly one** OpenSpec archive state. When all mandatory tests and in-game evidence required by the accepted spec are available, prepare same-PR canonical sync + lossless dated archive of **only** the approved change and remove its active folder. If evidence is missing, leave it active, preserve unchecked tasks, and declare `OpenSpec-Archive: blocked` with specific missing tests or acceptance. Never mark `NOT RUN` as passed. `OpenSpec-Archive: prepared` describes a proposed transaction; only the owner merge completes acceptance. Do not archive other active or historical changes. See `docs/SDD_COMPLIANCE.md` for exact contract. Archive preparation is mandatory to assess even when archive is blocked.
+

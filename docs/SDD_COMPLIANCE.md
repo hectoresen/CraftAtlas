@@ -138,3 +138,18 @@ The PR event JSON must contain number and pull_request.body. Implementation chec
 "Governance": propose and approve a dedicated change, never bypass by claiming a docs exception.
 
 Do not merge PR #2 before its tests and both GitHub Actions workflows are green. The future ruleset should require the stable SDD Compliance / traceability and CI / repository-validation checks.
+
+## Atomic archive in the normal implementation PR (policy approved in spec #45)
+
+This project now targets **two PRs per completed change**, never a routine third archive-only PR: (1) owner-merged spec proposal, (2) owner-reviewed implementation containing source, documentation, canonical spec synchronization and **same-change archive** when mandatory acceptance evidence is complete. A closed/unmerged implementation PR leaves the original change active on `main`.
+
+The implementation PR retains `OpenSpec-Change`, `OpenSpec-Phase: implementation`, and the original `OpenSpec-Approval-PR`. It must also include **exactly one** `OpenSpec-Archive: prepared|blocked` and a substantive `OpenSpec-Archive-Evidence: <tested scenarios, docs and approval provenance>` line. **Prepared** requires a complete transaction:
+- `openspec/changes/archive/YYYY-MM-DD-<change-id>/` contains **all** owner-approved originals; proposal, design, delta specs and scope must match the exact base bytes. `tasks.md` keeps accepted task wording and may mark genuinely completed tasks; no mandatory task remains unchecked.
+- The old `openspec/changes/<change-id>/` folder is removed in the same PR. Only corresponding `openspec/specs/<capability>/spec.md` files from the approved change may be synchronized. Existing canonical requirement headings may not be discarded; semantic equivalence needs human review.
+- `docs/OPENSPEC_STATUS.md` records the specific change, spec/implementation PR numbers and acceptance evidence; the archive is **prepared**, not owner-accepted, until merge.
+- Other source/docs changes remain bounded to the frozen approval scope. General archival paths are an explicit validator exception **only** for the same change, not a general `openspec/**` scope grant.
+
+**Blocked** means a mandatory approved test, scenario or real-client check lacks evidence: keep the active folder, do not sync canonical/ledger/archive, do not check unverified tasks, and list specific `NOT RUN`/missing scenarios in `OpenSpec-Archive-Evidence`. A blocked implementation PR can be reviewed but the maintainer determines whether it is merge-ready; a failed mandatory acceptance needs genuine evidence or a separately approved scope change. Any PR without one archive disposition is rejected by SDD.
+
+The historical `OpenSpec-Phase: lifecycle` approval #13 remains separate and unchanged, and historical incomplete changes in `docs/OPENSPEC_STATUS.md` remain OPEN. Only the owner may merge or release. Read-only SDD CI validates archive structure, base-file hashes/path bounds and metadata, **not** real-client proof. The root `openspec/README.md` is protected against edits by this approved scope and retains earlier general guidance; this newer project SDD policy controls archive preparation.
+
