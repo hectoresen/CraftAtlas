@@ -243,6 +243,36 @@ function ns.UpdateExplorerPager(pager, page, pages)
     pager.next:SetEnabled(page > 0 and page < pages)
 end
 
+-- Small native status bar occupies the free center strip between search and language.
+-- It never moves the centered title or replaces any Classic control.
+function ns.CreateExplorerCatalogProgress(header)
+    local holder = CreateFrame("Frame", nil, header)
+    holder:SetSize(214, 16)
+    holder:SetPoint("BOTTOM", header, "BOTTOM", 0, 1)
+    local bar = CreateFrame("StatusBar", nil, holder)
+    bar:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 0, 0)
+    bar:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", 0, 0)
+    bar:SetHeight(4)
+    bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    bar:SetStatusBarColor(0.80, 0.60, 0.22)
+    bar:SetMinMaxValues(0, 100)
+    local label = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    label:SetPoint("BOTTOM", bar, "TOP", 0, 1)
+    label:SetJustifyH("CENTER")
+    holder.label, holder.bar = label, bar
+    function holder:SetProgress(status, percent, caption)
+        if status ~= "active" and status ~= "incomplete" then
+            self:Hide()
+            return
+        end
+        self.bar:SetValue(math.max(0, math.min(100, percent or 0)))
+        self.label:SetText(caption or "")
+        self:Show()
+    end
+    holder:Hide()
+    return holder
+end
+
 -- Same search widget is reused by each active view, with state owned by its adapter.
 function ns.ClearExplorerSearch(search)
     if not search or type(search.GetText) ~= "function"
