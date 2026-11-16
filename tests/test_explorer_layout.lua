@@ -27,4 +27,15 @@ for _, size in ipairs({{800,600}, {430,340}, {1024,768}, {600,500}}) do
     assert(13 + searchWidth + 4 + 28 + 10 < width - 120 - 10,
         "search and broom collide with language control")
 end
+-- A normal detail pane fits four icon/name pairs horizontally; compact keeps two.
+assert(ns.ExplorerProfessionPageSize(600)==4)
+assert(ns.ExplorerProfessionPageSize(475)==4)
+assert(ns.ExplorerProfessionPageSize(474)==2)
+assert(ns.ExplorerProfessionPageSize(320)==2)
+assert(math.ceil(3 / ns.ExplorerProfessionPageSize(600))==1,
+    "three professions must not show horizontal pagination")
+assert(math.ceil(5 / ns.ExplorerProfessionPageSize(600))==2,
+    "five professions must remain accessible")
+assert(math.ceil(3 / ns.ExplorerProfessionPageSize(320))==2,
+    "compact panes preserve navigation rather than truncate professions")
 print("Explorer layout geometry PASS")
