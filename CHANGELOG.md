@@ -16,6 +16,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Optional per-character, per-recipe Fabricables tracking toggle and unit-weighted ingredients progress; displays needed versus current bags and missing quantities, with native bars and paged ingredient rows.
 - Conditional bank breakdown only when the bank is open and the client can return consistent counts; closed/unsupported bank availability is explicitly unknown, never silently reused or counted.
 - Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; live Forever client acceptance is NOT RUN.
+- Refined the native tracker after maintainer screenshot feedback: localized labels refresh in-place, progress tracks remain visible at 0%, and a separate gold divider anchors the tracker directly below its current ingredient rows. These corrections await fresh client verification.
 
 
 ### Native chat linking and craftable detail icon (implementation awaiting owner merge)
