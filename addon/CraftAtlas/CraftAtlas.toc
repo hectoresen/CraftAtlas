@@ -22,6 +22,7 @@ Infrastructure/Preferences.lua
 Localization/ProfessionLabels.lua
 Infrastructure/ItemInfo.lua
 Infrastructure/RecipeInfo.lua
+Infrastructure/ChatLinks.lua
 Infrastructure/RecipeNameCache.lua
 Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
