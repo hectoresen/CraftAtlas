@@ -333,11 +333,9 @@ local function createPanel()
     panel = window
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
     local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
-    local logicalWidth = math.min(740, math.max(600, scale - 50))
-    local logicalHeight = math.min(510, math.max(440, height - 60))
+    local logicalWidth, logicalHeight, uiScale = ns.ExplorerWindowGeometry(scale, height)
     panel:SetSize(logicalWidth, logicalHeight)
-    -- Scale the whole native shell for small viewports rather than clipping controls.
-    panel:SetScale(math.min(1, (scale - 24) / logicalWidth, (height - 24) / logicalHeight))
+    panel:SetScale(uiScale)
     -- The left pane begins 137 px from the top and ends 30 px above the bottom.
     -- Leave 76 px for its filter/header and 16 px for status; use the rest for rows.
     VISIBLE_ROWS = ns.ExplorerVisibleRowCount(panel:GetHeight(), ROW_HEIGHT)
