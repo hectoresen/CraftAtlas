@@ -134,12 +134,16 @@ function ns.StyleExplorerItemRow(row, compact)
     row.groupArrow:Hide()
     row.groupName:Hide()
     row.groupState:Hide()
+    row.icon:ClearAllPoints()
     row.name:ClearAllPoints()
     if compact then
-        row.name:SetPoint("LEFT", row, "LEFT", 39, 0)
+        -- Indentation communicates parent/child hierarchy independently of color.
+        row.icon:SetPoint("LEFT", row, "LEFT", 15, 0)
+        row.name:SetPoint("LEFT", row, "LEFT", 51, 0)
         row.name:SetPoint("RIGHT", row, "RIGHT", -3, 0)
         row.professions:Hide()
     else
+        row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
         row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
         row.name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
         row.professions:Show()
