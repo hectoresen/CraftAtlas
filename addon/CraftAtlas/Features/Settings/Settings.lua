@@ -56,6 +56,7 @@ local function showDetail()
     ui.detailIcon:Hide()
     if not valid then
         ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
+        ui.detailMeta:SetText("")
         ui.detailID:SetText("")
         ui.detailProfessions:SetText("")
         ui.detailHeading:SetText("")
@@ -69,6 +70,15 @@ local function showDetail()
     end
     ui.detailTitle:SetText(name or (ns.L("ITEM_ID") .. " " .. itemID))
     ui.detailID:SetText(ns.L("ITEM_ID") .. ": " .. itemID)
+    local metadata = ns.GetItemMetadata(itemID)
+    local details = {}
+    if metadata then
+        if metadata.itemType then details[#details + 1] = metadata.itemType end
+        if metadata.level then
+            details[#details + 1] = string.format(ns.L("ITEM_LEVEL"), metadata.level)
+        end
+    end
+    ui.detailMeta:SetText(table.concat(details, "  |  "))
     ui.detailHeading:SetText(ns.L("USED_BY"))
     local keys = ns.FindProfessions(itemID, ns.materials, ns.professionOrder)
     local professions = {}
@@ -203,7 +213,7 @@ end
 
 local function createLanguageMenu(header)
     local button = CreateFrame("Button", nil, header, "UIPanelButtonTemplate")
-    button:SetPoint("RIGHT", header, "RIGHT", -10, 0)
+    button:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -10, 3)
     button:SetSize(120, 28)
     ui.language = button
 
@@ -319,7 +329,11 @@ local function createPanel()
     panel = window
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
     local height = UIParent and UIParent.GetHeight and UIParent:GetHeight() or 600
-    panel:SetSize(math.min(740, math.max(430, scale - 50)), math.min(510, math.max(340, height - 60)))
+    local logicalWidth = math.min(740, math.max(600, scale - 50))
+    local logicalHeight = math.min(510, math.max(440, height - 60))
+    panel:SetSize(logicalWidth, logicalHeight)
+    -- Scale the whole native shell for small viewports rather than clipping controls.
+    panel:SetScale(math.min(1, (scale - 24) / logicalWidth, (height - 24) / logicalHeight))
     -- The left pane begins 137 px from the top and ends 30 px above the bottom.
     -- Leave 76 px for its filter/header and 16 px for status; use the rest for rows.
     VISIBLE_ROWS = ns.ExplorerVisibleRowCount(panel:GetHeight(), ROW_HEIGHT)
@@ -347,7 +361,7 @@ local function createPanel()
     divider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
 
     local title = font(header, "GameFontNormalLarge")
-    title:SetPoint("CENTER", header, "CENTER")
+    title:SetPoint("TOP", header, "TOP", 0, -1)
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
 
@@ -359,7 +373,9 @@ local function createPanel()
         forcedSelection = false
         refreshResults(true)
     end)
-    search:SetSize(math.max(110, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
+    search:SetSize(math.max(130, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
+    search:ClearAllPoints()
+    search:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 13, 3)
     ui.search = search
     local hint = font(header, "GameFontDisableSmall")
     hint:SetPoint("LEFT", search, "LEFT", 7, 0)
@@ -461,6 +477,12 @@ local function createPanel()
     local detailID = font(right, "GameFontDisableSmall")
     detailID:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -42)
     ui.detailID = detailID
+    local detailMeta = font(right, "GameFontDisableSmall")
+    detailMeta:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -74)
+    detailMeta:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -74)
+    detailMeta:SetJustifyH("LEFT")
+    detailMeta:SetWordWrap(false)
+    ui.detailMeta = detailMeta
     local heading = font(right, "GameFontNormal")
     heading:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -91)
     ui.detailHeading = heading
@@ -502,8 +524,8 @@ end
 
 local function showActiveDetail()
     local material = currentView == "materials"
-    for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailHeading,
-        ui.detailProfessions}) do
+    for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailMeta,
+        ui.detailHeading, ui.detailProfessions}) do
         if material then element:Show() else element:Hide() end
     end
     if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
