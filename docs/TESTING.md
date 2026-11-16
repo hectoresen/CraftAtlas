@@ -58,3 +58,7 @@ The implementation branch `feat/native-wow-profession-tree-redesign` adds new na
 **Owner screenshot evidence:** the owner supplied an in-game screenshot of the earlier grouped-tree implementation and identified visual hierarchy defects. This verifies that an earlier version rendered on the client, not that the latest section/divider refinements work. **Full Forever acceptance: NOT RUN** for the refined build. The previous maintainer acceptance of PRs #23/#25 does not cover the grouped profession tree, broom icon availability, tooltip interactions or compact layouts. Owner must record an exact build, enUS/esES, itemIDs 2447/159/14341/14044 and spell 19093, unknown names, non-item action, long list and scale screenshots before approving a release.
 
 Record build, screenshots, IDs, locale, UI scale, commands executed, results and explicitly untested cases. **Working addon ≠ live-verified recipe catalog.**
+
+## In-game defect: opening material detail (owner report, 2026-11-16)
+
+The owner reported a reproducible Lua error opening the redesigned explorer: `Settings.lua:159: attempt to index field 'detailHeading' (a nil value)` with selected material itemID 765. The obsolete heading was removed when `createProfessionDetail()` replaced it. The implementation branch now refreshes `ui.professionUses.section` instead and includes `tests/test_explorer_detail_contract.py` to detect stale frame references. **Fix in Forever: NOT RUN**, awaiting owner retest; CI and local test evidence are separate.
