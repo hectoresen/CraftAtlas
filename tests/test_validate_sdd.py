@@ -29,7 +29,9 @@ class SddPolicyTests(unittest.TestCase):
         self.proposal = "OpenSpec-Change: " + self.change + "\nOpenSpec-Phase: proposal\n"
         self.implementation = (
             "OpenSpec-Change: " + self.change + "\n"
-            "OpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+            "OpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n"
+            "OpenSpec-Archive: blocked\n"
+            "OpenSpec-Archive-Evidence: Incomplete acceptance: the approved client scenario is NOT RUN, so docs/TESTING.md records pending manual verification.\n")
 
     @staticmethod
     def api(path, token):
@@ -112,7 +114,8 @@ class SddPolicyTests(unittest.TestCase):
             "allowed_paths": ["AGENTS.md", "CODEOWNERS", "tests/**",
                               "scripts/validate_sdd.py"]}))
         body = "OpenSpec-Change: " + change + (
-            "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+            "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n" +
+            "\nOpenSpec-Archive: blocked\nOpenSpec-Archive-Evidence: Incomplete manual client acceptance NOT RUN; docs/TESTING.md documents missing review evidence.\n")
         def approved(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
@@ -267,7 +270,8 @@ class SddPolicyTests(unittest.TestCase):
                 "skills/documentation-sync/**", "scripts/validate_sdd.py"]
         }))
         body = ("OpenSpec-Change: " + change +
-                "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+                "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n" +
+            "\nOpenSpec-Archive: blocked\nOpenSpec-Archive-Evidence: Incomplete manual client acceptance NOT RUN; docs/TESTING.md documents missing review evidence.\n")
 
         def approved_api(path, token):
             if path == "pulls/9":
