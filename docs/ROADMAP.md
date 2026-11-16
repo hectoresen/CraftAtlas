@@ -42,3 +42,7 @@ The two active owner-configured `main` rulesets (2026-11-16) require independent
 
 The owner-merged governance proposal #45 establishes a transactional archive workflow for future implementation PRs. Its implementation makes canonical spec synchronization and dated same-change archiving part of the code PR when mandatory evidence exists. Missing client tests remain explicit blockers; historical partially accepted OpenSpec changes must not be mass-archived. There is no third routine archival PR and no owner-approval bypass.
 
+## Agent naming governance
+
+Approved proposals #48/#49 introduce deterministic typed OpenSpec IDs and Git branches, with #49 correcting change IDs to lowercase for official CLI compatibility. Existing in-flight/historical proposals remain unchanged. Agent PR creation now includes a mandatory four-context Actions check-run discovery gate; missing checks receive one safe metadata retry, never forged PASS. This is governance/agent development and does not change CraftAtlas's in-game functionality.
+
