@@ -45,7 +45,13 @@ function ns.CreateExplorerRow(parent, height, onClick)
     row:SetHeight(height)
     local bg = row:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetColorTexture(0.12, 0.10, 0.07, 0.82)
+    bg:SetColorTexture(0.09, 0.08, 0.07, 0.55)
+    row.itemBackground = bg
+    local groupBackground = row:CreateTexture(nil, "BACKGROUND")
+    groupBackground:SetAllPoints()
+    groupBackground:SetColorTexture(0.16, 0.13, 0.09, 0.98)
+    groupBackground:Hide()
+    row.groupBackground = groupBackground
     local edge = row:CreateTexture(nil, "BORDER")
     edge:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
     edge:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT")
@@ -73,8 +79,98 @@ function ns.CreateExplorerRow(parent, height, onClick)
     row.professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
     row.professions:SetJustifyH("LEFT")
     row.professions:SetWordWrap(false)
+    row.groupArrow = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.groupArrow:SetPoint("LEFT", row, "LEFT", 5, 0)
+    row.groupArrow:SetTextColor(0.95, 0.70, 0.16)
+    row.groupName = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.groupName:SetPoint("LEFT", row, "LEFT", 24, 0)
+    row.groupName:SetPoint("RIGHT", row, "RIGHT", -24, 0)
+    row.groupName:SetJustifyH("LEFT")
+    row.groupName:SetWordWrap(false)
+    row.groupName:SetTextColor(1, 0.82, 0.30)
+    row.groupState = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.groupState:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    for _, element in ipairs({row.groupArrow, row.groupName, row.groupState}) do
+        element:Hide()
+    end
     row:SetScript("OnClick", function(self) if onClick then onClick(self) end end)
     return row
+end
+
+-- Client-bundled profession artwork, never fabricated catalog facts.
+local professionIcons = {
+    ALCHEMY = "Interface\\Icons\\Trade_Alchemy",
+    BLACKSMITHING = "Interface\\Icons\\Trade_BlackSmithing",
+    COOKING = "Interface\\Icons\\INV_Misc_Food_15",
+    ENCHANTING = "Interface\\Icons\\Trade_Engraving",
+    ENGINEERING = "Interface\\Icons\\Trade_Engineering",
+    FIRST_AID = "Interface\\Icons\\Spell_Holy_SealOfSacrifice",
+    FISHING = "Interface\\Icons\\Trade_Fishing",
+    LEATHERWORKING = "Interface\\Icons\\Trade_LeatherWorking",
+    MINING = "Interface\\Icons\\Trade_Mining",
+    TAILORING = "Interface\\Icons\\Trade_Tailoring",
+}
+
+function ns.GetExplorerProfessionIcon(key)
+    return professionIcons[key] or "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+-- Group rows have their own header treatment; they never masquerade as item rows.
+function ns.StyleExplorerGroupRow(row, label, count, expanded)
+    row.groupBackground:Show()
+    row.itemBackground:Hide()
+    row.icon:Hide()
+    row.name:Hide()
+    row.professions:Hide()
+    row.highlight:Hide()
+    row.groupArrow:SetText(expanded and "▼" or "▶")
+    row.groupName:SetText(label .. " (" .. count .. ")")
+    row.groupState:SetText(expanded and "−" or "+")
+    row.groupArrow:Show()
+    row.groupName:Show()
+    row.groupState:Show()
+end
+
+function ns.StyleExplorerItemRow(row)
+    row.groupBackground:Hide()
+    row.itemBackground:Show()
+    row.groupArrow:Hide()
+    row.groupName:Hide()
+    row.groupState:Hide()
+    row.name:Show()
+    row.professions:Show()
+end
+
+-- Section headers share one dark bar, gold separator and collapse affordance.
+function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
+    local section = CreateFrame("Button", nil, parent)
+    section:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, top)
+    section:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, top)
+    section:SetHeight(27)
+    local bg = section:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.13, 0.11, 0.09, 0.96)
+    local edge = section:CreateTexture(nil, "BORDER")
+    edge:SetPoint("BOTTOMLEFT", section, "BOTTOMLEFT")
+    edge:SetPoint("BOTTOMRIGHT", section, "BOTTOMRIGHT")
+    edge:SetHeight(1)
+    edge:SetColorTexture(0.64, 0.48, 0.22, 0.8)
+    section.label = section:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    section.label:SetPoint("LEFT", section, "LEFT", 9, 0)
+    section.arrow = section:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    section.arrow:SetPoint("RIGHT", section, "RIGHT", -7, 0)
+    section.expanded = true
+    function section:Refresh()
+        self.label:SetText(ns.L(titleKey))
+        self.arrow:SetText(self.expanded and "−" or "+")
+    end
+    section:SetScript("OnClick", function(self)
+        self.expanded = not self.expanded
+        self:Refresh()
+        if onToggle then onToggle(self.expanded) end
+    end)
+    section:Refresh()
+    return section
 end
 
 function ns.CreateExplorerPager(parent, onPrevious, onNext)
