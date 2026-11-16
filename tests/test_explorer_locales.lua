@@ -10,4 +10,12 @@ for _, key in ipairs({"CLEAR_SEARCH", "PROFESSION_GROUP_COUNT", "ITEM_LEVEL"}) d
 end
 assert(ns.Text("CLEAR_SEARCH", "unknown", "enUS") == "Clear search")
 assert(ns.Text("PROFESSION_GROUP_COUNT", "esES", "enUS"):format(3) == "3 materiales")
+for _, key in ipairs({"CATALOG_PREPARING_MATERIALS", "CATALOG_PREPARING_CRAFTABLES",
+    "CATALOG_PREPARATION_PAUSED", "CATALOG_DIAGNOSTICS"}) do
+    local en = ns.Text(key, "enUS", "enUS")
+    local es = ns.Text(key, "esES", "esES")
+    assert(en ~= key and es ~= key and en ~= es, "localized progress label required: " .. key)
+end
+assert(string.format(ns.Text("CATALOG_PREPARING_MATERIALS","esES","enUS"),42)
+    == "Preparando materiales... 42%")
 print("Explorer locale regression PASS")
