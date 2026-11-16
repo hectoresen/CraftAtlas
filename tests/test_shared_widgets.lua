@@ -51,6 +51,13 @@ local broom = ns.GetExplorerClearIcon(function(path)
     return 12345
 end)
 assert(broom:find("Witch", 1, true), "native broom chosen if available")
+GetItemIcon = function(itemID)
+    assert(itemID == 37011)
+    return 98765
+end
+assert(ns.GetExplorerClearIcon() == 98765,
+    "client-resolved broom texture should beat unavailable optional path probes")
+GetItemIcon = nil
 local safe = ns.GetExplorerClearIcon(function() return nil end)
 assert(safe:find("DispelMagic", 1, true), "safe native fallback for missing icon")
 local current, other = {query="peacebloom"}, {query="blue"}
