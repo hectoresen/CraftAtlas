@@ -35,6 +35,12 @@ A coordinator owns the final diff and acceptance. Run these audits in parallel o
 5. **Checks:** Inspect references, paths, links, source license and generated files; confirm documentation uses real commands and includes what CI actually runs. Execute available `bash scripts/validate_release_checks.sh`, applicable Lua/Python tests, and documentation validation. Record results and `NOT RUN` for unavailable checks and Forever client.
 6. **Final gate:** Review `git diff origin/main...HEAD` / connector change summary, verify no unsupported current claims and no out-of-scope edits. Produce a concise handoff including docs reviewed/updated/unchanged+reason, code evidence, tests executed/not run and risks. **Only then** construct/open the PR.
 
+## Review-ready evidence contract for contributors
+
+Before authoring a PR body, explicitly verify and record: (1) which implementation paths changed and user-visible behavior, (2) README claims compared against code, (3) exact technical documentation and CHANGELOG reviewed or updated, (4) actual test commands/results and `NOT RUN` client coverage, (5) matching approved OpenSpec scope and unfinished tasks, and (6) no missing licenses/provenance for changed data. An `updated` declaration must correspond to changed documentation; a `not-applicable` declaration requires an explicit reason connected to source files and existing documentation. The structural CI checks these artifacts, **not** whether a private agent invoked a particular internal tool.
+
+The GitHub PR review and technical checks rulesets are independent. The owner may bypass only the review rule by submitting a PR; no owner or contributor should bypass required CI. Do not merge or enable auto-merge yourself.
+
 ## PR attestation (required for implementation)
 
 Include exact standalone PR-body lines:
