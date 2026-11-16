@@ -30,9 +30,19 @@ texlua tests/test_shared_widgets.lua
 texlua tests/test_profession_tree.lua
 texlua tests/test_release_version.lua
 texlua tests/test_explorer_locales.lua
+texlua tests/test_catalog_progress.lua
+texlua tests/test_catalog_preparation.lua
+texlua tests/test_catalog_scheduler_failure.lua
+texlua tests/test_catalog_header.lua
 ```
 
 Run applicable commands in a local checkout with a compatible interpreter. **This document does not claim each Lua command was executed in CI.** `python3 scripts/build_materials.py --release --check` includes a stricter catalog live-evidence gate and may intentionally reject a snapshot without full accepted evidence.
+
+## Catalog preparation regression and performance protocol
+
+The optimization implementation adds `tests/test_catalog_progress.lua` (progress math and one-refresh gate), `tests/test_catalog_preparation.lua` (20/25-unit fake-timer schedules, no duplicate workers), `tests/test_catalog_scheduler_failure.lua` (missing scheduler), `tests/test_catalog_header.lua` (native bounded indicator) and `tests/test_catalog_progress_contract.py` (source/refresh/locale constraints). **Standalone Lua tests and Forever-client profiling: NOT RUN in the connector-only implementation environment.** The Python CI checks exercise source contracts, but do not simulate frame timing or confirm FPS gains.
+
+**How to capture real evidence (owner):** on the same client build/hardware/UI scale/locale, compare a fresh `/reload` with baseline v0.2.0 and this implementation branch. Open Materiales, switch to Fabricables, repeat opening and switching; note visible stutter, time until progress disappears, missing name counts, Lua errors, worst observed FPS/frame-time. After each initial load run `/craftatlas perf` in the optimized branch to capture item/recipe work units, batch counts, search and refresh counts. Source-level baseline had roughly 30 material batches and 101 recipe batches each requesting full-view updates; these are **derived from queue lengths**, not measured render counts. Record real measured improvements or regressions, without asserting a predetermined FPS benefit. Test enUS/esES, 800×600 and compact UI scale, no timer API, missing client metadata, rapid typing, Back and tooltip navigation. Completion at 100% must **not** imply all names are resolved.
 
 ## Reported in-game acceptance
 
