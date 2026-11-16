@@ -1,5 +1,6 @@
 -- Isolated mock for Forever C_Item name/icon cache and asynchronous item loading.
-local ns = { materials = {[2589]={"TAILORING"},[4306]={"TAILORING"}}, state = {} }
+local ns = { materials = {[2589]={"TAILORING"},[4306]={"TAILORING"}}, state = {},
+    IsVerifiedReagent = function(id) return id == 2589 or id == 4306 end }
 local cache = {[4306]={name="Silk Cloth",icon=132905}}
 local requests = {}
 C_Item = {

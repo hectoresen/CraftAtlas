@@ -66,6 +66,25 @@ class DocumentationReviewTests(unittest.TestCase):
     def test_governance_only_passes_without_metadata(self):
         self.assertEqual(gate.validate({"AGENTS.md", "scripts/validate_sdd.py"}, ""), [])
 
+    def test_generic_boilerplate_without_code_evidence_is_rejected(self):
+        body = ("Documentation-Review: updated\n"
+                "Documentation-Evidence: README.md and CHANGELOG.md have been inspected "
+                "and all documentation is accurate in every respect.")
+        self.assertTrue(gate.validate(FUNCTIONAL | {"README.md"}, body))
+
+    def test_updated_evidence_must_name_changed_document(self):
+        body = ("Documentation-Review: updated\n"
+                "Documentation-Evidence: README.md stays unchanged because this is a "
+                "Lua adapter refactor; all other docs are fine.")
+        self.assertTrue(gate.validate(FUNCTIONAL | {"CHANGELOG.md"}, body))
+
+    def test_source_grounded_explanation_passes(self):
+        body = ("Documentation-Review: updated\n"
+                "Documentation-Evidence: CHANGELOG.md records the Lua adapter change; "
+                "README.md remains unchanged because client behavior is identical; "
+                "tests/test_item_info.lua verifies the guarded cache path.")
+        self.assertEqual(gate.validate(FUNCTIONAL | {"CHANGELOG.md"}, body), [])
+
     def test_fenced_example_does_not_satisfy_attestation(self):
         body = "```\nDocumentation-Review: updated\nDocumentation-Evidence: " + EVIDENCE + "\n```"
         self.assertTrue(gate.validate(FUNCTIONAL | {"README.md"}, body))

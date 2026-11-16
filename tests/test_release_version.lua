@@ -18,5 +18,5 @@ end
 assert(ns.GetInstalledReleaseVersion("CraftAtlas", function() error("api unavailable") end) == nil)
 assert(ns.GetInstalledReleaseVersion("CraftAtlas", function() return nil end) == nil)
 assert(ns.GetInstalledReleaseVersion("CraftAtlas", false, false) == nil)
-assert(calls == 11, "read local metadata once per query")
+assert(calls == 9, "each of the nine metadata helper queries reads the local version once")
 print("Installed release version regression PASS")

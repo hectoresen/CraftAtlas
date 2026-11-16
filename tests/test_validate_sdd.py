@@ -98,6 +98,45 @@ class SddPolicyTests(unittest.TestCase):
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True, api=unrelated))
 
+    def test_approved_governance_may_update_agents_and_root_codeowners(self):
+        change = "harden-contributor-pr-governance"
+        old = self.change
+        self.change = change
+        folder = self.root / "openspec" / "changes" / change
+        folder.mkdir(parents=True)
+        (folder / "specs").mkdir()
+        for name in ("proposal.md", "design.md", "tasks.md"):
+            (folder / name).write_text("# Approved\n")
+        (folder / "specs" / "spec.md").write_text("## ADDED Requirements\n")
+        (folder / "sdd-scope.json").write_text(json.dumps({
+            "allowed_paths": ["AGENTS.md", "CODEOWNERS", "tests/**",
+                              "scripts/validate_sdd.py"]}))
+        body = "OpenSpec-Change: " + change + (
+            "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+        def approved(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+            return [{"filename": "openspec/changes/" + change + "/proposal.md"}]
+        try:
+            self.assertEqual(self.check({"AGENTS.md", "CODEOWNERS"}, body,
+                                        present=True, api=approved), [])
+            self.assertTrue(self.check({"AGENTS.md", ".github/CODEOWNERS"}, body,
+                                       present=True, api=approved))
+            (folder / "sdd-scope.json").write_text(json.dumps({
+                "allowed_paths": ["tests/**", "scripts/validate_sdd.py"]}))
+            self.assertTrue(self.check({"AGENTS.md", "CODEOWNERS"}, body,
+                                       present=True, api=approved))
+        finally:
+            self.change = old
+
+    def test_unrelated_governance_change_still_cannot_touch_agents(self):
+        folder = self.root / self.prefix
+        (folder / "sdd-scope.json").write_text(json.dumps({
+            "allowed_paths": ["AGENTS.md", "CODEOWNERS", "tests/**"]}))
+        self.assertTrue(self.check({"AGENTS.md"}, self.implementation, present=True))
+        self.assertTrue(self.check({"CODEOWNERS"}, self.implementation, present=True))
+
     def test_docs_exemption_passes_for_readme(self):
         self.assertEqual(self.check({"README.md"},
                                     "OpenSpec-Exemption: docs-only\n"), [])

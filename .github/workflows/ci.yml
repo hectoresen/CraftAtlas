@@ -5,24 +5,144 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
-  repository-validation:
+  classify:
+    name: classify-pr
     runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.paths.outputs.mode }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Classify exact changed paths (fail closed)
+        id: paths
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            test -n "$BASE_REF"
+            git fetch origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
+            base="origin/$BASE_REF"
+          else
+            base="HEAD^"
+            git rev-parse --verify "$base" >/dev/null
+          fi
+          total=0
+          spec=0
+          docs=0
+          code=0
+          while IFS= read -r -d '' path; do
+            total=$((total + 1))
+            case "$path" in
+              openspec/changes/*|openspec/specs/*) spec=$((spec + 1)) ;;
+              *.md|*.txt|CODEOWNERS) docs=$((docs + 1)) ;;
+              *) code=$((code + 1)) ;;
+            esac
+          done < <(git diff --name-only -z "$base"...HEAD)
+          test "$total" -gt 0
+          mode=code
+          if (( code == 0 )); then
+            mode=docs
+            if (( spec == total )); then mode=spec; fi
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Changed paths: $total; specs: $spec; docs: $docs; code: $code; mode: $mode"
+
+  repository-validation:
+    needs: classify
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject classification failure (no silent required-check bypass)
+        env:
+          CLASSIFY_RESULT: ${{ needs.classify.result }}
+          MODE: ${{ needs.classify.outputs.mode }}
+        run: |
+          test "$CLASSIFY_RESULT" = success
+          case "$MODE" in spec|docs|code) ;; *) exit 1 ;; esac
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Spec-only PR uses SDD/OpenSpec gate (no release/Python suite)
+        if: needs.classify.outputs.mode == 'spec'
+        run: |
+          echo "Spec-only diff: SDD Compliance validates specifications; no runtime checks needed."
+      - name: Lightweight Markdown repository validation
+        if: needs.classify.outputs.mode == 'docs'
+        run: python3 scripts/validate_repo.py
       - uses: actions/setup-python@v5
+        if: needs.classify.outputs.mode == 'code'
         with:
           python-version: '3.11'
       - name: Validate release readiness
+        if: needs.classify.outputs.mode == 'code'
         run: bash scripts/validate_release_checks.sh
       - name: Test documentation review gate
+        if: needs.classify.outputs.mode == 'code'
         run: python3 -m unittest discover -s tests -p 'test_validate_documentation.py' -v
+      - name: Enforce CI and governance regression contracts
+        if: needs.classify.outputs.mode == 'code'
+        run: python3 -m unittest discover -s tests -p 'test_ci_governance.py' -v
       - name: Check PR documentation attestation
-        if: github.event_name == 'pull_request'
+        if: needs.classify.outputs.mode == 'code' && github.event_name == 'pull_request'
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
           git fetch origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
           python3 scripts/validate_documentation.py --base "origin/$BASE_REF" --head HEAD --event "$GITHUB_EVENT_PATH"
+
+  lua-compatibility:
+    name: lua-compatibility
+    needs: classify
+    if: needs.classify.outputs.mode == 'code'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the Forever-compatible Lua parser
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          luac5.1 -v
+      - name: Parse every addon and test Lua module
+        run: |
+          set -euo pipefail
+          find addon/CraftAtlas tests -type f -name '*.lua' -print0 |
+            xargs -0 -r -n 1 luac5.1 -p
+
+  lua-regressions:
+    name: lua-regressions
+    needs: classify
+    if: needs.classify.outputs.mode == 'code'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+          lua5.1 -v
+      - name: Execute every isolated Lua fixture (fail on any error)
+        run: |
+          set -euo pipefail
+          count=0
+          failures=0
+          while IFS= read -r -d '' file; do
+            echo "::group::$file"
+            if lua5.1 "$file"; then
+              echo "PASS: $file"
+            else
+              echo "::error file=$file::Lua 5.1 regression failed"
+              failures=$((failures + 1))
+            fi
+            echo "::endgroup::"
+            count=$((count + 1))
+          done < <(find tests -maxdepth 1 -type f -name 'test_*.lua' -print0 | sort -z)
+          test "$count" -gt 0
+          echo "Ran $count isolated Lua 5.1 fixtures; failures: $failures"
+          test "$failures" -eq 0

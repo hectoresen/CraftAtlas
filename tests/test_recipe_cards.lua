@@ -11,6 +11,7 @@ local function widget(kind, parent)
     function self:GetParent() return self.parent end
     function self:SetPoint() end
     function self:ClearAllPoints() end
+    function self:SetAllPoints() end
     function self:CreateTexture() return widget("texture",self) end
     function self:CreateFontString() return widget("font",self) end
     function self:SetColorTexture() end
