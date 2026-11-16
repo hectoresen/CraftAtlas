@@ -1,5 +1,5 @@
 local _, ns = ...
-local view = {page = 1, selected = nil, rows = {}, ingredients = {}}
+local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
 
 local function font(parent, style)
@@ -46,13 +46,13 @@ local function render()
         view.heading:SetText(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
-    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.page, ITEMS_PER_PAGE)
+    local visible, page, pages = ns.PaginateRecipeUses(view.ingredients, view.page, view.pageSize)
     view.page = page
     clearTooltip()
     for i, row in ipairs(view.rows) do
         local ingredient = visible[i]
         row.ingredient = ingredient
-        if ingredient then
+        if ingredient and i <= view.pageSize then
             local name, icon = ns.GetItemDisplay(ingredient.itemID)
             row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. ingredient.itemID))
             row.professions:SetText(string.format(ns.L("RECIPE_QUANTITY"), ingredient.quantity))
@@ -85,6 +85,9 @@ function ns.InitRecipeDetail(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetAllPoints(parent)
     view.frame = frame
+    local availableHeight = type(parent.GetHeight) == 'function' and parent:GetHeight() or 343
+    view.pageSize = math.max(1, math.min(ITEMS_PER_PAGE,
+        math.floor((availableHeight - 138 - 40) / 39)))
 
     view.icon = frame:CreateTexture(nil, "ARTWORK")
     view.icon:SetSize(48, 48)
@@ -125,7 +128,7 @@ function ns.InitRecipeDetail(parent)
     view.pager = ns.CreateExplorerPager(frame, function()
         if view.page > 1 then view.page = view.page - 1 render() end
     end, function()
-        if view.page < math.ceil(#view.ingredients / ITEMS_PER_PAGE) then
+        if view.page < math.ceil(#view.ingredients / view.pageSize) then
             view.page = view.page + 1
             render()
         end
