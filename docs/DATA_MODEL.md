@@ -16,6 +16,10 @@ The values describe a **pinned, MIT-licensed LibProfessionDB Forever 1.60.1.6997
 
 Ten consuming source categories are Alchemy, Blacksmithing, Cooking, Enchanting, Engineering, First Aid, Fishing, Leatherworking, Mining and Tailoring. The index describes **recipe consumption**, not gathering nodes or the character's learned professions.
 
+## Local opt-in tracking state (not catalog data)
+
+Craftable tracking is keyed by the existing `professionKey:spellID` identity inside `CraftAtlasDB.craftTracking[realm:character]`. Only explicit booleans are stored; the current bag/bank item counts are read from guarded in-game APIs and are **never persisted or treated as part of source-backed catalog coverage**. Include-bank preference is per character; a closed bank is unknown and excluded from confirmed availability. Progress is calculated against current requirements for one craft, not learned recipes, planned batches or stock on other characters. This implementation is still pending client acceptance.
+
 ## One source, multiple generated runtime views
 
 | Source / artifact | Meaning |

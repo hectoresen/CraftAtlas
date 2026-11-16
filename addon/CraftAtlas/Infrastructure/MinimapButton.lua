@@ -7,46 +7,49 @@ local unavailableCursor = "Interface\\Cursor\\UnablePoint"
 local buttonSize = 31
 local iconSize = 20
 local borderSize = 53
+local defaultAngle = 45
+local atan2 = math.atan2 or math.atan
 
-local function getAngleRadians(angle)
-    return math.rad(tonumber(angle) or 45)
+local function isFinite(value)
+    return type(value) == "number" and value > -math.huge and value < math.huge
 end
 
-local function positionButton()
-    if not button or not Minimap then
+local function savedAngle()
+    local angle = ns.GetMinimapAngle and tonumber(ns.GetMinimapAngle())
+    return isFinite(angle) and angle or defaultAngle
+end
+
+local function positionButton(frame, minimap, angle)
+    local width = minimap.GetWidth and minimap:GetWidth()
+    if not isFinite(width) or width <= 0 then
         return
     end
 
-    -- Put the button's center on the minimap edge. The native border extends
-    -- evenly on both sides of that edge instead of floating outside it.
-    local radius = Minimap:GetWidth() / 2
-    local radians = getAngleRadians(ns.GetMinimapAngle and ns.GetMinimapAngle() or 45)
-    button:ClearAllPoints()
-    button:SetPoint("CENTER", Minimap, "CENTER",
+    local radius = width / 2
+    local radians = math.rad(angle)
+    frame:ClearAllPoints()
+    frame:SetPoint("CENTER", minimap, "CENTER",
         math.cos(radians) * radius, math.sin(radians) * radius)
 end
 
-local function saveDraggedPosition()
-    if not button or not Minimap or not GetCursorPosition then
-        return
+local function pointerAngle(minimap, previousAngle)
+    if type(GetCursorPosition) ~= "function" or not minimap.GetCenter then
+        return previousAngle
     end
 
-    local scale = UIParent and UIParent.GetEffectiveScale
-        and UIParent:GetEffectiveScale() or 1
-    local cursorX, cursorY = GetCursorPosition()
-    local minimapX, minimapY = Minimap:GetCenter()
-    local dx = (cursorX / scale) - minimapX
-    local dy = (cursorY / scale) - minimapY
-    local angle
-    if math.atan2 then
-        angle = math.deg(math.atan2(dy, dx))
-    else
-        angle = math.deg(math.atan(dy, dx))
+    local scale = minimap.GetEffectiveScale and minimap:GetEffectiveScale()
+    local centerX, centerY = minimap:GetCenter()
+    local x, y = GetCursorPosition()
+    if not isFinite(scale) or scale <= 0 or not isFinite(centerX) or not isFinite(centerY)
+        or not isFinite(x) or not isFinite(y) then
+        return previousAngle
     end
-    if ns.SetMinimapAngle then
-        ns.SetMinimapAngle(angle)
+
+    local dx, dy = x / scale - centerX, y / scale - centerY
+    if dx == 0 and dy == 0 then
+        return previousAngle
     end
-    positionButton()
+    return math.deg(atan2(dy, dx))
 end
 
 local function setUnavailableCursor()
@@ -66,12 +69,18 @@ local function createButton()
         return button
     end
 
-    button = CreateFrame("Button", "CraftAtlasMinimapButton", Minimap)
+    local minimap = Minimap
+    local angle = savedAngle()
+    local dragged = false
+    local function updateDrag(frame)
+        angle = pointerAngle(minimap, angle)
+        positionButton(frame, minimap, angle)
+    end
+
+    button = CreateFrame("Button", "CraftAtlasMinimapButton", minimap)
     button:SetSize(buttonSize, buttonSize)
     button:SetFrameStrata("MEDIUM")
-    button:SetMovable(true)
-    button:SetClampedToScreen(true)
-    positionButton()
+    positionButton(button, minimap, angle)
     button:RegisterForClicks("LeftButtonUp")
     button:RegisterForDrag("LeftButton")
 
@@ -90,27 +99,36 @@ local function createButton()
     border:SetPoint("TOPLEFT", button, "TOPLEFT")
     button.border = border
 
-    button:SetScript("OnClick", function(self, mouseButton)
-        if self.wasDragged then
-            self.wasDragged = nil
-            return
+    button:SetScript("OnMouseDown", function(_, mouseButton)
+        if mouseButton == "LeftButton" then
+            -- A drag release may or may not dispatch OnClick. Reset on the next press.
+            dragged = false
         end
-        if mouseButton == "LeftButton" and ns.OpenSettings then
+    end)
+    button:SetScript("OnClick", function(_, mouseButton)
+        if mouseButton == "LeftButton" and not dragged and ns.OpenSettings then
             ns.OpenSettings()
         end
     end)
     button:SetScript("OnDragStart", function(self)
-        self.wasDragged = true
-        self:StartMoving()
+        dragged = true
+        updateDrag(self)
+        self:SetScript("OnUpdate", updateDrag)
     end)
     button:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        saveDraggedPosition()
+        updateDrag(self)
+        self:SetScript("OnUpdate", nil)
+        if ns.SetMinimapAngle then
+            ns.SetMinimapAngle(angle)
+        end
     end)
     button:SetScript("OnEnter", function(self)
-        if GameTooltip and GameTooltip.SetOwner then
+        if GameTooltip and GameTooltip.SetOwner and GameTooltip.SetText
+            and GameTooltip.AddLine and GameTooltip.Show then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-            GameTooltip:SetText(ns.L("MINIMAP_TOOLTIP"))
+            GameTooltip:SetText(ns.L("TITLE"))
+            GameTooltip:AddLine(ns.L("MINIMAP_OPEN"), 1, 1, 1)
+            GameTooltip:AddLine(ns.L("MINIMAP_MOVE"), 1, 1, 1)
             GameTooltip:Show()
         end
     end)
