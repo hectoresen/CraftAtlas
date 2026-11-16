@@ -183,12 +183,56 @@ function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
     return section
 end
 
+-- Consistent Classic-compatible chrome for tabs, filters, language and pager.
+-- Plain native Button frames avoid the red UIPanelButtonTemplate style.
+function ns.CreateExplorerChromeButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    local background = button:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetColorTexture(0.105, 0.09, 0.075, 0.98)
+    local edge = button:CreateTexture(nil, "BORDER")
+    edge:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT")
+    edge:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT")
+    edge:SetHeight(2)
+    edge:SetColorTexture(0.45, 0.34, 0.20, 0.9)
+    local hover = button:CreateTexture(nil, "BACKGROUND")
+    hover:SetAllPoints()
+    hover:SetColorTexture(0.35, 0.27, 0.13, 0.65)
+    button:SetHighlightTexture(hover)
+    local active = button:CreateTexture(nil, "ARTWORK")
+    active:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT")
+    active:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT")
+    active:SetHeight(3)
+    active:SetColorTexture(0.97, 0.74, 0.21, 1)
+    active:Hide()
+    button.activeEdge = active
+    button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    button.label:SetPoint("LEFT", button, "LEFT", 4, 0)
+    button.label:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+    button.label:SetJustifyH("CENTER")
+    button.label:SetWordWrap(false)
+    function button:SetText(value)
+        self.label:SetText(value or "")
+    end
+    return button
+end
+
+function ns.SetExplorerTabSelected(button, selected)
+    if selected then
+        button.activeEdge:Show()
+        button.label:SetTextColor(1, 0.85, 0.35)
+    else
+        button.activeEdge:Hide()
+        button.label:SetTextColor(0.84, 0.78, 0.68)
+    end
+end
+
 function ns.CreateExplorerPager(parent, onPrevious, onNext)
-    local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local previous = ns.CreateExplorerChromeButton(parent)
     previous:SetSize(76, 24)
     previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
     previous:SetScript("OnClick", function() if onPrevious then onPrevious() end end)
-    local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local nextButton = ns.CreateExplorerChromeButton(parent)
     nextButton:SetSize(76, 24)
     nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
     nextButton:SetScript("OnClick", function() if onNext then onNext() end end)
@@ -230,7 +274,7 @@ function ns.CreateExplorerSearchBox(header, onChange)
 end
 
 function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
-    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local button = ns.CreateExplorerChromeButton(parent)
     button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 8, -9)
     button:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -8, -9)
     button:SetHeight(28)
@@ -245,7 +289,7 @@ function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
     local choices = {[""] = nil}
     for index = 0, #(ns.professionOrder or {}) do
         local key = index == 0 and "" or ns.professionOrder[index]
-        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        local choice = ns.CreateExplorerChromeButton(menu)
         choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - index * 25)
         choice:SetSize(217, 24)
         choice:SetScript("OnClick", function()
