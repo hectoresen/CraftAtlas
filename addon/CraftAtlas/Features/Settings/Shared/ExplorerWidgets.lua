@@ -257,7 +257,57 @@ function ns.CreateExplorerSearchBox(header, onChange)
     return search
 end
 
+-- Use Blizzard's actual dropdown where the Classic client exposes its API.
+-- The fallback below preserves the original clickable selector on reduced clients.
+function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width)
+    if type(UIDropDownMenu_Initialize) ~= "function"
+        or type(UIDropDownMenu_CreateInfo) ~= "function"
+        or type(UIDropDownMenu_AddButton) ~= "function"
+        or type(UIDropDownMenu_SetWidth) ~= "function"
+        or type(UIDropDownMenu_SetText) ~= "function" then
+        return nil
+    end
+    local ok, dropdown = pcall(CreateFrame, "Frame", nil, parent, "UIDropDownMenuTemplate")
+    if not ok or not dropdown then return nil end
+    local labels, choices = {}, {}
+    for _, key in ipairs(keys) do
+        local entry = {}
+        function entry:SetText(value) labels[key] = value end
+        choices[key] = entry
+    end
+    dropdown.SetText = function(self, value)
+        UIDropDownMenu_SetText(self, value or "")
+    end
+    UIDropDownMenu_SetWidth(dropdown, width)
+    UIDropDownMenu_Initialize(dropdown, function(_, level)
+        if level and level ~= 1 then return end
+        for _, key in ipairs(keys) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = labels[key] or key
+            info.func = function()
+                if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
+                if onSelect then onSelect(key) end
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+    local popup = {
+        Hide = function()
+            if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
+        end,
+    }
+    return dropdown, popup, choices
+end
+
 function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
+    local keys = {""}
+    for _, key in ipairs(ns.professionOrder or {}) do keys[#keys + 1] = key end
+    local native, nativeMenu, nativeChoices =
+        ns.CreateExplorerNativeDropdown(parent, keys, onSelect, 215)
+    if native then
+        native:SetPoint("TOPLEFT", anchor, "TOPLEFT", -1, -4)
+        return native, nativeMenu, nativeChoices
+    end
     local button = ns.CreateExplorerClassicButton(parent)
     button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 8, -9)
     button:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -8, -9)
