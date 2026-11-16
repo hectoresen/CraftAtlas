@@ -43,7 +43,7 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 ## Manual game-client matrix for subsequent releases
 
 - Record exact Forever build and Lua errors at startup and on `/craftatlas` and `/craftatlas <itemID>`.
-- Inspect grouped Materiales search, profession filter, unique global counts, per-group matching counts, multi-profession entries, group collapse/restore, row recycling, non-row profession divider appearance, source-backed native profession icons with pagination/section collapse, client item metadata and vertical use pagination at multiple UI scales.
+- Inspect grouped Materiales search, profession filter, unique global counts, per-group matching counts, multi-profession entries, group collapse/restore, row recycling, non-row profession divider appearance, source-backed native profession icons with pagination/section collapse, recipe-area reflow/page-size restoration, client item metadata and vertical use pagination at multiple UI scales.
 - Inspect Fabricables by spell/name, crafted-output name, numeric ID and profession; distinguish missing spell name cache from genuine empty results.
 - Compare every ingredient and quantity for a selected verified recipe to the current live client (e.g., spell 19093 consumes items 14044, 14341 and 15410 in the pinned source). Confirm correct enchantment/non-item fallback.
 - Verify native tooltip data for items and recipes; no fabricated quality, stats or learned/craftable status.
