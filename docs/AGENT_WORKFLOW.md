@@ -81,3 +81,9 @@ The default state machine is now: `APPROVED SPEC → IMPLEMENT → VERIFY → do
 
 The prior `openspec/README.md` describes the legacy order; the newer project-specific implementation policy in `docs/SDD_COMPLIANCE.md` and `skills/documentation-sync/SKILL.md` governs this transaction. Do not modify protected root OpenSpec documentation without another approved scope.
 
+## Typed change identity + check-run handoff (specs #48/#49)
+
+Pre-branch: read the trusted default branch's active/archive changes and concurrently open proposals. Allocate `max+1` per `feat|fix|chore|upd|del` category, zero-padded to 3 digits. A new change named `feat001-improve-materials-menu` uses proposal branch `SPEC/FEAT001-improve-materials-menu`, PR declaration `OpenSpec-Change: feat001-improve-materials-menu`, and implementation branch `FEAT/001-improve-materials-menu`; archive preserves the **lowercase** spec ID. Never generate an arbitrary branch name. Recheck sequence and branch immediately before opening a PR. The original #48 uppercase change-directory example is superseded by owner-approved CLI compatibility spec #49. Historical approved specs and in-flight PRs are grandfathered.
+
+After opening/updating the PR: query the PR's current `head.sha` check-runs (not only `status` on a previous commit). Required names are `repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`. Classify statuses as **absent**, queued/in_progress, success, skipped, failed, or cancelled. Do not confuse absent with skipped. If absent, make one idempotent PR-body metadata update through an authorized GitHub connector to request Actions dispatch; preserve declarations and reviewer evidence, then re-query the head. If still missing, or if any context fails, halt ready-for-merge handoff and report it; do not bypass branch rules or self-approve. If jobs are pending, label them pending, never PASS. A second metadata update is not an automated fallback.
+
