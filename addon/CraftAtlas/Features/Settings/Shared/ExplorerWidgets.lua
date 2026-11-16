@@ -246,27 +246,33 @@ end
 -- Small native status bar occupies the free center strip between search and language.
 -- It never moves the centered title or replaces any Classic control.
 function ns.CreateExplorerCatalogProgress(panel, recipesTab, back)
-    -- Use the unused toolbar band between tabs and Back: the 54px title
-    -- header is too short for a second line without crowding its gold edge.
+    -- The toolbar spans the space between native tabs and Back; the visual
+    -- indicator itself stays compact and centered instead of filling that gap.
     local holder = CreateFrame("Frame", nil, panel)
     holder:SetPoint("LEFT", recipesTab, "RIGHT", 12, 0)
     holder:SetPoint("RIGHT", back, "LEFT", -12, 0)
-    holder:SetHeight(20)
+    holder:SetHeight(24)
 
-    local track = holder:CreateTexture(nil, "BACKGROUND")
+    -- At the minimum 600px logical window the free gap is about 190px.
+    -- Cap the bar so the progress fill and label read as one component.
+    local width = type(panel.GetWidth) == "function" and panel:GetWidth() or 600
+    local trackWidth = math.max(130, math.min(252, width - 430))
+    local bar = CreateFrame("StatusBar", nil, holder)
+    bar:SetSize(trackWidth, 6)
+    bar:SetPoint("BOTTOM", holder, "BOTTOM", 0, 0)
+    bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+    bar:SetStatusBarColor(0.73, 0.52, 0.18, 0.95)
+    bar:SetMinMaxValues(0, 100)
+
+    local track = bar:CreateTexture(nil, "BACKGROUND")
     track:SetAllPoints()
     track:SetColorTexture(0.055, 0.048, 0.039, 0.94)
 
-    local bar = CreateFrame("StatusBar", nil, holder)
-    bar:SetAllPoints()
-    bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    bar:SetStatusBarColor(0.57, 0.40, 0.11, 0.80)
-    bar:SetMinMaxValues(0, 100)
-
     local label = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    label:SetPoint("CENTER", holder, "CENTER", 0, 0)
+    label:SetPoint("BOTTOM", bar, "TOP", 0, 3)
     label:SetJustifyH("CENTER")
     label:SetTextColor(1, 0.93, 0.75)
+    if type(label.SetWordWrap) == "function" then label:SetWordWrap(false) end
     holder.label, holder.bar, holder.track = label, bar, track
     function holder:SetProgress(status, percent, caption)
         if status ~= "active" and status ~= "incomplete" then
