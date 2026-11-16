@@ -448,7 +448,15 @@ end
 local function createRows(left)
     ui.rows = {}
     for index = 1, VISIBLE_ROWS do
-        local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self)
+        local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self, button)
+            if ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) and self.itemID then
+                if currentView == "recipes" then
+                    ns.InsertRecipeChatLink(ns.GetCatalogRecipe(self.itemID))
+                else
+                    ns.InsertEntityChatLink("item", self.itemID)
+                end
+                return
+            end
             if currentView == "materials" and self.groupKey and not self.itemID then
                 ns.ToggleProfessionTreeGroup(treeState, self.groupKey, searchQuery ~= "")
                 updateRowsAfterGroupToggle()
@@ -645,11 +653,30 @@ local function createPanel()
     detailIcon:SetSize(52, 52)
     detailIcon:SetPoint("TOPLEFT", right, "TOPLEFT", 16, -16)
     ui.detailIcon = detailIcon
+    local materialLink = CreateFrame("Button", nil, right)
+    materialLink:SetPoint("TOPLEFT", right, "TOPLEFT", 13, -13)
+    materialLink:SetSize(59, 58)
+    materialLink:SetScript("OnClick", function(_, button)
+        if selectedID and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
+            ns.InsertEntityChatLink("item", selectedID)
+        end
+    end)
+    ui.materialLink = materialLink
     local detailTitle = font(right, "GameFontNormalLarge")
     detailTitle:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -19)
     detailTitle:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -19)
     detailTitle:SetJustifyH("LEFT")
     ui.detailTitle = detailTitle
+    local materialTitleLink = CreateFrame("Button", nil, right)
+    materialTitleLink:SetPoint("TOPLEFT", right, "TOPLEFT", 74, -16)
+    materialTitleLink:SetPoint("TOPRIGHT", right, "TOPRIGHT", -11, -16)
+    materialTitleLink:SetHeight(27)
+    materialTitleLink:SetScript("OnClick", function(_, button)
+        if selectedID and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
+            ns.InsertEntityChatLink("item", selectedID)
+        end
+    end)
+    ui.materialTitleLink = materialTitleLink
     local detailID = font(right, "GameFontDisableSmall")
     detailID:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -42)
     ui.detailID = detailID
@@ -695,6 +722,15 @@ end
 
 local function showActiveDetail()
     local material = currentView == "materials"
+    if ui.materialLink then
+        if material then
+            ui.materialLink:Show()
+            ui.materialTitleLink:Show()
+        else
+            ui.materialLink:Hide()
+            ui.materialTitleLink:Hide()
+        end
+    end
     for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailMeta,
         ui.professionUses.section}) do
         if material then element:Show() else element:Hide() end

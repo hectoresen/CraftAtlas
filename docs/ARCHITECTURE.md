@@ -13,6 +13,7 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 | `Domain/RecipeCatalog.lua` | Unique profession+spellID recipe identity, ingredient detail and recipe search |
 | `Domain/CatalogProgress.lua` | Pure per-view attempted-unit percentages and a one-pending-redraw coalescing gate |
 | `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua`, `RecipeNameCache.lua` | Guarded asynchronous client item/spell names/icons and native tooltips |
+| `Infrastructure/ChatLinks.lua` | Guarded client-provided item/spell hyperlinks, Shift-click detection and native chat-edit insertion without sending |
 | `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and native, alphabetized profession rows with localized labels |
 | `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference and movable minimap access |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |

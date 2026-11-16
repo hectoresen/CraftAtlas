@@ -11,6 +11,13 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Native chat linking and craftable detail icon (implementation awaiting owner merge)
+
+- Added Shift + left-click support for client-native item/spell links in clickable Materiales/Fabricables rows, uses, ingredients and detail icon/title surfaces; normal navigation remains unchanged.
+- Added guarded native chat insertion that never manufactures link markup or sends chat messages.
+- Removed the duplicate native quickslot overlay from the Fabricables detail icon; final visual/Forever compatibility tests remain NOT RUN.
+
+
 ### OpenSpec governance (merged PR #47)
 
 - Prepare complete canonical spec synchronization and lossless dated archive in the same implementation PR, eliminating routine follow-up archive PRs.

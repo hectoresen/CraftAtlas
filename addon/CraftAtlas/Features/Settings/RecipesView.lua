@@ -111,16 +111,22 @@ function ns.InitRecipeDetail(parent)
     view.icon = frame:CreateTexture(nil, "ARTWORK")
     view.icon:SetSize(52, 52)
     view.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -16)
-    local iconBorder = frame:CreateTexture(nil, "OVERLAY")
-    iconBorder:SetTexture("Interface\\Buttons\\UI-Quickslot2")
-    iconBorder:SetSize(58, 58)
-    iconBorder:SetPoint("CENTER", view.icon, "CENTER", 0, 0)
+    -- No UI-Quickslot2 overlay: its inner slot draws a duplicate inset square.
 
     view.title = font(frame, "GameFontNormalLarge")
     view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -18)
     view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -18)
     view.title:SetJustifyH("LEFT")
     view.title:SetWordWrap(false)
+    local titleLink = CreateFrame("Button", nil, frame)
+    titleLink:SetPoint("TOPLEFT", frame, "TOPLEFT", 74, -15)
+    titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -15)
+    titleLink:SetHeight(27)
+    titleLink:SetScript("OnClick", function(_, button)
+        if not (ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button)) then return end
+        local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
+        if recipe then ns.InsertRecipeChatLink(recipe) end
+    end)
     view.profession = font(frame, "GameFontHighlightSmall")
     view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -40)
     view.output = font(frame, "GameFontDisableSmall")
@@ -139,7 +145,11 @@ function ns.InitRecipeDetail(parent)
 
     local count = ITEMS_PER_PAGE
     for i = 1, count do
-        local row = ns.CreateExplorerRow(itemList, 39, function(self)
+        local row = ns.CreateExplorerRow(itemList, 39, function(self, button)
+            if self.ingredient and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
+                ns.InsertEntityChatLink("item", self.ingredient.itemID)
+                return
+            end
             if self.ingredient and ns.OpenMaterialFromRecipe then
                 ns.OpenMaterialFromRecipe(self.ingredient.itemID)
             end
@@ -175,6 +185,11 @@ function ns.InitRecipeDetail(parent)
         else
             ns.ShowRecipeTooltip(outputHover, recipe)
         end
+    end)
+    outputHover:SetScript("OnClick", function(_, button)
+        if not ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then return end
+        local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
+        if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
     outputHover:SetScript("OnLeave", clearTooltip)
     frame:SetScript("OnHide", clearTooltip)

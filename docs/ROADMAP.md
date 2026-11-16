@@ -18,6 +18,10 @@ These are **implemented in `main`** and do not imply that every source change ha
 
 **First-use preparation optimization merged in PR #38:** independent active-view preparation progress, coalesced redraws, cache-generation invalidation and optional `/craftatlas perf` counters are implemented in `main`. The progress bar is a bounded real-work indicator, not a frame-rate benchmark or proof of resolved item names. Final layout verification and measured FPS comparison in the actual Forever client remain **NOT RUN**.
 
+## Approved but not yet merged into main
+
+- OpenSpec `fix001-native-chat-links-and-recipe-icon` (#52 merged) is being implemented separately: native Shift-click chat links on clickable item/recipe entities and removal of a duplicate Fabricables detail icon overlay. Client confirmation is pending; do not describe it as shipped until its implementation PR merges.
+
 ## Future work (not implemented)
 
 - Reconcile imported recipe/material data with a newer licensed Forever build, record live mapping exceptions and improve coverage.
