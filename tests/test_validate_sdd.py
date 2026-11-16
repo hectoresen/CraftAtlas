@@ -63,6 +63,42 @@ class SddPolicyTests(unittest.TestCase):
         self.assertEqual(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                     self.implementation, present=True), [])
 
+    def test_minimap_implementation_requires_its_merged_owner_review_and_scope(self):
+        change = "refine-minimap-button"
+        prefix = "openspec/changes/" + change + "/"
+        (self.root / self.prefix).rename(self.root / prefix)
+        body = self.implementation.replace(self.change, change).replace("PR: 9", "PR: 43")
+
+        def api(path, token):
+            if path == "pulls/43":
+                return {"merged_at": "2026-11-16T16:06:10Z",
+                        "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if path.startswith("pulls/43/reviews?"):
+                return [{"user": {"login": "hectoresen"}, "state": review,
+                         "submitted_at": "2026-11-16T14:18:26Z"}]
+            if path.startswith("pulls/43/files?"):
+                return [{"filename": prefix + "proposal.md"}]
+            raise AssertionError(path)
+
+        def validate(path, spec_present=True, metadata=body):
+            return gate.validate({path}, metadata, 60, root=self.root, token="mock-token",
+                                 api=api, exists_in_base=lambda _: spec_present,
+                                 implementation_created="2026-11-16T18:59:00Z",
+                                 head_ref="fix/refine-minimap-button")
+
+        source = "addon/CraftAtlas/Infrastructure/MinimapButton.lua"
+        with patch.object(gate.subprocess, "check_output",
+                          side_effect=subprocess.CalledProcessError(1, ["git"])):
+            review = "APPROVED"
+            self.assertEqual(validate(source), [])
+            self.assertEqual(validate(source, metadata=body.replace("\n", "\r\n")), [])
+            self.assertIn("Approved proposal.md not present on main", validate(source, False))
+            self.assertIn("Changed files outside approved sdd-scope.json",
+                          validate("scripts/validate_sdd.py"))
+            review = "COMMENTED"
+            self.assertIn("Specification PR requires a valid @hectoresen APPROVED review before merge",
+                          validate(source))
+
     def test_code_without_spec_metadata_fails(self):
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"}, ""))
 
@@ -733,6 +769,21 @@ class TypedIdentityTests(unittest.TestCase):
             self.assertTrue(gate.validate_pr_identity(
                 "new-legacy-id", "implementation", 51, "feat/old", "main",
                 "token", None, None))
+
+    def test_in_flight_legacy_implementations_require_their_original_proposal_number(self):
+        cases = (("43", "refine-minimap-button"), ("44", "add-addon-list-identity"),
+                 ("46", "add-addon-configuration"))
+        with patch.object(gate.subprocess, "check_output",
+                          side_effect=subprocess.CalledProcessError(1, ["git"])):
+            for approval, change in cases:
+                with self.subTest(change=change):
+                    args = (change, "implementation", 60, "fix/" + change, "main", "token", None)
+                    self.assertEqual(gate.validate_pr_identity(*args, approval), [])
+                    self.assertTrue(gate.validate_pr_identity(*args, "49"))
+                    self.assertTrue(gate.validate_pr_identity(*args, None))
+            self.assertTrue(gate.validate_pr_identity(
+                "new-legacy-id", "implementation", 60, "fix/new-legacy-id", "main",
+                "token", None, "43"))
 
     def test_sequence_collisions_in_base_and_open_prs(self):
         def git_output(args, text=False):

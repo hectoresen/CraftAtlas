@@ -27,3 +27,8 @@
 - Python regression fixtures cover branch mapping, invalid IDs/case/zero-padding, collisions, legacy baseline and missing-vs-skipped PR checks. GitHub Actions validation: NOT RUN on this implementation commit yet.
 - Reviewed README, ARCHITECTURE, DATA_MODEL and INSTALLATION: unchanged because no Lua/player-facing behavior changes. Updated agent, workflow, SDD, testing, roadmap, contributor and skill guidance.
 - WoW Forever client tests: NOT RUN, not applicable to governance-only behavior. Actual GitHub Actions confirmation still required.
+
+## Legacy implementation verification
+
+- The regression suite passed for the exact in-flight approval pairs, mismatched references, owner review, approved base artifacts, scope, and Windows line endings. The full validator passed a local replay of PR #60 using its actual diff and public GitHub metadata.
+- The GitHub Actions rerun on #60 with the corrected validator on `main` is **NOT RUN**. Keep this change active until that acceptance is observed. See [testing evidence](../../../docs/TESTING.md#typed-specbranch-and-required-check-regression-tests).
