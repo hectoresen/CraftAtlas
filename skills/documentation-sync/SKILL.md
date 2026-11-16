@@ -41,6 +41,14 @@ Before authoring a PR body, explicitly verify and record: (1) which implementati
 
 The GitHub PR review and technical checks rulesets are independent. The owner may bypass only the review rule by submitting a PR; no owner or contributor should bypass required CI. Do not merge or enable auto-merge yourself.
 
+## Typed OpenSpec identity and mandatory PR check discovery
+
+**Before choosing a branch:** read accepted active/archive specs on current `main` plus concurrent open PRs. For new changes, allocate the next free **type-local** 3+ digit sequence (`feat|fix|chore|upd|del`) and create the official CLI-safe lowercase change ID, e.g. `feat001-improve-materials-menu`. The spec proposal branch is `SPEC/FEAT001-improve-materials-menu`; the later implementation branch is `FEAT/001-improve-materials-menu`. Recheck exact identity, case, padding, uniqueness, PR metadata and branch before opening a PR. Never rename historical owner-approved specs. The original uppercase *spec directory* example from proposal #48 is superseded by owner-approved correction #49; uppercase **branch** category tokens remain mandatory.
+
+**Immediately after opening or updating every PR:** obtain the **current PR head SHA**, query its check-runs and check all four exact required names: `repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`. Never infer that an `Expected` placeholder means `skipped`. If any name has **not appeared** (as opposed to being queued/running), make a **single** safe PR-body metadata edit through the connected GitHub integration, preserving all existing OpenSpec/Documentation attestation lines. Query the current head again. The edit can trigger configured `pull_request` workflows but is not guaranteed to do so; if any required check remains missing, failed or not completed, tell the owner exactly which and do not report ready-to-merge. A real `skipped` Lua result on a spec-only PR is acceptable. No endless retries, fake check statuses, bypass or automatic merging. Tooling unavailable? Report a blocker and how to invoke the workflow manually.
+
+Perform this audit both when a PR is first opened and when final implementation/archive commits change the head. The documentation sync decision applies to all coding agents, including Codex, Claude, Copilot and OpenCode; an offline test cannot substitute for actual Actions check-run discovery.
+
 ## OpenSpec archival attestation (required for implementation)
 
 In the PR body, in addition to the ordinary OpenSpec change, phase and approval fields, provide exactly one state and one substantive explanation:

@@ -56,3 +56,7 @@ GitHub Actions distinguishes **OpenSpec-only**, **Markdown/text-only** and **cod
 
 When implementing an owner-approved change, treat archive preparation as part of `documentation-sync`, not as a new follow-up PR. If accepted scenarios are actually verified, sync approved canonical specs and move the full original change to `openspec/changes/archive/YYYY-MM-DD-<change-id>/` **in the implementation branch**; otherwise retain active files and mark `OpenSpec-Archive: blocked` with named acceptance gaps. No direct main merges, no speculative checkmarks and no changes to unrelated approved specs. Reference `docs/SDD_COMPLIANCE.md` and include evidence in the PR body.
 
+## Branch discipline for coding agents
+
+New OpenSpec IDs are lowercase CLI-compatible `feat001-scope`, with the next free padded type-local sequence: `feat`, `fix`, `chore`, `upd`, `del`. Create proposal branches as `SPEC/FEAT001-scope` and implementation branches as `FEAT/001-scope` (substitute corresponding category). Keep exact identity across PR metadata and archived spec. Before each PR, check current `main`, active+archive folder names and concurrent open PRs. Old accepted specs keep original IDs. After GitHub PR creation verify the mandatory Actions checks exist on current commit; one PR metadata retry is allowed if absent. Missing/failed checks block handoff, even when local tests pass.
+

@@ -1,5 +1,12 @@
 # Changelog
 
+### Typed agent branch discipline and PR check discovery (pending merge)
+
+- Define CLI-safe lowercase OpenSpec IDs with type-local three-digit sequences and deterministic `SPEC/TYPEddd-slug` / `TYPE/ddd-slug` branches.
+- Preserve historical approved OpenSpec changes while blocking new arbitrary branch names, malformed typed IDs and sequence collisions.
+- Require agents to verify all mandatory PR check runs appear after creating a PR and perform a single safe metadata retry if absent.
+
+
 This file summarizes implemented source changes. Historical PRs are not active feature proposals; source data coverage and test evidence remain separate questions.
 
 ## [Unreleased] — `0.2.0-dev`
