@@ -297,9 +297,10 @@ local function refreshResults(resetOffset)
 end
 
 local function createLanguageMenu(header)
-    local button = ns.CreateExplorerChromeButton(header)
+    local button = ns.CreateExplorerClassicButton(header)
     button:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -10, 3)
     button:SetSize(120, 28)
+    ns.AddExplorerDropdownArrow(button)
     ui.language = button
 
     local menu = CreateFrame("Frame", nil, panel)
@@ -314,7 +315,7 @@ local function createLanguageMenu(header)
         if menu:IsShown() then menu:Hide() else menu:Show() end
     end)
     for index, value in ipairs(languageOptions) do
-        local choice = ns.CreateExplorerChromeButton(menu)
+        local choice = ns.CreateExplorerClassicButton(menu)
         choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
         choice:SetSize(118, 28)
         choice:SetScript("OnClick", function()
@@ -474,7 +475,7 @@ local function createPanel()
     search:HookScript("OnEditFocusLost", function()
         if search:GetText() == "" then hint:Show() end
     end)
-    local clear = ns.CreateExplorerChromeButton(header)
+    local clear = ns.CreateExplorerClassicButton(header)
     clear:SetPoint("LEFT", search, "RIGHT", 4, 0)
     clear:SetSize(28, 28)
     -- Use a native action icon, never a second textual close X.
@@ -503,15 +504,15 @@ local function createPanel()
     clear:SetEnabled(false)
     createLanguageMenu(header)
 
-    local materialsTab = ns.CreateExplorerChromeButton(panel)
+    local materialsTab = ns.CreateExplorerClassicButton(panel)
     materialsTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -101)
     materialsTab:SetSize(130, 27)
     materialsTab:SetScript("OnClick", function() switchView("materials") end)
-    local recipesTab = ns.CreateExplorerChromeButton(panel)
+    local recipesTab = ns.CreateExplorerClassicButton(panel)
     recipesTab:SetPoint("LEFT", materialsTab, "RIGHT", 8, 0)
     recipesTab:SetSize(130, 27)
     recipesTab:SetScript("OnClick", function() switchView("recipes") end)
-    local back = ns.CreateExplorerChromeButton(panel)
+    local back = ns.CreateExplorerClassicButton(panel)
     back:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -22, -101)
     back:SetSize(76, 26)
     back:SetScript("OnClick", function()
