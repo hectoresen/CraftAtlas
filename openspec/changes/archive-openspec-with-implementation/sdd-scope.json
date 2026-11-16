@@ -1,0 +1,22 @@
+{
+  "allowed_paths": [
+    "scripts/validate_sdd.py",
+    "tests/test_validate_sdd.py",
+    "scripts/validate_documentation.py",
+    "tests/test_validate_documentation.py",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "docs/AGENT_WORKFLOW.md",
+    "docs/DOCUMENTATION_PROTOCOL.md",
+    "docs/SDD_COMPLIANCE.md",
+    "docs/OPENSPEC_STATUS.md",
+    "docs/TESTING.md",
+    "docs/DEVELOPMENT.md",
+    "docs/ROADMAP.md",
+    "docs/CODE_QUALITY.md",
+    "openspec/README.md",
+    "skills/documentation-sync/SKILL.md",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
