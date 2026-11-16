@@ -421,7 +421,12 @@ local function createPanel()
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:Hide()
     if panel.TitleText then panel.TitleText:Hide() end
-    -- Bind the close handler after creating overlays, so it wins the click area.
+    -- Use the existing client art instead of distributing copied UI textures.
+    local emblem = panel:CreateTexture(nil, "ARTWORK")
+    emblem:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -4)
+    emblem:SetSize(31, 31)
+    emblem:SetTexture("Interface\\Icons\\Trade_BlackSmithing")
+        -- Bind the close handler after creating overlays, so it wins the click area.
 
     local header = CreateFrame("Frame", nil, panel)
     header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
@@ -435,7 +440,7 @@ local function createPanel()
     divider:SetHeight(2)
     divider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
 
-    local title = font(header, "GameFontNormalLarge")
+    local title = font(header, GameFontNormalHuge and "GameFontNormalHuge" or "GameFontNormalLarge")
     title:SetPoint("TOP", header, "TOP", 0, -1)
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
