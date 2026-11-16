@@ -66,7 +66,7 @@ local function refreshProfessionDetail()
     local first = (state.page - 1) * state.pageSize + 1
     for i, cell in ipairs(state.cells) do
         local key = state.keys[first + i - 1]
-        if key and state.section.expanded then
+        if i <= state.pageSize and key and state.section.expanded then
             cell.icon:SetTexture(ns.GetExplorerProfessionIcon(key))
             cell.label:SetText(labelProfession(key))
             cell:Show()
