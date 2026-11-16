@@ -1,6 +1,6 @@
 # Architecture — current source
 
-CraftAtlas is an offline WoW Forever Lua addon. User-visible functionality has been accepted in-game by the maintainer; current data completeness and per-client compatibility are independent validation concerns.
+CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and approved the overall UI through in-game screenshots; final adjustments, source-data completeness and per-client compatibility remain independent validation concerns.
 
 ## Module boundaries
 
