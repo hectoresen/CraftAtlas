@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/validate_sdd.py"
@@ -592,6 +593,144 @@ class AtomicArchiveTests(unittest.TestCase):
         self.assertTrue(self.check())
         ledger.write_text("| verified-fixture | archived | tests PASS |\n")
         self.assertTrue(self.check())
+
+
+class TypedIdentityTests(unittest.TestCase):
+    """CLI-safe IDs, deterministic branches and fail-closed check detection."""
+
+    def test_canonical_ids_and_uppercase_branches(self):
+        cases = [
+            ("feat001-improve-materials-menu", "SPEC/FEAT001-improve-materials-menu",
+             "FEAT/001-improve-materials-menu"),
+            ("fix009-repair-tooltips", "SPEC/FIX009-repair-tooltips",
+             "FIX/009-repair-tooltips"),
+            ("chore1000-check-pipelines", "SPEC/CHORE1000-check-pipelines",
+             "CHORE/1000-check-pipelines"),
+            ("upd010-visual-update", "SPEC/UPD010-visual-update",
+             "UPD/010-visual-update"),
+            ("del100-remove-old-api", "SPEC/DEL100-remove-old-api",
+             "DEL/100-remove-old-api"),
+        ]
+        for change, proposal, implementation in cases:
+            with self.subTest(change=change):
+                self.assertIsNotNone(gate.typed_identity(change))
+                self.assertEqual(gate.expected_pr_branch(change, "proposal"), proposal)
+                self.assertEqual(gate.expected_pr_branch(change, "implementation"), implementation)
+
+    def test_bad_type_case_sequence_and_slug_rejected(self):
+        for value in (
+            "FEAT001-good", "feat000-good", "feat01-good",
+            "feat1-good", "feat0001-good", "feat001_bad", "feat001-Bad",
+            "feat001--bad", "feat001-good-", "xyz001-good", "feat001-",
+        ):
+            with self.subTest(value=value):
+                self.assertIsNone(gate.typed_identity(value))
+
+    def test_matching_proposal_and_implementation_branches(self):
+        change = "feat001-improve-materials-menu"
+        with patch.object(gate, "_typed_reserved_ids", return_value=[]):
+            self.assertEqual(gate.validate_pr_identity(
+                change, "proposal", 50, "SPEC/FEAT001-improve-materials-menu",
+                "main", "token", None, None), [])
+        self.assertEqual(gate.validate_pr_identity(
+            change, "implementation", 51, "FEAT/001-improve-materials-menu",
+            "main", "token", None, None), [])
+        for branch in ("feature/improve-materials-menu",
+                       "feat/001-improve-materials-menu", "FEAT/002-improve-materials-menu",
+                       "FEAT/001-other"):
+            self.assertTrue(gate.validate_pr_identity(
+                change, "implementation", 51, branch, "main", "token", None, None))
+
+    def test_new_legacy_proposal_rejected_but_existing_prs_allowed(self):
+        self.assertTrue(gate.validate_pr_identity(
+            "old-change-name", "proposal", 50, "spec/old-change-name",
+            "main", "token", None, None))
+        self.assertEqual(gate.validate_pr_identity(
+            "refine-minimap-button", "proposal", 43, "spec/refine-minimap-button",
+            "main", "token", None, None), [])
+
+    def test_frozen_legacy_implementation(self):
+        change = "standardize-spec-and-branch-identifiers"
+        with patch.object(gate.subprocess, "check_output", return_value=b""):
+            self.assertEqual(gate.validate_pr_identity(
+                change, "implementation", 51, "feat/old", "main", "token", None, None), [])
+        with patch.object(gate.subprocess, "check_output",
+                          side_effect=subprocess.CalledProcessError(1, ["git"])):
+            self.assertTrue(gate.validate_pr_identity(
+                "new-legacy-id", "implementation", 51, "feat/old", "main",
+                "token", None, None))
+
+    def test_sequence_collisions_in_base_and_open_prs(self):
+        def git_output(args, text=False):
+            self.assertEqual(args[:2], ["git", "ls-tree"])
+            return ("openspec/changes/feat001-other/proposal.md\n"
+                    "openspec/changes/archive/2026-11-16-fix004-old/tasks.md\n")
+        with patch.object(gate.subprocess, "check_output", side_effect=git_output):
+            def open_prs(path, token):
+                return [{"number": 80, "head": {"ref": "SPEC/FEAT003-parallel"}}]
+            self.assertTrue(gate._typed_reserved_ids(
+                "main", open_prs, "token", 50, "feat001-new"))
+            self.assertTrue(gate._typed_reserved_ids(
+                "main", open_prs, "token", 50, "feat003-new"))
+            self.assertEqual(gate._typed_reserved_ids(
+                "main", open_prs, "token", 50, "feat002-new"), [])
+            self.assertTrue(gate._typed_reserved_ids(
+                "main", open_prs, "token", 50, "fix004-new"))
+
+    def test_open_pr_collision_does_not_reserve_own_head(self):
+        with patch.object(gate.subprocess, "check_output", return_value=""):
+            api = lambda path, token: [
+                {"number": 50, "head": {"ref": "SPEC/FEAT001-this-change"}}]
+            self.assertEqual(gate._typed_reserved_ids(
+                "main", api, "token", 50, "feat001-this-change"), [])
+
+    def test_typed_proposal_full_sdd_gate_requires_matching_head_and_unique_id(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            change = "feat001-improve-materials-menu"
+            prefix = "openspec/changes/" + change + "/"
+            folder = root / prefix
+            (folder / "specs" / "materials").mkdir(parents=True)
+            for name in ("proposal.md", "design.md", "tasks.md"):
+                (folder / name).write_text("# Approved proposal\n")
+            (folder / "sdd-scope.json").write_text(
+                json.dumps({"allowed_paths": ["addon/CraftAtlas/**"]}))
+            (folder / "specs/materials/spec.md").write_text(
+                "## ADDED Requirements\n### Requirement: Feature\n")
+            body = "OpenSpec-Change: " + change + "\nOpenSpec-Phase: proposal\n"
+            with patch.object(gate.subprocess, "check_output", return_value=""):
+                api = lambda path, token: []
+                file_set = {prefix + "proposal.md", prefix + "design.md",
+                            prefix + "tasks.md", prefix + "sdd-scope.json",
+                            prefix + "specs/materials/spec.md"}
+                validate = lambda head: gate.validate(
+                    file_set, body, 55, root=root, token="token", api=api,
+                    exists_in_base=lambda p: False, head_ref=head)
+                self.assertEqual(validate("SPEC/FEAT001-improve-materials-menu"), [])
+                self.assertTrue(validate("feat/001-improve-materials-menu"))
+
+    def test_grandfathered_proposal_does_not_allow_arbitrary_new_legacy(self):
+        self.assertEqual(gate.validate_pr_identity(
+            "add-addon-configuration", "proposal", 46,
+            "spec/add-addon-configuration", "main", "token", None, None), [])
+        self.assertTrue(gate.validate_pr_identity(
+            "add-addon-configuration", "proposal", 55,
+            "spec/add-addon-configuration", "main", "token", None, None))
+
+    def test_required_check_missing_differs_from_actual_skipped(self):
+        empty = gate.required_context_snapshot([])
+        self.assertEqual(sorted(empty["missing"]), sorted(gate.REQUIRED_PR_CONTEXTS))
+        checks = [{"name": n, "status": "completed",
+                   "conclusion": "skipped" if n.startswith("lua-") else "success"}
+                  for n in gate.REQUIRED_PR_CONTEXTS]
+        self.assertEqual(gate.required_context_snapshot(checks),
+                         {"missing": [], "pending": [], "failed": []})
+        checks[0]["conclusion"] = "failure"
+        self.assertEqual(gate.required_context_snapshot(checks)["failed"],
+                         ["repository-validation"])
+        checks[0]["status"] = "in_progress"
+        self.assertEqual(gate.required_context_snapshot(checks)["pending"],
+                         ["repository-validation"])
 
 if __name__ == "__main__":
     unittest.main()

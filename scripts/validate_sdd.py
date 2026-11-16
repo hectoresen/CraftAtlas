@@ -18,6 +18,141 @@ PROTECTED = (
     "openspec/config.yaml",
 )
 
+
+# Rollout anchored to the owner-merged correction proposal #49. Existing
+# approved legacy changes must never be renamed to satisfy new naming rules.
+TYPED_CHANGE = re.compile(
+    r"^(feat|fix|chore|upd|del)(00[1-9]|0[1-9][0-9]|[1-9][0-9]{2,})-"
+    r"([a-z0-9]+(?:-[a-z0-9]+)*)$"
+)
+ROLLOUT_BASE_SHA = "a2085951b4010d17b525edd6b58b13f4aff900c3"
+LEGACY_OPEN_PROPOSALS = {
+    43: "refine-minimap-button",
+    44: "add-addon-list-identity",
+    46: "add-addon-configuration",
+}
+REQUIRED_PR_CONTEXTS = (
+    "repository-validation", "traceability",
+    "lua-compatibility", "lua-regressions",
+)
+
+
+def typed_identity(change):
+    """Return (type, sequence, slug) for an exact CLI-safe typed change."""
+    match = TYPED_CHANGE.fullmatch(change or "")
+    if not match:
+        return None
+    kind, number, slug = match.groups()
+    return kind, int(number), slug
+
+
+def expected_pr_branch(change, phase):
+    identity = typed_identity(change)
+    if not identity:
+        return None
+    kind, number, slug = identity
+    digits = str(number).zfill(3)
+    if phase == "proposal":
+        return "SPEC/" + kind.upper() + digits + "-" + slug
+    if phase == "implementation":
+        return kind.upper() + "/" + digits + "-" + slug
+    return None
+
+
+def required_context_snapshot(check_runs):
+    """Separate never-created checks from actual skipped/success/pending runs."""
+    newest = {}
+    for run in check_runs:
+        name = run.get("name")
+        if name in REQUIRED_PR_CONTEXTS and name not in newest:
+            newest[name] = run
+    missing = sorted(set(REQUIRED_PR_CONTEXTS) - set(newest))
+    pending = sorted(n for n, r in newest.items()
+                     if r.get("status") != "completed")
+    failed = sorted(n for n, r in newest.items()
+                    if r.get("status") == "completed" and
+                    r.get("conclusion") not in ("success", "skipped", "neutral"))
+    return {"missing": missing, "pending": pending, "failed": failed}
+
+
+def _typed_reserved_ids(base, api, token, pr_number, change):
+    """Inspect trusted base tree and concurrent PR heads for numeric collisions."""
+    errors = []
+    kind, number, _ = typed_identity(change)
+    try:
+        paths = subprocess.check_output(
+            ["git", "ls-tree", "-r", "--name-only", base, "--",
+             "openspec/changes"], text=True).splitlines()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return ["Cannot inspect approved OpenSpec sequence reservations: " + str(exc)]
+    existing = set()
+    for path in paths:
+        parts = path.split("/")
+        if len(parts) < 4 or parts[:2] != ["openspec", "changes"]:
+            continue
+        old = parts[2]
+        if old == "archive" and len(parts) > 4:
+            old = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", parts[3])
+        parsed = typed_identity(old)
+        if parsed and parsed[0] == kind:
+            existing.add((parsed[1], old))
+    for allocated, old in existing:
+        if allocated == number:
+            errors.append("Typed ID sequence already approved/archived: " + old)
+    if existing and number <= max(x[0] for x in existing):
+        errors.append("Typed ID must advance beyond the latest accepted " + kind + " sequence")
+    if not token:
+        return errors + ["GITHUB_TOKEN required to check concurrent OpenSpec reservations"]
+    try:
+        for page in range(1, 11):
+            pulls = api("pulls?state=open&per_page=100&page=" + str(page), token)
+            for pull in pulls:
+                if pull.get("number") == pr_number:
+                    continue
+                branch = (pull.get("head") or {}).get("ref", "")
+                m = re.fullmatch(
+                    r"SPEC/((?:FEAT|FIX|CHORE|UPD|DEL)[0-9]+-[a-z0-9-]+)", branch)
+                if not m:
+                    continue
+                reserved = typed_identity(m.group(1).lower())
+                if reserved and (reserved[0], reserved[1]) == (kind, number):
+                    errors.append("Typed ID reserved by open PR #" + str(pull.get("number")))
+            if len(pulls) < 100:
+                break
+    except Exception as exc:
+        errors.append("Cannot verify concurrent OpenSpec ID reservations: " + str(exc))
+    return errors
+
+
+def validate_pr_identity(change, phase, pr_number, head_ref, base,
+                         token, api, exists_in_base):
+    """Apply the new convention without renaming already-approved legacy specs."""
+    identity = typed_identity(change)
+    if phase not in ("proposal", "implementation"):
+        return []
+    if identity:
+        expected = expected_pr_branch(change, phase)
+        errors = []
+        if head_ref != expected:
+            errors.append("Branch must be " + expected + " for OpenSpec change " + change)
+        if phase == "proposal":
+            errors.extend(_typed_reserved_ids(base, api, token, pr_number, change))
+        return errors
+    # A legacy implementation is valid only for a change present at rollout.
+    if phase == "implementation":
+        try:
+            subprocess.check_output(["git", "cat-file", "-e",
+                                     ROLLOUT_BASE_SHA + ":openspec/changes/" +
+                                     change + "/proposal.md"], stderr=subprocess.DEVNULL)
+            return []
+        except (OSError, subprocess.CalledProcessError):
+            return ["New implementation needs a CLI-safe typed OpenSpec ID"]
+    if pr_number in LEGACY_OPEN_PROPOSALS and change == LEGACY_OPEN_PROPOSALS[pr_number]:
+        return []
+    return ["New proposal must use lowercase typed OpenSpec ID (e.g. feat001-menu) "
+            "and SPEC/TYPEddd-slug branch; existing legacy PRs are grandfathered"]
+
+
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
@@ -421,7 +556,8 @@ def context_regression_errors(current_config, baseline_config):
 
 
 def validate(files, body, pr_number, root=Path("."), base="origin/main",
-             token=None, api=github_api, exists_in_base=None, implementation_created=None):
+             token=None, api=github_api, exists_in_base=None, implementation_created=None,
+             head_ref=None):
     errors = []
     # Existing stale main context is a tracked debt; once removed via the
     # approved lifecycle PR, fail every PR trying to reintroduce it.
@@ -504,6 +640,9 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
                 return True
             except subprocess.CalledProcessError:
                 return False
+    if head_ref is not None or typed_identity(change):
+        errors.extend(validate_pr_identity(
+            change, phase, pr_number, head_ref, base, token, api, exists_in_base))
     if phase == "proposal":
         if approval:
             errors.append("Proposal may not claim pre-approval")
@@ -579,6 +718,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
             "mandatory-multiagent-documentation-gate",
             "harden-contributor-pr-governance",
             "archive-openspec-with-implementation",
+            "resolve-typed-openspec-cli-compatibility",
         )
         # Only this explicitly owner-approved change may introduce the root
         # CODEOWNERS file; hidden .github policy files remain forbidden.
@@ -602,7 +742,8 @@ def main():
     errors = validate(changed_files(args.base, args.head), body,
                       event.get("number"), base=args.base,
                       token=os.getenv("GITHUB_TOKEN"),
-                      implementation_created=(event.get("pull_request") or {}).get("created_at"))
+                      implementation_created=(event.get("pull_request") or {}).get("created_at"),
+                      head_ref=(event.get("pull_request") or {}).get("head", {}).get("ref"))
     for error in errors:
         print("::error::" + error)
     print("SDD: " + ("FAIL" if errors else "PASS") +
