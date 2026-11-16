@@ -18,7 +18,7 @@ Ten consuming source categories are Alchemy, Blacksmithing, Cooking, Enchanting,
 
 ## Local opt-in tracking state (not catalog data)
 
-Craftable tracking is keyed by the existing `professionKey:spellID` identity inside `CraftAtlasDB.craftTracking[realm:character]`. Only explicit booleans are stored; the current bag/bank item counts are read from guarded in-game APIs and are **never persisted or treated as part of source-backed catalog coverage**. Include-bank preference is per character; a closed bank is unknown and excluded from confirmed availability. Progress is calculated against current requirements for one craft, not learned recipes, planned batches or stock on other characters. This implementation is still pending client acceptance.
+The tracking **display preference** is a single boolean per character in `CraftAtlasDB.craftTrackingEnabled[realm:character]`, independent of recipe keys. Existing per-recipe `craftTracking` records remain untouched for compatibility but never auto-enable global mode. The selected recipe still uses its own `professionKey:spellID` identity for ingredient requirements. Only explicit booleans are stored; the current bag/bank item counts are read from guarded in-game APIs and are **never persisted or treated as part of source-backed catalog coverage**. Include-bank preference is per character; a closed bank is unknown and excluded from confirmed availability. Progress is calculated against current requirements for one craft, not learned recipes, planned batches or stock on other characters. This implementation is still pending client acceptance.
 
 ## One source, multiple generated runtime views
 
