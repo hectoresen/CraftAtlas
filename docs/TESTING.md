@@ -33,6 +33,8 @@ The feature implementation branch introduces `Domain/CraftableTracking.lua`, `In
 
 **Maintainer Forever confirmation (2026-11-16):** After the bank-slot enumeration correction on PR #55, the maintainer explicitly confirmed **“ya funciona”** in the context of the previously failing open-bank Silverleaf/Hojaplata stock count. This is **owner-reported PASS for the previously failing open-bank material availability scenario**; screenshot before the fix showed a bank with Silverleaf but 0/1 in the tracker. Do not infer an exact Forever build, counts after the fix, bank-closed behavior, both locales, character isolation, reload persistence, empty/complete bags or all compact-scale cases from this confirmation. Those unobserved acceptance scenarios remain **NOT RUN / NOT EVIDENCED**; therefore the change remains active and archive blocked.
 
+**Native progress color semantics (2026-11-16):** status bars show no fill for zero, amber/yellow for any nonzero incomplete material coverage, and green when the required units are fully present and observed. Total follows the same rule, weighted by required ingredient units and never green for unverified completion. Lua regression checks partial (60%), full (100%) and native bar colors. Final Forever screenshot for these color changes is NOT RUN.
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
