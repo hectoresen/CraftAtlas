@@ -12,7 +12,7 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 | `Domain/RecipeUsage.lua` | Material → actual recipe uses and pure pagination |
 | `Domain/RecipeCatalog.lua` | Unique profession+spellID recipe identity, ingredient detail and recipe search |
 | `Infrastructure/ItemInfo.lua`, `RecipeInfo.lua`, `RecipeNameCache.lua` | Guarded asynchronous client item/spell names/icons and native tooltips |
-| `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and localized profession annotations |
+| `Infrastructure/TooltipAdapter.lua`, `Features/Tooltip/Tooltip.lua` | One guarded item-tooltip hook and native, alphabetized profession rows with localized labels |
 | `Infrastructure/Preferences.lua`, `MinimapButton.lua` | Language preference and movable minimap access |
 | `Localization/Locales.lua`, `ProfessionLabels.lua` | Client locale and enUS/esES strings |
 | `Features/Settings/Settings.lua` | Single native window, tabs, state, selected details, cross-view navigation, working close |
@@ -23,6 +23,10 @@ CraftAtlas is an offline WoW Forever Lua addon. The maintainer has inspected and
 The loading order is declared in `addon/CraftAtlas/CraftAtlas.toc`; all addon runtime files belong under `addon/CraftAtlas/`, not in `docs/`.
 
 ## Behavior and UI
+
+Material item tooltips render after the native item lines on the existing `TooltipDataProcessor` path. The presenter reads the CraftAtlas catalog by itemID and appends a separator, the native gold `Used in:` / `Utilizado en:` heading, and one white row per consuming profession. It tracks native clears per tooltip to keep repeat callbacks idempotent and uses the line count and hide hook when the clear script is unavailable. The Spanish tooltip uses `Costura` for Tailoring to match the reference presentation. The explorer uses its existing registry label, `Sastrería`.
+
+The 14 × 14 inline icons use native `SkillLine.SpellIconFileID` identifiers from Forever build `1.60.1.70938`, documented by Profession Reagents 1.0.0 (MIT, copyright 2026 sebasgrios). Detected missing icons fall back to text. [Pinned Profession Reagents reference](https://github.com/sebasgrios/profession-util/tree/66555a5c5c1d4ad3d3c2f8d5d0982beb2b23a4b8/addons/ProfessionReagents) · [CraftAtlas catalog provenance](DATA_MODEL.md)
 
 `/craftatlas` and the minimap button open the **Materiales** tab. It filters only items known to be actual recipe **inputs**, by itemID/name and consuming profession. The left pane projects filtered unique itemIDs into source-backed collapsible profession groups, virtualizing the visible row pool. It preserves group expansion across view navigation and restores pre-search collapse state after clearing a query. The right pane shows client-provided item metadata when available, a collapsible profession-use section with client icons, four entries across on normal panes and a compact two-column fallback (arrows only when professions exceed visible capacity), and a separate collapsible section of paginated vertical crafting-use rows. Collapsing professions reflows the recipe section and its bounded page size. Hover uses the game client; clicking a use opens its **Fabricables** detail.
 

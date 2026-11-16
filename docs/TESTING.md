@@ -51,6 +51,12 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 - Test separate tooltip origins (bags, bank, guild bank, chat, auction, vendor, mail, quest rewards and crafting); record each as PASS/FAIL/NOT RUN.
 - Check source licenses/provenance, current-server recipe mapping and any known gaps before claiming live completeness.
 
+## Expanded material tooltip verification
+
+Run `lua tests/test_material_tooltips.lua`. The Lua 5.1.5 fixture passed the approved layout and order for Copper Ore (`2770`) and Linen Cloth (`2589`), verified Silverleaf (`765`) still displays only Alchemy, and exercised unknown and protected tooltips, a missing icon, gold fallback, language changes, repeated callbacks and tooltip rebuilds. The broader Lua run passed 12 of 16 files. `test_addon.lua`, `test_item_info.lua`, `test_recipe_cards.lua` and `test_release_version.lua` failed with the same errors on a clean `main` at `29d6a1b`.
+
+**Forever visual comparison: NOT RUN.** Compare CraftAtlas and the pinned Profession Reagents build separately at matching locale and UI scale. Use `2770` and `2589` for appearance, `765` for differing catalog membership, and `25` as the unknown control. Switch between enUS and esES, exercise quick hover and rebuilds in bags and chat item links, and record the Forever build, scales, screenshots and each surface's outcome. The source lookup for icon identifiers does not establish that a texture displayed in the client.
+
 ## Final profession density / title / release preparation
 
 The owner requested four visible consuming professions without pager for three or four matches. The implementation uses a width-aware, bounded profession row (four on normal panes, two on compact panes), hides horizontal pager controls unless there are more entries, and centers the CraftAtlas title vertically and horizontally. The tiny bottom-right footer reads only the **official packaged version**. The tracked development manifest is `0.2.0-dev`, not an official v0.2.0 release. When merged, the owner must run the release workflow with **minor** increment against the existing v0.1.0 tag; the workflow derives v0.2.0 and rewrites ZIP metadata. The source checkout must not claim to be a published release. Added Lua tests for page thresholds and official versus development version. Latest in-client verification: **NOT RUN**.
