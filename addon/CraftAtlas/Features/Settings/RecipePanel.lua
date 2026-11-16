@@ -104,7 +104,11 @@ function ns.InitRecipePanel(parent, availableHeight)
     state.empty:SetJustifyH("LEFT")
 
     for index = 1, MAX_ROWS do
-        local row = ns.CreateExplorerRow(grid, ROW_HEIGHT, function(self)
+        local row = ns.CreateExplorerRow(grid, ROW_HEIGHT, function(self, button)
+            if self.use and ns.IsEntityChatLinkClick(button) then
+                ns.InsertRecipeChatLink(self.use)
+                return
+            end
             if self.use and ns.NavigateToRecipe then ns.NavigateToRecipe(self.use) end
         end)
         row:SetPoint("TOPLEFT", grid, "TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
