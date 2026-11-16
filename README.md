@@ -35,7 +35,7 @@ The dataset is a pinned MIT-licensed **LibProfessionDB** snapshot from Forever b
 ## Install and use
 
 1. Download an installable `CraftAtlas-vX.Y.Z.zip` from [GitHub Releases](https://github.com/hectoresen/CraftAtlas/releases), if available, and extract it into `Interface/AddOns/`; or copy only `addon/CraftAtlas/` from a source checkout.
-2. Confirm `Interface/AddOns/CraftAtlas/CraftAtlas.toc` exists (no double-nested directory). Enable the addon in the game.
+2. Confirm `Interface/AddOns/CraftAtlas/CraftAtlas.toc` exists (no double-nested directory). In the game's AddOns list, look for **CraftAtlas** under **Professions** (enUS) or **Profesiones** (esES) and enable it. The manifest declares these categories and the minimap's blacksmithing icon; see [in-game test evidence](docs/TESTING.md#native-addons-list-registration).
 3. Run `/craftatlas` or click the minimap button. The explorer opens on **Materiales**; switch to **Fabricables** to browse craftable results.
 4. Use `/craftatlas 159` to open a known material directly. `/craftatlas perf` prints local, session-only preparation units, batches, worst observed batch times (when supported), search and redraw counts for diagnosis (not actual FPS). For Lua errors: `/console scriptErrors 1`, then `/reload`.
 
