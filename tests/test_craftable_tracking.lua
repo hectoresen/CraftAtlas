@@ -62,134 +62,154 @@ ns.SetCraftableTracked("ALCHEMY:100",true)
 eq(ns.IsCraftableTracked("ALCHEMY:100"),false,"no ambiguous identity")
 print("Craftable tracking domain/adapter/preferences PASS")
 
--- Native UI integration: empty bars stay visible and labels switch with locale.
+-- Native UI regression: Ingredients stays intact, tracking gets its own rows and
+-- actual Blizzard StatusBars. No live-client claims are made by these mocks.
 local frames = {}
-local function widget(kind, parent)
-    local self = {kind = kind, parent = parent, width = 400, height = 343, shown = true}
-    function self:SetAllPoints() end
-    function self:SetPoint(point, relative, relativePoint, x, y)
-        self.points = self.points or {}
-        self.points[point] = {relative = relative, x = x, y = y}
+local function widget(kind,parent)
+    local w = {kind=kind,parent=parent,shown=true,width=460,height=500}
+    function w:SetAllPoints() end
+    function w:SetPoint(which, relative, relativePoint, x, y)
+        self.points=self.points or {}
+        self.points[which]={relative=relative,x=x,y=y}
     end
-    function self:ClearAllPoints() self.points = {} end
-    function self:SetSize(w,h) self.width=w self.height=h end
-    function self:SetHeight(h) self.height=h end
-    function self:GetHeight() return self.height end
-    function self:CreateTexture() return widget("Texture", self) end
-    function self:CreateFontString() return widget("FontString", self) end
-    function self:SetTexture(value) self.texture=value end
-    function self:SetHighlightTexture() end
-    function self:SetColorTexture() self.color=true end
-    function self:SetStatusBarTexture() end
-    function self:SetStatusBarColor() end
-    function self:SetMinMaxValues() end
-    function self:SetValue(value) self.value=value end
-    function self:SetText(value) self.text=value end
-    function self:SetTextColor() end
-    function self:SetJustifyH() end
-    function self:SetWordWrap() end
-    function self:SetScript(key, fn) self[key]=fn end
-    function self:SetEnabled() end
-    function self:SetChecked(value) self.checked=value end
-    function self:GetChecked() return self.checked end
-    function self:Show() self.shown=true end
-    function self:Hide() self.shown=false end
-    frames[#frames+1] = self
-    return self
+    function w:ClearAllPoints() self.points={} end
+    function w:SetSize(a,b) self.width=a self.height=b end
+    function w:SetHeight(v) self.height=v end
+    function w:GetHeight() return self.height end
+    function w:CreateTexture() return widget("Texture",self) end
+    function w:CreateFontString() return widget("FontString",self) end
+    function w:SetTexture(t) self.texture=t end
+    function w:SetVertexColor() end
+    function w:SetColorTexture() end
+    function w:SetHighlightTexture() end
+    function w:SetStatusBarTexture(t) self.barTexture=t end
+    function w:SetStatusBarColor() end
+    function w:SetMinMaxValues(a,b) self.min=a self.max=b end
+    function w:SetValue(v) self.value=v end
+    function w:SetText(v) self.text=v end
+    function w:SetTextColor() end
+    function w:SetJustifyH() end
+    function w:SetWordWrap() end
+    function w:SetScript(k,fn) self[k]=fn end
+    function w:SetEnabled(v) self.enabled=v end
+    function w:SetChecked(v) self.checked=v end
+    function w:GetChecked() return self.checked end
+    function w:Show() self.shown=true end
+    function w:Hide() self.shown=false end
+    frames[#frames+1]=w
+    return w
 end
-CreateFrame = function(kind, _, parent) return widget(kind, parent) end
-local uiLocale = "esES"
-local uiRecipe = {
-    key = "ALCHEMY:2329", spellID = 2329, professionKey = "ALCHEMY",
-    outputItemID = 118, kind = "item",
-    ingredients = {{itemID=3,quantity=2},{itemID=4,quantity=3}},
+CreateFrame=function(kind,_,parent) return widget(kind,parent) end
+local locale, includeBank="esES",false
+local stock = {[3]={bags=0,available=0,bankStatus="excluded"},
+    [4]={bags=0,available=0,bankStatus="excluded"}}
+local recipe={key="ALCHEMY:2329",spellID=2329,professionKey="ALCHEMY",
+    outputItemID=118,kind="item",
+    ingredients={{itemID=3,quantity=2},{itemID=4,quantity=3}}}
+local strings = {
+    esES={RECIPE_INGREDIENT_COUNT="Materiales necesarios (%d)",
+        RECIPE_QUANTITY="x%d",RECIPE_PAGE_STATUS="Página %d / %d",
+        TRACK_CRAFTING="Seguir fabricación",
+        TRACK_PROGRESS="Progreso de materiales",TRACK_TOTAL="Progreso total",
+        TRACK_INCLUDE_BANK="Incluir banco",TRACK_AVAILABLE_BAGS="%d/%d",
+        TRACK_AVAILABLE_BANK="%d/%d",TRACK_AVAILABLE_UNKNOWN="?/%d",
+        TRACK_MISSING="Faltan: %d",TRACK_BANK_CURRENT="Banco actualizado",
+        TRACK_BANK_OPEN_HINT="Abre el banco para actualizar"},
+    enUS={RECIPE_INGREDIENT_COUNT="Ingredients (%d)",
+        RECIPE_QUANTITY="x%d",RECIPE_PAGE_STATUS="Page %d / %d",
+        TRACK_CRAFTING="Track crafting",
+        TRACK_PROGRESS="Material progress",TRACK_TOTAL="Total progress",
+        TRACK_INCLUDE_BANK="Include bank",TRACK_AVAILABLE_BAGS="%d/%d",
+        TRACK_AVAILABLE_BANK="%d/%d",TRACK_AVAILABLE_UNKNOWN="?/%d",
+        TRACK_MISSING="Missing: %d",TRACK_BANK_CURRENT="Bank current",
+        TRACK_BANK_OPEN_HINT="Open bank to update"}
 }
-local uiNs = {
-    L = function(key)
-        local strings = {
-            esES = {TRACK_CRAFTING="Seguir fabricación", TRACK_PROGRESS="Progreso de materiales",
-                TRACK_INCLUDE_BANK="Incluir banco", TRACK_BANK_UNAVAILABLE="Banco no disponible",
-                RECIPE_INGREDIENT_COUNT="Materiales necesarios (%d)",
-                TRACK_INGREDIENT_STATUS="%d/%d · Faltan %d", TRACK_STOCK_BAGS="Bolsas: %d  |  Banco: no  |  Necesitas: %d  |  Faltan: %d", TRACK_STOCK_BANK="Bolsas: %d  |  Banco: %d  |  Necesitas: %d  |  Faltan: %d", RECIPE_PAGE_STATUS="Página %d / %d"},
-            enUS = {TRACK_CRAFTING="Track crafting", TRACK_PROGRESS="Material progress",
-                TRACK_INCLUDE_BANK="Include bank", TRACK_BANK_UNAVAILABLE="Bank unavailable",
-                RECIPE_INGREDIENT_COUNT="Ingredients (%d)",
-                TRACK_INGREDIENT_STATUS="%d/%d · Missing %d", TRACK_STOCK_BAGS="Bags: %d  |  Bank: off  |  Need: %d  |  Missing: %d", TRACK_STOCK_BANK="Bags: %d  |  Bank: %d  |  Need: %d  |  Missing: %d", RECIPE_PAGE_STATUS="Page %d / %d"}
-        }
-        return strings[uiLocale][key] or key
-    end,
+local uiNs={
+    L=function(key) return strings[locale][key] or key end,
     ProfessionLabel=function() return "Alchemy" end,
-    GetRecipeSpellPresentation=function() return "Minor Elixir", nil end,
-    GetItemDisplay=function(id) return "Item "..id, id end,
-    GetCatalogRecipe=function(key) if key==uiRecipe.key then return uiRecipe end end,
-    IsCraftableTracked=function(key) return key==uiRecipe.key end,
-    GetCraftBankPreference=function() return false end,
+    GetRecipeSpellPresentation=function() return "Minor Elixir",nil end,
+    GetItemDisplay=function(id) return "Item "..id,id end,
+    GetCatalogRecipe=function(key) if key==recipe.key then return recipe end end,
+    IsCraftableTracked=function(key) return key==recipe.key end,
+    GetCraftBankPreference=function() return includeBank end,
+    SetCraftBankPreference=function(v) includeBank=v end,
     IsCraftBankSupported=function() return true end,
-    ReadCraftInventoryCount=function() return {bags=0,available=0,bankStatus="excluded"} end,
+    ReadCraftInventoryCount=function(id) return stock[id] end,
     ComputeCraftableCoverage=ns.ComputeCraftableCoverage,
     HideRecipeTooltip=function() end,
-    PaginateRecipeUses=function(ingredients,page,size)
+    PaginateRecipeUses=function(items,page,size)
+        local pages=math.max(1,math.ceil(#items/size))
+        page=math.max(1,math.min(page,pages))
         local rows={}
-        for i=(page-1)*size+1,math.min(page*size,#ingredients) do
-            rows[#rows+1]=ingredients[i]
+        for i=(page-1)*size+1,math.min(#items,page*size) do
+            rows[#rows+1]=items[i]
         end
-        return rows,page,math.max(1,math.ceil(#ingredients/size))
+        return rows,page,pages
     end,
 }
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",uiNs)
 assert(loadfile("addon/CraftAtlas/Features/Settings/RecipesView.lua"))("CraftAtlas",uiNs)
 uiNs.InitRecipeDetail(widget("Frame"))
-uiNs.SetRecipeDetail(uiRecipe.key)
-local trackCheck, bankText, footerBar, progressCount, divider = nil,nil,nil,0,0
-for _, frame in ipairs(frames) do
-    if frame.kind=="CheckButton" and frame.SetChecked then
-        if not trackCheck then trackCheck=frame end
+uiNs.SetRecipeDetail(recipe.key)
+local function findLabel(txt)
+    for _,w in ipairs(frames) do
+        if w.kind=="FontString" and w.text==txt then return w end
     end
-    if frame.kind=="FontString" and frame.text=="Incluir banco" then bankText=frame end
-    if frame.kind=="StatusBar" and frame.shown and frame.value==0 then
-        progressCount=progressCount+1
-        local hasBackground=false
-        for _, child in ipairs(frames) do
-            if child.kind=="Texture" and child.parent==frame and child.color then
-                hasBackground=true
-                break
-            end
+end
+local function ingredientRows()
+    local result={}
+    for _,w in ipairs(frames) do
+        if w.kind=="Button" and w.ingredient and w.shown then
+            result[#result+1]=w
         end
-        assert(hasBackground,"zero-percent bar has visible full-width background")
-        footerBar=frame
     end
-    if frame.kind=="Texture" and frame.color then divider=divider+1 end
+    return result
 end
-assert(progressCount>=3, "both per-ingredient and aggregate bars are visible at 0%")
-assert(divider>=3, "native-style section divider and bar outlines")
-assert(trackCheck and trackCheck.checked and bankText, "tracking controls visible")
-assert(bankText.parent.points.TOPLEFT.y == -88,
-    "tracking subsection follows two visible ingredient rows rather than the pager")
-local function labelFound(value)
-    for _, frame in ipairs(frames) do
-        if frame.kind=="FontString" and frame.text==value then return true end
+local ingredient=ingredientRows()
+eq(#ingredient,2,"both ingredients are on first page")
+eq(ingredient[1].professions.text,"x2","Ingredients remains exactly x2")
+eq(ingredient[2].professions.text,"x3","Ingredients remains exactly x3")
+for _,w in ipairs(ingredient) do
+    eq(w.progress,nil,"no progress bar added to original Ingredients row")
+end
+assert(findLabel("Progreso de materiales") and findLabel("Progreso total"),
+    "distinct tracking section in Spanish")
+assert(findLabel("0/2") and findLabel("0/3"),
+    "zero-stock tracker shows required quantities")
+local statusbars={}
+for _,w in ipairs(frames) do
+    if w.kind=="StatusBar" and w.shown then
+        eq(w.barTexture,"Interface\\TargetingFrame\\UI-StatusBar","Blizzard bar texture")
+        statusbars[#statusbars+1]=w
     end
-    return false
 end
-assert(labelFound("Seguir fabricación"),"Spanish tracker label")
-assert(labelFound("Bolsas: 0  |  Banco: no  |  Necesitas: 2  |  Faltan: 2"),
-    "visible item counts must identify bag stock and missing quantity")
-uiLocale="enUS"
+eq(#statusbars,3,"two independent material bars and one aggregate")
+for _,w in ipairs(statusbars) do eq(w.value,0,"empty bar really at zero") end
+stock[3]={bags=4,available=4,bankStatus="excluded"}
+stock[4]={bags=1,available=1,bankStatus="excluded"}
 uiNs.RefreshRecipeDetail()
-assert(labelFound("Track crafting"),"checkbox text updates on locale change")
-assert(labelFound("Include bank"),"bank label updates on locale change")
-assert(labelFound("Ingredients (2)"),"ingredient section updates on locale change")
-assert(labelFound("Material progress") and labelFound("0%"),"progress title updates on locale change")
-assert(labelFound("Bags: 0  |  Bank: off  |  Need: 2  |  Missing: 2"),
-    "English item status updates on locale change")
-uiNs.ReadCraftInventoryCount = function(id)
-    return {bags = id == 3 and 4 or 1, available = id == 3 and 4 or 1,
-        bankStatus = "excluded"}
-end
+assert(findLabel("4/2") and findLabel("1/3"),"show uncapped bags in dedicated tracker")
+assert(findLabel("60%"),"weighted overall percent is 3/5")
+assert(findLabel("Faltan: 0") and findLabel("Faltan: 2"),"missing counts")
+eq(ingredient[1].professions.text,"x2","Ingredients stays unchanged on stock refresh")
+includeBank=true
+stock[3]={bags=4,bank=0,available=4,bankStatus="confirmed"}
+stock[4]={bags=1,bank=2,available=3,bankStatus="confirmed"}
 uiNs.RefreshRecipeDetail()
-assert(labelFound("Bags: 4  |  Bank: off  |  Need: 2  |  Missing: 0"),
-    "actual bag stock must not be capped to required quantity")
-assert(labelFound("Material progress") and labelFound("60%"),
-    "weighted progress reflects available recipe ingredient units")
-print("Craftable tracking localized native UI regression PASS")
-
+assert(findLabel("100%"),"bank increment completes the overall total")
+assert(findLabel("3/3"),"bank added to item availability")
+includeBank=false
+uiNs.RefreshRecipeDetail()
+assert(findLabel("100%"),"stub bank count still included in raw observation: fixture sanity check")
+-- Real adapter returns bags-only observations when Include bank is off.
+stock[4]={bags=1,available=1,bankStatus="excluded"}
+uiNs.RefreshRecipeDetail()
+assert(findLabel("60%"),"disabling bank reverts to bags-only")
+locale="enUS"
+uiNs.RefreshRecipeDetail()
+assert(findLabel("Material progress") and findLabel("Total progress"),
+    "locale refresh retranslates separate tracker")
+assert(findLabel("Track crafting") and findLabel("Missing: 2"),
+    "tracker label and missing quantity localized")
+assert(findLabel("Ingredients (2)"),"original ingredient section localizes")
+print("Craftable tracking native separate material rows PASS")
