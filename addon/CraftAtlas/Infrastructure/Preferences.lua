@@ -65,22 +65,23 @@ local function characterKey()
     return realm .. ":" .. name
 end
 
-function ns.IsCraftableTracked(recipeKey)
-    local id = characterKey()
-    local db = ns.state.preferences
-    return id ~= nil and type(recipeKey) == "string" and db
-        and type(db.craftTracking) == "table"
-        and type(db.craftTracking[id]) == "table"
-        and db.craftTracking[id][recipeKey] == true or false
+-- Global opt-in scoped to the current character, never to a recipe key.
+-- Old per-recipe craftTracking entries remain untouched but do not opt in.
+function ns.IsCraftTrackingEnabled()
+    local id, db = characterKey(), ns.state.preferences
+    return id ~= nil and db ~= nil
+        and type(db.craftTrackingEnabled) == "table"
+        and db.craftTrackingEnabled[id] == true or false
 end
 
-function ns.SetCraftableTracked(recipeKey, enabled)
+function ns.SetCraftTrackingEnabled(enabled)
     local id = characterKey()
-    if not id or type(recipeKey) ~= "string" or recipeKey == "" then return false end
+    if not id then return false end
     local db = ns.state.preferences or ns.InitPreferences()
-    if type(db.craftTracking[id]) ~= "table" then db.craftTracking[id] = {} end
-    if enabled then db.craftTracking[id][recipeKey] = true
-    else db.craftTracking[id][recipeKey] = nil end
+    if type(db.craftTrackingEnabled) ~= "table" then
+        db.craftTrackingEnabled = {}
+    end
+    db.craftTrackingEnabled[id] = enabled == true or nil
     return true
 end
 

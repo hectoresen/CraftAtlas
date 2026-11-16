@@ -27,7 +27,7 @@ end
 
 local function refreshTrackingCounts(recipe)
     view.trackingCounts = {}
-    if not recipe or not ns.IsCraftableTracked or not ns.IsCraftableTracked(recipe.key) then
+    if not recipe or not ns.IsCraftTrackingEnabled or not ns.IsCraftTrackingEnabled() then
         return nil
     end
     local includeBank = ns.GetCraftBankPreference and ns.GetCraftBankPreference()
@@ -176,8 +176,8 @@ local function render()
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
-    local tracking = recipe and ns.IsCraftableTracked
-        and ns.IsCraftableTracked(recipe.key) == true or false
+    local tracking = recipe and ns.IsCraftTrackingEnabled
+        and ns.IsCraftTrackingEnabled() == true or false
     view.trackingActive = tracking
     if view.trackCheckbox then
         showControl(view.trackCheckbox, recipe ~= nil)
@@ -335,8 +335,8 @@ function ns.InitRecipeDetail(parent)
     trackLabel:SetText(ns.L("TRACK_CRAFTING"))
     trackCheckbox:SetScript("OnClick", function(self)
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
-        if recipe and ns.SetCraftableTracked then
-            ns.SetCraftableTracked(recipe.key, self:GetChecked() == true)
+        if recipe and ns.SetCraftTrackingEnabled then
+            ns.SetCraftTrackingEnabled(self:GetChecked() == true)
             view.page = 1
             render()
         end
@@ -462,7 +462,7 @@ function ns.InitRecipeDetail(parent)
         end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if not recipe or not (view.frame and view.frame:IsShown())
-            or not ns.IsCraftableTracked or not ns.IsCraftableTracked(recipe.key)
+            or not ns.IsCraftTrackingEnabled or not ns.IsCraftTrackingEnabled()
             or view.refreshQueued then return end
         local function update()
             view.refreshQueued = false
