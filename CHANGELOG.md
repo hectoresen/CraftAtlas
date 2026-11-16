@@ -23,7 +23,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 - Initial per-character, per-recipe Fabricables tracking toggle (subsequently superseded by approved global-mode spec #62), plus unit-weighted ingredient progress, native bars and paged ingredient rows.
 - Conditional bank breakdown only when the bank is open and the client can return consistent counts; closed/unsupported bank availability is explicitly unknown, never silently reused or counted.
-- Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; live Forever client acceptance is NOT RUN.
+- Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; owner confirmed the previously failing open-bank Hojaplata lookup in Forever, while full client acceptance remains incomplete.
 - Rebuilt Material progress as a distinct, compact paged list beneath untouched Ingredients: separate native Blizzard StatusBars for each ingredient and total, visible numeric available/required counts at 0%, localized missing quantities and bank opt-in. Verified-zero bank amounts remain zero, while unavailable closed-bank stock prompts a bank refresh. These corrections await fresh Forever verification. The progress bars now use Blizzard's native StatusBar fill plus Blizzard tooltip-border/backdrop textures; their empty backdrop contrast was increased and the compact row heights tuned to show three ingredients and three tracker bars together at 440px logical detail height. These remain pending in-game retest.
 
 
