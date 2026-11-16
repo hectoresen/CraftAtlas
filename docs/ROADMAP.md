@@ -31,3 +31,7 @@ Future behavior changes follow an owner-approved OpenSpec proposal and separate 
 ## OpenSpec evidence and synchronization
 
 Canonical specs are being reconciled for accepted material lookup, localization, minimap access and the stable profession registry under owner-approved lifecycle policy. Historical changes with incomplete source coverage, initial 30-item acceptance, or unrecorded client build/per-origin checks remain open rather than being falsely archived. Read [OpenSpec status](OPENSPEC_STATUS.md) for change-by-change evidence. Future agents must not duplicate a version-specific feature summary in `openspec/config.yaml`; current behavior remains in [README](../README.md).
+
+## Contributor governance and CI quality
+
+The two active owner-configured `main` rulesets (2026-11-16) require independent contributor approval and non-bypassable `repository-validation` / `traceability` checks, with a PR-only administrator exemption for the review rule. The implementation of approved OpenSpec change `harden-contributor-pr-governance` adds explicit Lua 5.1 syntax/regression jobs, owner CODEOWNERS review requests, stronger documentation evidence tests and cross-agent review instructions. **This feature remains implementation-branch-only until merged**. The owner must add the two new Lua check names after successful main integration. See `docs/GITHUB_SETTINGS.md`. The actual contributor-vs-owner merge-eligibility matrix remains untested.
