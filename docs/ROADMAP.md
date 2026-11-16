@@ -1,8 +1,8 @@
 # Roadmap — capabilities and evidence gates
 
-## Current source: `0.2.0-dev`
+## Current source: `0.2.0-dev` (main, 2026-11-16)
 
-**Implemented on main (merged PR #36):** source-backed tooltip profession annotations, Spanish/English localization and language preferences, draggable minimap launcher, **Materiales** name/itemID search and profession filters, collapsible profession-grouped Materiales list and paginated native crafting-use rows, **Fabricables** output/recipe search and ingredient/quantity detail, native item/spell hover, cross-view navigation, Back, reusable native widgets and owner-only manual release tooling.
+**Implemented on main (PRs #36, #38 and #40 merged):** source-backed tooltip profession annotations, Spanish/English localization and language preferences, draggable minimap launcher, **Materiales** name/itemID search and profession filters, collapsible profession-grouped Materiales list and paginated native crafting-use rows, **Fabricables** output/recipe search and ingredient/quantity detail, native item/spell hover, cross-view navigation, Back, reusable native widgets and owner-only manual release tooling.
 
 **Maintainer validation:** PR #23 and PR #25 *previous* UI changes reported tested and accepted in Forever. The owner has tested and provided in-game screenshots of the evolving grouped-tree redesign, but has not recorded comprehensive acceptance of the final changes across all locales, scales and interactions. The exact build and a complete per-tooltip-origin test matrix have not been collected; the beta import has not been reconciled with every current live-realm recipe.
 
@@ -14,9 +14,9 @@
 - Native Materiales/Fabricables exploration, recyclable visible result rows, grouped material tree and vertical use pagination, searchable recipes, full ingredient detail, reusable widgets and cross-navigation.
 - Manual release workflow with runtime-only packaging, SemVer and shared validation.
 
-These are **features of the current development branch** and do not imply separate tagged releases.
+These are **implemented in `main`** and do not imply that every source change has a separate tagged release or passed complete in-game acceptance.
 
-**Approved performance change being implemented (not yet on main):** independent genuine active-view preparation progress, coalesced redraws, cache-generation invalidation and optional `/craftatlas perf` counters, tracked by OpenSpec `optimize-catalog-loading-and-progress`. No measured FPS improvement is claimed; final real-client validation is pending.
+**First-use preparation optimization merged in PR #38:** independent active-view preparation progress, coalesced redraws, cache-generation invalidation and optional `/craftatlas perf` counters are implemented in `main`. The progress bar is a bounded real-work indicator, not a frame-rate benchmark or proof of resolved item names. Final layout verification and measured FPS comparison in the actual Forever client remain **NOT RUN**.
 
 ## Future work (not implemented)
 
@@ -24,25 +24,25 @@ These are **features of the current development branch** and do not imply separa
 - Record exact game build, per-origin item tooltips, locale and UI-scale regression matrix, and release-quality compatibility evidence.
 - Optional inventory material quantities, user-known recipe checks and craftability indicators.
 - Optional favorites, crafting lists/dependency chains, auction integration and additional reusable explorer views.
-- Security/maintainer branch protection and approved workflow/process improvements where applicable.
+- Evidence-backed closure of outstanding UI/client acceptance matrices, including the latest progress-bar layout and material-tooltip restyling. Governance rulesets, Lua CI checks, atomic OpenSpec archival and agent branch naming are already merged; improve them only through newly approved changes.
 
 Future behavior changes follow an owner-approved OpenSpec proposal and separate implementation PR. Avoid claiming complete live data coverage or promising game-client support unsupported by recorded tests. See [OpenSpec](../openspec/README.md), [testing](TESTING.md) and [data model](DATA_MODEL.md).
 
 ## OpenSpec evidence and synchronization
 
-Canonical specs are being reconciled for accepted material lookup, localization, minimap access and the stable profession registry under owner-approved lifecycle policy. Historical changes with incomplete source coverage, initial 30-item acceptance, or unrecorded client build/per-origin checks remain open rather than being falsely archived. Read [OpenSpec status](OPENSPEC_STATUS.md) for change-by-change evidence. Future agents must not duplicate a version-specific feature summary in `openspec/config.yaml`; current behavior remains in [README](../README.md).
+Canonical specs include the accepted material lookup, localization, minimap access and profession registry contracts, plus capabilities synchronized by subsequent approved and archived governance changes. The status ledger distinguishes historical gaps from already-merged source. Historical changes with incomplete source coverage, initial 30-item acceptance, or unrecorded client build/per-origin checks remain open rather than being falsely archived. Read [OpenSpec status](OPENSPEC_STATUS.md) for change-by-change evidence. Future agents must not duplicate a version-specific feature summary in `openspec/config.yaml`; current behavior remains in [README](../README.md).
 
 ## Contributor governance and CI quality
 
-The two active owner-configured `main` rulesets (2026-11-16) require independent contributor approval and non-bypassable `repository-validation` / `traceability` checks, with a PR-only administrator exemption for the review rule. The implementation of approved OpenSpec change `harden-contributor-pr-governance` adds explicit Lua 5.1 syntax/regression jobs, owner CODEOWNERS review requests, stronger documentation evidence tests and cross-agent review instructions. **This feature remains implementation-branch-only until merged**. The owner must add the two new Lua check names after successful main integration. See `docs/GITHUB_SETTINGS.md`. The actual contributor-vs-owner merge-eligibility matrix remains untested.
+The two active owner-configured `main` rulesets (2026-11-16) require independent contributor approval and non-bypassable `repository-validation` / `traceability` checks, with a PR-only administrator exemption for the review rule. Owner-merged PR #42 added Lua 5.1 syntax/regression jobs, CODEOWNERS review requests and evidence-based contributor documentation checks. Both `lua-compatibility` and `lua-regressions` are now required by the active CI ruleset, alongside `repository-validation` and `traceability`. See `docs/GITHUB_SETTINGS.md`. The actual contributor-vs-owner merge-eligibility matrix remains untested.
 
 **CI cost control:** pure OpenSpec PRs perform spec/SDD validation, pure Markdown PRs perform lightweight policy/format checks, while code and mixed PRs run the full Lua 5.1, catalog, Python and release gates. Stable required checks remain present; failures in change classification remain blocking.
 
 ## OpenSpec archival process modernization
 
-The owner-merged governance proposal #45 establishes a transactional archive workflow for future implementation PRs. Its implementation makes canonical spec synchronization and dated same-change archiving part of the code PR when mandatory evidence exists. Missing client tests remain explicit blockers; historical partially accepted OpenSpec changes must not be mass-archived. There is no third routine archival PR and no owner-approval bypass.
+Merged proposal #45 and implementation #47 established a transactional archive workflow for future implementation PRs. It makes canonical spec synchronization and dated same-change archiving part of the code PR when mandatory evidence exists. Missing client tests remain explicit blockers; historical partially accepted OpenSpec changes must not be mass-archived. There is no third routine archival PR and no owner-approval bypass.
 
 ## Agent naming governance
 
-Approved proposals #48/#49 introduce deterministic typed OpenSpec IDs and Git branches, with #49 correcting change IDs to lowercase for official CLI compatibility. Existing in-flight/historical proposals remain unchanged. Agent PR creation now includes a mandatory four-context Actions check-run discovery gate; missing checks receive one safe metadata retry, never forged PASS. This is governance/agent development and does not change CraftAtlas's in-game functionality.
+Approved proposals #48/#49 and merged implementation #50 enforce deterministic typed OpenSpec IDs and Git branches, with #49 correcting change IDs to lowercase for official CLI compatibility. Existing in-flight/historical proposals remain unchanged. Agent PR creation now includes a mandatory four-context Actions check-run discovery gate; missing checks receive one safe metadata retry, never forged PASS. This is governance/agent development and does not change CraftAtlas's in-game functionality.
 
