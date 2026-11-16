@@ -1,6 +1,6 @@
 # Installing and using CraftAtlas in WoW Forever
 
-**Current source:** `0.1.0-dev` (`CraftAtlas.toc`). The maintainer has accepted current UI features in Forever; imported recipe data remain a bounded beta snapshot rather than a live-realm guarantee.
+**Current source:** `0.2.0-dev` (`CraftAtlas.toc`). The maintainer has accepted current UI features in Forever; imported recipe data remain a bounded beta snapshot rather than a live-realm guarantee.
 
 ## Installation
 
