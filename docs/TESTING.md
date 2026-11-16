@@ -51,6 +51,10 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 - Test separate tooltip origins (bags, bank, guild bank, chat, auction, vendor, mail, quest rewards and crafting); record each as PASS/FAIL/NOT RUN.
 - Check source licenses/provenance, current-server recipe mapping and any known gaps before claiming live completeness.
 
+## Fabricables detail and inline-clear refinement
+
+Added `tests/test_fabricables_detail.lua` for the native ingredient-section title/collapse and changes to `tests/test_shared_widgets.lua` for the embedded search X, input focus and empty/nonempty visibility. Existing pagination, item tooltip and navigation semantics remain required. **New in-game detail and inline-clear visual acceptance: NOT RUN**, awaiting owner retest.
+
 ## Grouped-tree implementation evidence
 
 The implementation branch `feat/native-wow-profession-tree-redesign` adds new native divider/section UI mock coverage and pure grouping and state regression tests, native vertical recipe row mocks, item metadata and search-clear icon tests, release version tests, locale checks and viewport geometry tests. The connected repository interface does not provide an executable local checkout. **The following were NOT RUN in this implementation environment** pending CI or a local developer checkout: `bash scripts/validate_release_checks.sh`, `python3 scripts/build_materials.py --check`, `python3 -m unittest discover -s tests -v`, all `texlua` suites and strict `openspec validate`. This is not a declaration of passing test results; check the implementation PR's GitHub Actions for executed CI evidence.
