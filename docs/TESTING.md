@@ -29,6 +29,8 @@ The feature implementation branch introduces `Domain/CraftableTracking.lua`, `In
 
 **Further layout revision (2026-11-16):** The maintainer screenshot still showed compressed labels in the 23px two-baseline tracker rows. The feature now renders each tracker as a single line containing material name and available/required/missing, followed by a full-width native status bar, with 25px row spacing. The layout assertions cover title/summary anchoring and bar bounds, including three ingredients at compact UI height. **Forever retest: NOT RUN** for this revision.
 
+**Bank enumeration regression (2026-11-16):** Maintainer captured an open bank containing visible Hojaplata (Silverleaf) stacks while the previous `C_Item.GetItemCount(itemID, true)` adapter showed `0/1`, despite reading other materials correctly. The implementation now scans the active Forever Classic bank containers (`-1`, bank bags `5..11`) using guarded `C_Container.GetContainerNumSlots` and `C_Container.GetContainerItemInfo`, with support for legacy APIs, before trusting native combined counts. `tests/test_craftable_tracking.lua` reproduces 35 banked Silverleaf versus a broken native count of 0; tests zero-bank, multi-stack and bag-plus-bank arithmetic. **Actual Forever retest: NOT RUN** on the revised adapter. Do not claim this report fixed until the maintainer confirms the live bank count.
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
