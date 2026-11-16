@@ -36,8 +36,8 @@ end
 
 -- Keep profession metadata and the fabrication header in separate vertical bands.
 function ns.MaterialDetailSectionOffsets(availableHeight)
-    if availableHeight < 270 then return -138, -160 end
-    return -151, -174
+    if availableHeight < 270 then return -160, -188 end
+    return -167, -197
 end
 
 function ns.CreateExplorerRow(parent, height, onClick)
