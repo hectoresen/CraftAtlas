@@ -55,10 +55,12 @@ local function styleTrackingRow(row, ingredient, tracking)
                 row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_STATUS"),
                     available, needed, math.max(0, needed - available)))
             end
-            row.progress:SetValue(needed > 0 and covered / needed * 100 or 0)
+            if type(row.progress.SetValue) == "function" then
+                row.progress:SetValue(needed > 0 and covered / needed * 100 or 0)
+            end
         else
             row.professions:SetText(string.format(ns.L("TRACK_INGREDIENT_UNKNOWN"), needed))
-            row.progress:SetValue(0)
+            if type(row.progress.SetValue) == "function" then row.progress:SetValue(0) end
         end
         row.progress:Show()
     else
@@ -152,7 +154,9 @@ local function render()
                     (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
                     (valid and "" or (" (" .. ns.L("TRACK_UNVERIFIED") .. ")")))
             end
-            view.trackerBar:SetValue(percent or 0)
+            if type(view.trackerBar.SetValue) == "function" then
+                view.trackerBar:SetValue(percent or 0)
+            end
             if view.bankCheckbox then
                 local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
                 setCheck(view.bankCheckbox, ns.GetCraftBankPreference
@@ -300,9 +304,11 @@ function ns.InitRecipeDetail(parent)
         progress:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 1)
         progress:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -5, 1)
         progress:SetHeight(3)
-        progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        progress:SetStatusBarColor(0.66, 0.54, 0.24)
-        progress:SetMinMaxValues(0, 100)
+        if type(progress.SetStatusBarTexture) == "function" then
+            progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+            progress:SetStatusBarColor(0.66, 0.54, 0.24)
+            progress:SetMinMaxValues(0, 100)
+        end
         progress:Hide()
         row.progress = progress
         view.rows[i] = row
@@ -344,9 +350,11 @@ function ns.InitRecipeDetail(parent)
     trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 6)
     trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 6)
     trackerBar:SetHeight(7)
-    trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    trackerBar:SetStatusBarColor(0.67, 0.52, 0.21)
-    trackerBar:SetMinMaxValues(0, 100)
+    if type(trackerBar.SetStatusBarTexture) == "function" then
+        trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        trackerBar:SetStatusBarColor(0.67, 0.52, 0.21)
+        trackerBar:SetMinMaxValues(0, 100)
+    end
     view.trackerBar = trackerBar
     trackerFooter:Hide()
 
