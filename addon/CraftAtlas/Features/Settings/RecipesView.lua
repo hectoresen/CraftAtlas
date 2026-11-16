@@ -70,6 +70,19 @@ local function createNativeBar(parent)
     return bar
 end
 
+local function setProgressColor(bar, available, required, verified)
+    if type(bar.SetStatusBarColor) ~= "function" then return end
+    if type(available) ~= "number" or available <= 0 then
+        -- The empty native status bar stays unfilled.
+        bar:SetStatusBarColor(0.88, 0.62, 0.16)
+    elseif verified and type(required) == "number" and required > 0
+        and available >= required then
+        bar:SetStatusBarColor(0.12, 0.72, 0.20)
+    else
+        bar:SetStatusBarColor(0.96, 0.59, 0.13)
+    end
+end
+
 local function updateTrackingMaterial(row, ingredient, observation, bankIncluded)
     if not ingredient then
         row:Hide()
@@ -94,6 +107,7 @@ local function updateTrackingMaterial(row, ingredient, observation, bankIncluded
     if type(row.bar.SetValue) == "function" then
         row.bar:SetValue(type(count) == "number" and math.min(needed, count) or 0)
     end
+    setProgressColor(row.bar, count, needed, type(count) == "number")
     row:Show()
 end
 
@@ -191,6 +205,9 @@ local function render()
             if type(view.trackerBar.SetValue) == "function" then
                 view.trackerBar:SetValue(percent or 0)
             end
+            setProgressColor(view.trackerBar,
+                coverage and coverage.covered, coverage and coverage.required,
+                valid == true)
             local supported = ns.IsCraftBankSupported and ns.IsCraftBankSupported()
             setCheck(view.bankCheckbox, ns.GetCraftBankPreference
                 and ns.GetCraftBankPreference() or false)
