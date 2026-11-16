@@ -58,7 +58,7 @@ assert(loadfile("addon/CraftAtlas/Features/Settings/RecipePanel.lua"))("CraftAtl
 ns.InitRecipePanel(widget("Frame"),378)
 assert(#buttons==8,"one collapsible section, five recyclable rows and two pager controls")
 local section=buttons[1]
-local rows={rows[2],rows[3],buttons[4],buttons[5],buttons[6]}
+local rows={buttons[2],buttons[3],buttons[4],buttons[5],buttons[6]}
 local previous,nextButton=buttons[7],buttons[8]
 ns.RefreshRecipePanel(159)
 section.OnClick(section)
