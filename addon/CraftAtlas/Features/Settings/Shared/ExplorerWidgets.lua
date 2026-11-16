@@ -31,6 +31,12 @@ function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
 end
 
 -- Keep profession metadata and the fabrication header in separate vertical bands.
+-- Profession icons remain in one horizontal row; compact panes page in pairs.
+-- Four fit on a normal native detail pane without occupying recipe-list height.
+function ns.ExplorerProfessionPageSize(detailWidth)
+    return type(detailWidth) == "number" and detailWidth >= 475 and 4 or 2
+end
+
 function ns.MaterialDetailSectionOffsets(availableHeight)
     if availableHeight < 270 then return -160, -188 end
     return -167, -197
