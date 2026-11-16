@@ -674,8 +674,12 @@ local function createPanel()
     ui.itemListener = CreateFrame("Frame", nil, panel)
     ui.itemListener:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     ui.itemListener:RegisterEvent("ITEM_DATA_LOAD_RESULT")
-    ui.itemListener:SetScript("OnEvent", function(_, _, itemID, success)
-        if ns.UpdateMaterialInfo(itemID, success) then
+    -- Some Classic clients emit spell-data events; absence is not an error.
+    pcall(ui.itemListener.RegisterEvent, ui.itemListener, "SPELL_DATA_LOAD_RESULT")
+    ui.itemListener:SetScript("OnEvent", function(_, event, itemID, success)
+        if event == "SPELL_DATA_LOAD_RESULT" then
+            if ns.UpdateRecipeName then ns.UpdateRecipeName(itemID) end
+        elseif ns.UpdateMaterialInfo(itemID, success) then
             ns.OnCatalogDataChanged("materials")
         end
     end)
