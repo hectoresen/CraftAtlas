@@ -21,8 +21,8 @@ end
 
 -- A minimum logical size is scaled uniformly for smaller physical viewports.
 function ns.ExplorerWindowGeometry(viewportWidth, viewportHeight)
-    local width = math.min(740, math.max(600, viewportWidth - 50))
-    local height = math.min(510, math.max(440, viewportHeight - 60))
+    local width = math.min(860, math.max(600, viewportWidth - 50))
+    local height = math.min(610, math.max(440, viewportHeight - 60))
     local scale = math.min(1, (viewportWidth - 24) / width, (viewportHeight - 24) / height)
     return width, height, math.max(0.2, scale)
 end
