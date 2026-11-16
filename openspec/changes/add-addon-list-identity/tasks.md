@@ -14,6 +14,8 @@
 ## 3. Document and hand off
 
 - [x] 3.1 Update the installation guidance, test evidence, and changelog for the verified behavior; run `documentation-sync` before the implementation PR.
-- [ ] 3.2 Open the separate implementation PR with the owner-merged proposal PR number, test evidence, and any remaining client limitations.
+- [x] 3.2 Open the separate implementation PR with the owner-merged proposal PR number, test evidence, and any remaining client limitations.
 
 The shared release checks and the version-stamped ZIP comparison passed. The contributor tested the initial ZIP on the local Forever 1.60.1.70938 installation and reported that it looked correct. Specific evidence for both locale and enable states, title search, and minimap/error checks is still missing. See [test evidence](../../../docs/TESTING.md#native-addons-list-registration).
+
+Implementation: [PR #63](https://github.com/hectoresen/CraftAtlas/pull/63).
