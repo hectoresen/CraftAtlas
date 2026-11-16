@@ -840,7 +840,7 @@ function ns.InitSettings()
                     m.attempts, m.units, m.batches,
                     r.attempts, r.units, r.batches,
                     u.materialsSearch, u.recipesSearch, u.fullRefreshes,
-                    u.backgroundRefreshes))
+                    u.backgroundRefreshes, m.maxBatchMs, r.maxBatchMs))
             end
             return
         end
