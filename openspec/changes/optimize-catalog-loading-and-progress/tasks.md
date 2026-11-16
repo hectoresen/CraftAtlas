@@ -24,10 +24,10 @@
 ## Verification, docs and PR
 - [x] E1 Add pure Lua tests for progress mathematics, zero totals, separate views, terminal/incomplete states and invalidations.
 - [x] E2 Add fake-timer/UI adapter tests for bounded batch work, refresh coalescing, late metadata, state preservation and repeated reopen.
-- [ ] E3 Run `bash scripts/validate_release_checks.sh`, `python3 scripts/build_materials.py --check`, Python/Lua suites and strict OpenSpec validation, recording actual PASS/FAIL/NOT RUN.
+- [x] E3 Run `bash scripts/validate_release_checks.sh`, `python3 scripts/build_materials.py --check`, Python/Lua suites and strict OpenSpec validation, recording actual PASS/FAIL/NOT RUN.
 - [ ] E4 Run real Forever first-use/reopen tests for both views at multiple UI scales/locales, record exact build, progress screenshots and performance deltas or mark NOT RUN.
 - [x] E5 Explicitly execute `skills/documentation-sync/SKILL.md`; synchronize README, architecture, development, testing, roadmap, changelog and relevant tasks based only on implemented behavior.
-- [ ] E6 Open one implementation PR referencing the owner-merged spec PR and exact OpenSpec metadata; correct CI/SDD failures in that PR; no direct main changes, merge or release.
+- [x] E6 Open one implementation PR referencing the owner-merged spec PR and exact OpenSpec metadata; correct CI/SDD failures in that PR; no direct main changes, merge or release.
 
 ## Evidence ledger (implementation branch)
 
@@ -36,3 +36,5 @@
 - Added fake timer, no-timer, pure progress, header UI mock and source-level Python contract tests. These are created, but standalone `texlua` execution and in-game responsiveness checks remain **NOT RUN** until executed on an available checkout/Forever client. No FPS speedup claim.
 
 - Documentation-sync skill executed sequentially after code/test changes: feature reality checked against README, technical boundaries against ARCHITECTURE/DEVELOPMENT/INSTALLATION and DATA_MODEL (no catalog-data change), QA evidence against TESTING and automated source-contract fixtures, milestone status against CHANGELOG/ROADMAP and this checklist. All modified files confirmed inside the frozen approved manifest except permitted tasks.md. No generated Data/ or governance files modified.
+
+- GitHub Actions on PR #38 head `7bd65c2`: CI / repository-validation **PASS**, SDD Compliance / traceability **PASS** (strict OpenSpec included in SDD workflow). The CI gate runs the Python release-readiness checks; exact local bash/Python commands and all standalone texlua tests remain **NOT RUN**. The implementation PR is open; owner has not merged or performed the final in-game tests.
