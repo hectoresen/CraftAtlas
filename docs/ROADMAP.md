@@ -37,3 +37,8 @@ Canonical specs are being reconciled for accepted material lookup, localization,
 The two active owner-configured `main` rulesets (2026-11-16) require independent contributor approval and non-bypassable `repository-validation` / `traceability` checks, with a PR-only administrator exemption for the review rule. The implementation of approved OpenSpec change `harden-contributor-pr-governance` adds explicit Lua 5.1 syntax/regression jobs, owner CODEOWNERS review requests, stronger documentation evidence tests and cross-agent review instructions. **This feature remains implementation-branch-only until merged**. The owner must add the two new Lua check names after successful main integration. See `docs/GITHUB_SETTINGS.md`. The actual contributor-vs-owner merge-eligibility matrix remains untested.
 
 **CI cost control:** pure OpenSpec PRs perform spec/SDD validation, pure Markdown PRs perform lightweight policy/format checks, while code and mixed PRs run the full Lua 5.1, catalog, Python and release gates. Stable required checks remain present; failures in change classification remain blocking.
+
+## OpenSpec archival process modernization
+
+The owner-merged governance proposal #45 establishes a transactional archive workflow for future implementation PRs. Its implementation makes canonical spec synchronization and dated same-change archiving part of the code PR when mandatory evidence exists. Missing client tests remain explicit blockers; historical partially accepted OpenSpec changes must not be mass-archived. There is no third routine archival PR and no owner-approval bypass.
+
