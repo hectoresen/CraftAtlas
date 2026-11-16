@@ -1,6 +1,6 @@
 # OpenSpec acceptance and current-source evidence
 
-This ledger is an evidence record, **not** an automatic certification of requirements. Last reviewed 2026-11-15. The current source feature summary lives in [README](../README.md), and the documented Python/Forever test distinction lives in [TESTING](TESTING.md). The historical proposal, designs, delta specs and original tasks are retained unmodified except additive status checkpoints.
+This ledger is an evidence record, **not** an automatic certification of requirements. Last reconciled against merged `main` PRs on 2026-11-16. The current source feature summary lives in [README](../README.md), and the documented Python/Forever test distinction lives in [TESTING](TESTING.md). The historical proposal, designs, delta specs and original tasks are retained unmodified except additive status checkpoints.
 
 ## Historical owner-approved changes
 
@@ -10,11 +10,11 @@ This ledger is an evidence record, **not** an automatic certification of require
 | `enhance-addon-icon-minimap-settings` | [#7](https://github.com/hectoresen/CraftAtlas/pull/7), merged | [#8](https://github.com/hectoresen/CraftAtlas/pull/8), merged | Minimap entry, branding/icon, language header and native settings shell implemented and maintainer reported the addon operational. Its originally specified noninteractive search and empty General content were **superseded** by later approved/merged functional Materiales/Fabricables exploration, not independently satisfied as present-day behavior. Precise build and historical mock-test outcomes not recorded. | **Superseded in part, OPEN** until acceptance/scope exception reviewed; no archive |
 | `expand-all-profession-material-coverage` | [#5](https://github.com/hectoresen/CraftAtlas/pull/5), merged | [#6](https://github.com/hectoresen/CraftAtlas/pull/6), merged | Pinned MIT beta source provides 593 reagent itemIDs, 237 multi-profession IDs, ten consuming profession classes; generator and source provenance implemented. Unknown live reference denominator; every relation was **not** independently verified against live Forever, and all claimed tooltip origins were not manually checked. | **Partially implemented, OPEN** for reconciliation/coverage/client evidence; no archive |
 
-The maintainer separately reported accepted current Materiales/Fabricables UI after PRs #23 and #25, but those reports **do not** establish a specific game build, each tooltip origin, or full beta-to-live recipe accuracy. CI on implementation PRs verifies automation only; it is not a substitute for in-game tests.
+The maintainer reported acceptance of the Materiales/Fabricables UI delivered by PRs #23 and #25. Later UI redesign (#36), first-use preparation (#38) and tooltip restyling (#40) are also merged, but that earlier acceptance does not automatically cover their refinements. Those reports **do not** establish a specific game build, each tooltip origin, or full beta-to-live recipe accuracy. CI on implementation PRs verifies automation only; it is not a substitute for in-game tests.
 
 ## Canonical specification synchronization
 
-The lifecycle change reconciles **only** capabilities for which the above approved deltas and current code provide sufficient support. Files under `openspec/specs/` may state stable current contracts; they do not turn historical *unmet* acceptance gates into passed results.
+Canonical specifications represent capabilities synchronized from their approved deltas; existing historical client acceptance gaps remain explicit and separate. The historical lifecycle change reconciled **only** capabilities for which approved deltas and code provided sufficient support. Files under `openspec/specs/` may state stable current contracts; they do not turn historical *unmet* acceptance gates into passed results.
 
 | Canonical capability | Approved source delta | Current evidence |
 | --- | --- | --- |
@@ -23,24 +23,37 @@ The lifecycle change reconciles **only** capabilities for which the above approv
 | `minimap-button` | #7 minimap entry | `Infrastructure/MinimapButton.lua`, `Core/Bootstrap.lua`; maintainer-reported UI checks |
 | `profession-registry` | #5 consumption and stable keys | `Data/professions.source.json`, generated `Professions.lua`; bounded source-backed registry |
 
-**Not synchronized as fully shipped:** exhaustive live-realm coverage, complete hover-origin compatibility, historical initial 30 verified itemIDs, obsolete General-only/nonfunctional search requirements, or any claim requiring unrecorded client-build evidence. Current user-visible Materiales/Fabricables requirements also have later owner-approved deltas; those changes require their own explicitly approved lifecycle synchronization before canonical archive status can be claimed.
+**Not certified as fully live-verified:** exhaustive live-realm coverage, complete hover-origin compatibility, historical initial 30 verified itemIDs, obsolete General-only/nonfunctional search requirements, or any claim requiring unrecorded client-build evidence. Current Materiales/Fabricables source exists in `main`; this ledger does not imply that every associated active change was archived or every client-required acceptance criterion was verified. Consult the active `openspec/changes/` folders before declaring an individual change closed.
 
 ## Evidence categories / outstanding work
 
-- **Implemented in main:** Materiales search, six-card consuming-recipe pagination, Fabricables explorer, cross-navigation, reusable UI, enUS/esES, account-wide preference, native tooltip adapters, and the manual release workflow.
-- **Maintainer-reported Forever checks:** addon and the relevant PR #23/#25 UI operation. No exact client build or per-origin test matrix was supplied.
+- **Implemented in main:** Materiales search with grouped collapsible profession tree and **vertical paginated recipe-use rows** (replacing the old six-card tiles in merged PR #36), Fabricables explorer, cross-navigation, ingredient quantities, reusable native UI, enUS/esES, account-wide preferences, native tooltip adapters, first-use local preparation progress (#38), tooltip restyling (#40), and the manual release workflow.
+- **Maintainer-reported Forever checks:** prior #23/#25 UI operation and later screenshots showing material details after the `detailHeading` fix and intermediate Fabricables progress. These are **partial observations**, not acceptance of the final #36/#38/#40 UI across all scales/locales or measured performance. No exact client build or complete tooltip-origin matrix was supplied.
 - **Catalog-only source-backed:** source verified within the licensed LibProfessionDB beta snapshot, not across current live Forever.
-- **Not run/not evidenced:** exhaustive live recipe-by-recipe verification, original starter 30 individual live entries at PR #4 time, all bank/auction/mail/chat tooltip origins, complete scale matrix and all historical command logs.
+- **Not run/not evidenced:** exhaustive live recipe-by-recipe verification, original starter 30 individual live entries at PR #4 time, all bank/auction/mail/chat tooltip origins, final progress-bar appearance, final material-tooltip art, complete scale/locale matrix, measured FPS comparison and all historical command logs.
 - **Archives:** none of these three legacy changes is archived. Their original folders remain because incomplete SHALL acceptance must not be silently waived.
 
 ## Governance rules
 
 The lifecycle mechanism from spec PR #13 permits this evidence-focused update **only** with its owner approval and exact path allowlist. It prohibits rewriting immutable historical proposal/design/delta specs or source scope. Subsequent functional PRs must invoke `skills/documentation-sync/SKILL.md`, report accurate test evidence and keep README/current context aligned.
 
-## Atomic archive protocol — governance change (pending owner implementation merge)
+## Atomic archive protocol — merged governance implementation
 
 | Change | Approved spec | Implementation | Evidence | Status |
 | --- | --- | --- | --- | --- |
-| `archive-openspec-with-implementation` | [#45](https://github.com/hectoresen/CraftAtlas/pull/45), owner merged | [#47](https://github.com/hectoresen/CraftAtlas/pull/47), owner review pending | `tests/test_validate_sdd.py` PASS via `traceability`; canonical `openspec/specs/atomic-implementation-archival/spec.md` synced; scope and immutable originals retained; no game-facing changes or required Forever acceptance | **archived (prepared for owner merge only)**; active source removed on PR branch, remains open in `main` until PR #47 merges |
+| `archive-openspec-with-implementation` | [#45](https://github.com/hectoresen/CraftAtlas/pull/45), owner merged | [#47](https://github.com/hectoresen/CraftAtlas/pull/47), merged 2026-11-16 | `tests/test_validate_sdd.py` PASS via `traceability`; canonical `openspec/specs/atomic-implementation-archival/spec.md` synced; scope and immutable originals retained; no game-facing changes or required Forever acceptance | **ARCHIVED in `main`** at `openspec/changes/archive/2026-11-16-archive-openspec-with-implementation/` after merged PR #47 |
 
-Older partially accepted historical changes listed above remain **OPEN**; this PR does not alter their evidence or disposition. This entry records the prepared transaction, **not** prior approval or merge of #47.
+Older partially accepted historical changes listed above remain **OPEN**; #47 does not retroactively establish their acceptance. The archival governance transaction itself is merged, unlike the previous pre-merge record.
+
+## Recently merged changes: implementation versus acceptance (2026-11-16)
+
+| Change or milestone | PR evidence | Source state on `main` | Acceptance / archival boundary |
+| --- | --- | --- | --- |
+| Grouped Materiales tree and vertical crafting-use rows | [#35](https://github.com/hectoresen/CraftAtlas/pull/35) spec; [#36](https://github.com/hectoresen/CraftAtlas/pull/36) implementation | **Merged**, replaces six-card UI | Owner screenshots support partial visual operation; exact client build, full layouts/scales/locales matrix and final refinements remain unverified |
+| First-use catalog preparation and bounded progress | [#37](https://github.com/hectoresen/CraftAtlas/pull/37) spec; [#38](https://github.com/hectoresen/CraftAtlas/pull/38) implementation | **Merged** | Intermediate 66% Fabricables screenshot observed; final width-capped bar appearance and measured FPS impact **NOT RUN** |
+| Material tooltip restyling | [#39](https://github.com/hectoresen/CraftAtlas/pull/39) spec; [#40](https://github.com/hectoresen/CraftAtlas/pull/40) implementation | **Merged** | Offline tooltip fixtures exist; final direct in-game locale/origin/style comparison **NOT RUN** |
+| Contributor reviews and required Lua CI | [#41](https://github.com/hectoresen/CraftAtlas/pull/41) spec; [#42](https://github.com/hectoresen/CraftAtlas/pull/42) implementation | **Merged**; four mandatory contexts enabled in main ruleset | CI existence does not constitute a two-user permission-matrix test or Forever gameplay acceptance |
+| Atomic OpenSpec archive | [#45](https://github.com/hectoresen/CraftAtlas/pull/45) spec; [#47](https://github.com/hectoresen/CraftAtlas/pull/47) implementation | **Merged and archived** for its own governance change | Historical incomplete changes remain OPEN; no blanket archive |
+| Typed change IDs, branch linkage and PR check discovery | [#48](https://github.com/hectoresen/CraftAtlas/pull/48), [#49](https://github.com/hectoresen/CraftAtlas/pull/49) specs; [#50](https://github.com/hectoresen/CraftAtlas/pull/50) implementation | **Merged**; lowercase OpenSpec IDs with uppercase branch categories | Its `resolve-typed-openspec-cli-compatibility` active change still exists on `main`: **not archived**. Do not infer archival just because implementation merged |
+
+**Ledger policy:** `merged/implemented`, `owner-observed in game`, `automated CI checked`, and `accepted + archived` are different states. Do not create duplicate implementation work for already merged #36/#38/#40/#42/#47/#50; track actual missing client evidence or incomplete archival separately through a newly authorized change when required.
