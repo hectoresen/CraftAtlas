@@ -13,6 +13,8 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ### Craftable material tracking (implementation candidate; not merged)
 
+- Native per-ingredient and total status bars now use amber for partially covered quantities and green only when all confirmed required units are covered; zero stock renders an empty track.
+
 - Corrected an open-bank inventory discrepancy observed by the maintainer: count actual character-bank and bank-bag slots before falling back to aggregate item-count APIs; multiple bank stacks accumulate by itemID. Bank-contents-in-client retest is pending.
 
 - Optional per-character, per-recipe Fabricables tracking toggle and unit-weighted ingredients progress; displays needed versus current bags and missing quantities, with native bars and paged ingredient rows.
