@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """CraftAtlas pull-request OpenSpec traceability gate (Python stdlib only)."""
 import argparse
+import datetime
 import json
 import os
 import urllib.request
@@ -40,6 +41,8 @@ METADATA = {
     "phase": re.compile(r"^OpenSpec-Phase: (proposal|implementation|combined|lifecycle)$", re.M),
     "approval": re.compile(r"^OpenSpec-Approval-PR: ([1-9][0-9]*)$", re.M),
     "exemption": EXEMPTION,
+    "archive": re.compile(r"^OpenSpec-Archive: (prepared|blocked)$", re.M),
+    "archive_evidence": re.compile(r"^OpenSpec-Archive-Evidence: (.+)$", re.M),
 }
 
 
@@ -59,6 +62,10 @@ def scope_patterns(directory):
         patterns = json.loads((directory / "sdd-scope.json").read_text())["allowed_paths"]
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return [], ["Missing/invalid sdd-scope.json: " + str(exc)]
+    return validate_scope_values(patterns)
+
+
+def validate_scope_values(patterns):
     if not isinstance(patterns, list) or not patterns:
         return [], ["allowed_paths must be a nonempty array"]
     errors = []
@@ -221,6 +228,178 @@ def validate_lifecycle(paths, approval, change, root, base, exists_in_base):
     return errors
 
 
+
+# Same-PR archive policy: bounded to the owner-approved implementation's change.
+# It never grants an exemption for arbitrary paths under openspec/.
+ARCHIVE_ROOT = "openspec/changes/archive/"
+CANONICAL_SPEC = re.compile(r"^openspec/specs/([a-z0-9-]+)/spec\.md$")
+ARCHIVED_FILE = re.compile(
+    r"^openspec/changes/archive/(\d{4}-\d{2}-\d{2})-([a-z0-9-]+)/(.+)$"
+)
+TASK_MARKER = re.compile(r"(?m)^\s*- \[([ xX])\] ")
+
+
+def base_archive_files(base, change, file_list=None, file_read=None):
+    """Return immutable base artifacts using git (or injected offline fixtures)."""
+    prefix = "openspec/changes/" + change + "/"
+    if file_list is None:
+        file_list = lambda base_ref, path: subprocess.check_output(
+            ["git", "ls-tree", "-r", "--name-only", base_ref, "--", path],
+            text=True).splitlines()
+    if file_read is None:
+        file_read = lambda base_ref, path: subprocess.check_output(
+            ["git", "show", base_ref + ":" + path])
+    return {p[len(prefix):]: file_read(base, p)
+            for p in file_list(base, prefix) if p.startswith(prefix)}
+
+
+def _requirements(content):
+    """Conservatively preserve pre-existing named SHALL requirements."""
+    return set(re.findall(r"(?m)^### Requirement: (.+?)\s*$", content))
+
+
+def validate_implementation_archive(
+    paths, change, root, base, archive_state, evidence,
+    file_list=None, file_read=None, pr_number=None, approval=None,
+):
+    """Fail closed if a same-change archive is incomplete or contradicts base."""
+    errors = []
+    changed = set(paths)
+    active_prefix = "openspec/changes/" + change + "/"
+    archived = [p for p in changed if p.startswith(ARCHIVE_ROOT)]
+    own = {p for p in changed if p.startswith(active_prefix)}
+    canonical = {p for p in changed if p.startswith("openspec/specs/")}
+    status_path = "docs/OPENSPEC_STATUS.md"
+    evidence = (evidence or "").strip()
+    if archive_state not in ("prepared", "blocked"):
+        return ["Implementation requires OpenSpec-Archive: prepared|blocked"]
+    if len(evidence) < 70 or not re.search(
+        r"(?:tests/|docs/|\.md|\b(?:test|scenario|client|NOT RUN|PASS|FAIL|scope|CI)\b)",
+        evidence, re.I
+    ):
+        errors.append("OpenSpec-Archive-Evidence must name concrete acceptance/tests and documentation (70+ chars)")
+    if archive_state == "blocked":
+        if archived or canonical or status_path in changed:
+            errors.append("Blocked implementation cannot alter archive, canonical specs or status ledger")
+        if any(p != active_prefix + "tasks.md" for p in own):
+            errors.append("Blocked implementation may only update its own tasks.md")
+        if not re.search(r"(?:NOT RUN|blocked|missing|pending|unverified|incomplete)", evidence, re.I):
+            errors.append("Blocked archive must identify missing mandatory acceptance evidence")
+        return errors
+
+    # Prepared means a complete archive in this PR, not a claim of prior merge.
+    if not archived or status_path not in changed:
+        errors.append("Prepared archive requires dated files and updated docs/OPENSPEC_STATUS.md")
+    if own and any((root / p).exists() for p in own):
+        errors.append("Prepared archive must remove entire active change")
+    if (root / active_prefix).exists():
+        errors.append("Prepared archive still contains active change directory")
+
+    destinations = {}
+    dates = set()
+    for path in archived:
+        match = ARCHIVED_FILE.fullmatch(path)
+        if not match or match.group(2) != change:
+            errors.append("Archive changes unrelated or unsafe path: " + path)
+            continue
+        date, _, relative = match.groups()
+        try:
+            if datetime.date.fromisoformat(date).isoformat() != date:
+                raise ValueError("noncanonical date")
+        except ValueError:
+            errors.append("Invalid archive date: " + path)
+        if relative.startswith("/") or any(x in ("", ".", "..") for x in relative.split("/")):
+            errors.append("Invalid relative archive path: " + path)
+            continue
+        dates.add(date)
+        destinations[relative] = path
+    if len(dates) != 1:
+        errors.append("Prepared archive must use exactly one YYYY-MM-DD date")
+
+    try:
+        base_files = base_archive_files(base, change, file_list, file_read)
+    except (OSError, subprocess.CalledProcessError, UnicodeError) as exc:
+        return errors + ["Cannot read owner-approved archive source: " + str(exc)]
+    if not base_files or not all(x in base_files for x in
+                                 ("proposal.md", "design.md", "tasks.md", "sdd-scope.json")):
+        errors.append("Approved change archive source incomplete on base")
+    if set(destinations) != set(base_files):
+        errors.append("Archive must preserve exactly every approved file (no omissions or extras)")
+    for relative, target in destinations.items():
+        if relative not in base_files:
+            continue
+        try:
+            contents = (root / target).read_bytes()
+        except OSError:
+            errors.append("Missing archived file: " + target)
+            continue
+        if relative != "tasks.md" and contents != base_files[relative]:
+            errors.append("Archived approved artifact differs from base: " + target)
+        if relative == "tasks.md":
+            task_text = contents.decode("utf-8")
+            base_text = base_files[relative].decode("utf-8")
+            if len(TASK_MARKER.findall(task_text)) != len(TASK_MARKER.findall(base_text)):
+                errors.append("Archive tasks checklist changed count; task provenance must be retained")
+            if re.sub(r"(?m)(^\s*- \[)[ xX](\] )", r"\1 \2", task_text) != re.sub(
+                r"(?m)(^\s*- \[)[ xX](\] )", r"\1 \2", base_text):
+                # Extra evidence paragraphs after checklists are allowed only
+                # if actual task text retains original names/order.
+                original_items = re.findall(r"(?m)^\s*- \[[ xX]\] (.+)$", base_text)
+                current_items = re.findall(r"(?m)^\s*- \[[ xX]\] (.+)$", task_text)
+                if original_items != current_items:
+                    errors.append("Archived tasks must preserve approved task descriptions/order")
+            if any(x.lower() != "x" for x in TASK_MARKER.findall(task_text)):
+                errors.append("Cannot archive a change with incomplete implementation tasks")
+
+    delta_capabilities = {
+        rel.split("/")[1] for rel in base_files
+        if rel.startswith("specs/") and rel.endswith("/spec.md") and len(rel.split("/")) == 3
+    }
+    expected = {"openspec/specs/" + cap + "/spec.md" for cap in delta_capabilities}
+    if canonical != expected:
+        errors.append("Canonical spec sync must update exactly the approved capabilities")
+    for path in canonical:
+        match = CANONICAL_SPEC.fullmatch(path)
+        if not match or match.group(1) not in delta_capabilities:
+            errors.append("Unapproved canonical spec update: " + path)
+            continue
+        try:
+            current = (root / path).read_text(encoding="utf-8")
+            approved_delta = base_files["specs/" + match.group(1) + "/spec.md"].decode("utf-8")
+            if not _requirements(approved_delta) <= _requirements(current):
+                errors.append("Canonical spec missing approved requirements: " + path)
+            if file_read is None:
+                try:
+                    prior = subprocess.check_output(["git", "show", base + ":" + path],
+                                                    text=True)
+                except subprocess.CalledProcessError:
+                    prior = ""
+            else:
+                try:
+                    prior = file_read(base, path).decode("utf-8")
+                except (KeyError, FileNotFoundError):
+                    prior = ""
+            if not _requirements(prior) <= _requirements(current):
+                errors.append("Canonical spec drops existing requirements: " + path)
+        except (KeyError, OSError, UnicodeError):
+            errors.append("Cannot verify canonical spec: " + path)
+
+    ledger = root / status_path
+    if not ledger.is_file():
+        errors.append("Archive status ledger missing")
+    else:
+        content = ledger.read_text(encoding="utf-8")
+        if change not in content or not re.search(r"archiv(?:ed|e)", content, re.I):
+            errors.append("Ledger must record this change's archived disposition")
+        if approval and "#" + str(approval) not in content:
+            errors.append("Ledger must cite approved specification PR")
+        if pr_number and "#" + str(pr_number) not in content:
+            errors.append("Ledger must cite implementation PR")
+        if not re.search(r"(?:tests/|NOT RUN|PASS|acceptance|evidence)", content, re.I):
+            errors.append("Ledger must describe acceptance evidence")
+    return errors
+
+
 def context_regression_errors(current_config, baseline_config):
     """Reject obsolete version claims once the parent branch has been repaired.
 
@@ -258,12 +437,13 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
     info = parse_metadata(body)
     if any(len(x) > 1 for x in info.values()):
         errors.append("Duplicate PR OpenSpec metadata")
-    change, phase, approval, exemption = (
-        info[k][0] if info[k] else None for k in ("change", "phase", "approval", "exemption"))
+    change, phase, approval, exemption, archive_state, archive_evidence = (
+        info[k][0] if info[k] else None for k in (
+            "change", "phase", "approval", "exemption", "archive", "archive_evidence"))
     if not files:
         errors.append("Empty PR")
     if exemption:
-        if change or phase or approval:
+        if change or phase or approval or archive_state or archive_evidence:
             errors.append("Exemption may not include change metadata")
         if exemption == "bootstrap":
             if pr_number != 2 or not set(files) <= BOOTSTRAP_ALLOWED:
@@ -286,17 +466,36 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         return errors + ["OpenSpec-Change and OpenSpec-Phase are mandatory"]
     base_path = "openspec/changes/" + change + "/"
     folder = root / base_path
-    for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
-        if not (folder / name).is_file():
-            errors.append("Missing " + base_path + name)
-    if not list((folder / "specs").glob("**/spec.md")):
-        errors.append("Missing delta spec.md")
-    allowed, scope_errors = scope_patterns(folder)
-    errors.extend(scope_errors)
+    if phase == "implementation" and archive_state == "prepared":
+        # The active directory is intentionally absent when archived. Load
+        # the frozen owner-approved scope and artifacts from the base ref,
+        # never from untrusted archive copies.
+        try:
+            scoped = subprocess.check_output(
+                ["git", "show", base + ":" + base_path + "sdd-scope.json"], text=True)
+            manifest = json.loads(scoped)
+            allowed, scope_errors = validate_scope_values(manifest.get("allowed_paths"))
+            errors.extend(scope_errors)
+        except (OSError, subprocess.CalledProcessError, ValueError, TypeError) as exc:
+            allowed = []
+            errors.append("Cannot load approved scope from base: " + str(exc))
+    else:
+        for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
+            if not (folder / name).is_file():
+                errors.append("Missing " + base_path + name)
+        if not list((folder / "specs").glob("**/spec.md")):
+            errors.append("Missing delta spec.md")
+        allowed, scope_errors = scope_patterns(folder)
+        errors.extend(scope_errors)
     changed = set(files)
     own = {p for p in changed if p.startswith(base_path)}
     outside = changed - own
-    if phase != "lifecycle" and any(p.startswith("openspec/changes/") for p in outside):
+    if phase != "lifecycle" and any(
+        p.startswith("openspec/changes/") and not (
+            phase == "implementation" and archive_state == "prepared"
+            and p.startswith(ARCHIVE_ROOT))
+        for p in outside
+    ):
         errors.append("Cannot change unrelated OpenSpec work")
     if exists_in_base is None:
         def exists_in_base(path):
@@ -352,13 +551,26 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
             if not exists_in_base(base_path + name):
                 errors.append("Approved " + name + " not present on main")
-        if any(p != base_path + "tasks.md" for p in own):
-            errors.append("Implementation cannot rewrite approved spec, design or scope")
+        if archive_state == "prepared":
+            errors.extend(validate_implementation_archive(
+                changed, change, root, base, archive_state, archive_evidence,
+                pr_number=pr_number, approval=approval))
+        else:
+            if any(p != base_path + "tasks.md" for p in own):
+                errors.append("Implementation cannot rewrite approved spec, design or scope")
+            errors.extend(validate_implementation_archive(
+                changed, change, root, base, archive_state, archive_evidence,
+                pr_number=pr_number, approval=approval))
         if not outside:
             errors.append("Implementation PR must contain non-spec changes")
+        archive_extras = set()
+        if archive_state == "prepared":
+            archive_extras = {p for p in outside if (
+                p.startswith(ARCHIVE_ROOT) or p.startswith("openspec/specs/")
+                or p == "docs/OPENSPEC_STATUS.md")}
         if any(not (p in allowed or any(
                 x.endswith("/**") and p.startswith(x[:-2]) for x in allowed))
-                for p in outside):
+                for p in outside - archive_extras):
             errors.append("Changed files outside approved sdd-scope.json")
         # This one owner-approved governance change may update protected agent
         # instructions, but only inside its own explicitly scoped implementation.
@@ -366,6 +578,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         special_agent_change = change in (
             "mandatory-multiagent-documentation-gate",
             "harden-contributor-pr-governance",
+            "archive-openspec-with-implementation",
         )
         # Only this explicitly owner-approved change may introduce the root
         # CODEOWNERS file; hidden .github policy files remain forbidden.

@@ -1,6 +1,7 @@
 """Tests for PR-to-OpenSpec policy. Python standard library only."""
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,7 +30,9 @@ class SddPolicyTests(unittest.TestCase):
         self.proposal = "OpenSpec-Change: " + self.change + "\nOpenSpec-Phase: proposal\n"
         self.implementation = (
             "OpenSpec-Change: " + self.change + "\n"
-            "OpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+            "OpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n"
+            "OpenSpec-Archive: blocked\n"
+            "OpenSpec-Archive-Evidence: Incomplete acceptance: the approved client scenario is NOT RUN, so docs/TESTING.md records pending manual verification.\n")
 
     @staticmethod
     def api(path, token):
@@ -112,7 +115,8 @@ class SddPolicyTests(unittest.TestCase):
             "allowed_paths": ["AGENTS.md", "CODEOWNERS", "tests/**",
                               "scripts/validate_sdd.py"]}))
         body = "OpenSpec-Change: " + change + (
-            "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+            "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n" +
+            "\nOpenSpec-Archive: blocked\nOpenSpec-Archive-Evidence: Incomplete manual client acceptance NOT RUN; docs/TESTING.md documents missing review evidence.\n")
         def approved(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
@@ -267,7 +271,8 @@ class SddPolicyTests(unittest.TestCase):
                 "skills/documentation-sync/**", "scripts/validate_sdd.py"]
         }))
         body = ("OpenSpec-Change: " + change +
-                "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n")
+                "\nOpenSpec-Phase: implementation\nOpenSpec-Approval-PR: 9\n" +
+            "\nOpenSpec-Archive: blocked\nOpenSpec-Archive-Evidence: Incomplete manual client acceptance NOT RUN; docs/TESTING.md documents missing review evidence.\n")
 
         def approved_api(path, token):
             if path == "pulls/9":
@@ -409,6 +414,184 @@ class SddPolicyTests(unittest.TestCase):
             "schema: unexpected\ncontext: README.md\n", current))
         self.assertTrue(gate.context_regression_errors(
             "schema: spec-driven\ncontext: README.md, current version v0.1.0-dev\n", current))
+
+
+class AtomicArchiveTests(unittest.TestCase):
+    """Owner-approved base bytes are immutable; archive is same-change only."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.change = "verified-fixture"
+        self.prefix = "openspec/changes/" + self.change + "/"
+        self.destination = "openspec/changes/archive/2026-11-16-" + self.change + "/"
+        self.approved = {
+            self.prefix + "proposal.md": b"# Approved proposal\n",
+            self.prefix + "design.md": b"# Accepted design\n",
+            self.prefix + "tasks.md": b"- [ ] Implement\n- [ ] Verify\n",
+            self.prefix + "sdd-scope.json": b'{"allowed_paths":["addon/CraftAtlas/**"]}\n',
+            self.prefix + "specs/feature/spec.md": (
+                b"## ADDED Requirements\n### Requirement: Ready\n"
+                b"#### Scenario: Verified\n- **WHEN** tested\n- **THEN** works\n"),
+        }
+        self.base = dict(self.approved)
+        self.paths = {"addon/CraftAtlas/Domain/MaterialLookup.lua",
+                      "docs/OPENSPEC_STATUS.md",
+                      "openspec/specs/feature/spec.md"}
+        for path, content in self.approved.items():
+            rel = path[len(self.prefix):]
+            if rel == "tasks.md":
+                content = b"- [x] Implement\n- [x] Verify\n"
+            target = self.destination + rel
+            self.paths.add(target)
+            (self.root / target).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / target).write_bytes(content)
+            self.paths.add(path)
+        canon = self.root / "openspec/specs/feature/spec.md"
+        canon.parent.mkdir(parents=True)
+        canon.write_text("## ADDED Requirements\n### Requirement: Ready\n")
+        ledger = self.root / "docs/OPENSPEC_STATUS.md"
+        ledger.parent.mkdir(parents=True)
+        ledger.write_text(
+            "| verified-fixture | #9 approved | #42 implementation "
+            "| archived | tests/test_validate_sdd.py PASS acceptance evidence |\n")
+        self.evidence = (
+            "tests/test_validate_sdd.py PASS all approved scenarios; "
+            "docs/OPENSPEC_STATUS.md records complete acceptance with owner review."
+        )
+
+    def listing(self, base, prefix):
+        return [p for p in self.base if p.startswith(prefix)]
+
+    def reading(self, base, path):
+        return self.base[path]
+
+    def check(self, paths=None, state="prepared", evidence=None):
+        return gate.validate_implementation_archive(
+            self.paths if paths is None else paths,
+            self.change, self.root, "main", state,
+            self.evidence if evidence is None else evidence,
+            file_list=self.listing, file_read=self.reading,
+            pr_number=42, approval="9",
+        )
+
+    def integration(self, prepared=True):
+        from unittest.mock import patch
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "hectoresen"},
+                        "base": {"ref": "main"}}
+            return [{"filename": self.prefix + "proposal.md"}]
+        def git_mock(cmd, text=False, **kwargs):
+            if cmd[:2] == ["git", "ls-tree"]:
+                paths = "\n".join(self.approved) + "\n"
+                return paths if text else paths.encode("utf-8")
+            if cmd[:2] == ["git", "show"]:
+                path = cmd[2].split(":", 1)[1]
+                if path not in self.base:
+                    raise subprocess.CalledProcessError(128, cmd)
+                value = self.base[path]
+                return value.decode("utf-8") if text else value
+            raise AssertionError(cmd)
+        body = (
+            "OpenSpec-Change: verified-fixture\n"
+            "OpenSpec-Phase: implementation\n"
+            "OpenSpec-Approval-PR: 9\n"
+            "OpenSpec-Archive: " + ("prepared" if prepared else "blocked") + "\n"
+            "OpenSpec-Archive-Evidence: " + self.evidence + "\n"
+        )
+        with patch.object(gate.subprocess, "check_output", side_effect=git_mock):
+            return gate.validate(
+                self.paths if prepared else {
+                    "addon/CraftAtlas/Domain/MaterialLookup.lua",
+                    self.prefix + "tasks.md"},
+                body, 42, root=self.root, base="main",
+                token="mock-token", api=api,
+                exists_in_base=lambda p: p in self.base,
+                implementation_created="2026-11-10T00:00:00Z",
+            )
+
+    def test_prepared_archive_passes_full_sdd_gate(self):
+        self.assertEqual(self.integration(), [])
+
+    def test_prepared_archive_preserves_owner_merged_approval(self):
+        self.base[self.prefix + "sdd-scope.json"] = b'{"allowed_paths":[]}'
+        self.assertTrue(self.integration())
+
+    def test_complete_atomic_archive_passes(self):
+        self.assertEqual(self.check(), [])
+
+    def test_blocked_implementation_keeps_active_change(self):
+        self.assertEqual(self.check(
+            {"addon/CraftAtlas/Domain/MaterialLookup.lua", self.prefix + "tasks.md"},
+            state="blocked", evidence=(
+                "docs/TESTING.md records that Forever scenario is NOT RUN; "
+                "manual acceptance remains pending and the change stays open.")), [])
+
+    def test_missing_metadata_or_fake_prepared_fails(self):
+        self.assertTrue(self.check(state=None))
+        self.assertTrue(self.check(state="prepared", evidence="Reviewed"))
+        self.assertTrue(self.check(paths={"addon/CraftAtlas/Domain/MaterialLookup.lua"}))
+
+    def test_archive_requires_every_owner_approved_file(self):
+        partial = {x for x in self.paths if not x.endswith("design.md")}
+        self.assertTrue(self.check(paths=partial))
+
+    def test_archive_rejects_tampered_approved_design_and_scope(self):
+        for name in ("design.md", "sdd-scope.json", "specs/feature/spec.md"):
+            p = self.root / (self.destination + name)
+            before = p.read_bytes()
+            p.write_bytes(b"# Malicious edit\n")
+            self.assertTrue(self.check(), name)
+            p.write_bytes(before)
+
+    def test_archive_rejects_unfinished_tasks_or_rewritten_task_names(self):
+        p = self.root / (self.destination + "tasks.md")
+        p.write_text("- [x] Implement\n- [ ] Verify\n")
+        self.assertTrue(self.check())
+        p.write_text("- [x] Implement\n- [x] Rewrite acceptance\n")
+        self.assertTrue(self.check())
+
+    def test_archive_rejects_unrelated_changes_and_bad_dates(self):
+        stray = self.destination.replace(self.change, "other-change") + "proposal.md"
+        self.assertTrue(self.check(paths=self.paths | {stray}))
+        invalid = self.destination.replace("2026-11-16", "2026-02-30")
+        self.assertTrue(self.check(paths={
+            x.replace(self.destination, invalid) for x in self.paths
+        }))
+
+    def test_archive_rejects_incomplete_canonical_sync(self):
+        canon = self.root / "openspec/specs/feature/spec.md"
+        canon.write_text("## ADDED Requirements\n### Requirement: Wrong\n")
+        self.assertTrue(self.check())
+
+    def test_archive_preserves_existing_canonical_requirements(self):
+        path = "openspec/specs/feature/spec.md"
+        self.base[path] = b"### Requirement: Existing\n"
+        self.assertTrue(self.check())
+        (self.root / path).write_text(
+            "### Requirement: Ready\n### Requirement: Existing\n")
+        self.assertEqual(self.check(), [])
+
+    def test_blocked_cannot_touch_archive_or_canonical(self):
+        self.assertTrue(self.check(state="blocked", evidence=(
+            "docs/TESTING.md states mandatory client acceptance NOT RUN "
+            "and the required manual scenario remains blocked.")))
+        self.assertTrue(self.check(
+            {"addon/CraftAtlas/Domain/MaterialLookup.lua",
+             "openspec/specs/feature/spec.md"},
+            state="blocked", evidence=(
+                "docs/TESTING.md records mandatory tests NOT RUN; "
+                "approval is pending and archiving is blocked.")))
+
+    def test_requires_ledger_with_current_change_provenance(self):
+        ledger = self.root / "docs/OPENSPEC_STATUS.md"
+        ledger.write_text("| unrelated | #9 | archived | tests PASS |\n")
+        self.assertTrue(self.check())
+        ledger.write_text("| verified-fixture | archived | tests PASS |\n")
+        self.assertTrue(self.check())
 
 if __name__ == "__main__":
     unittest.main()
