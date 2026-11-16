@@ -24,7 +24,7 @@ texlua tests/test_catalog_scheduler_failure.lua
 texlua tests/test_catalog_header.lua
 ```
 
-The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. `/craftatlas perf` prints in-memory session counters (attempted/total units, batches, full-search and refresh counts) on demand, without sending or persisting diagnostics. Compare the same cache/build conditions before and after an optimization; a reduction in refreshes is not proof of increased FPS. For the full matrix see [testing](TESTING.md).
+The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. `/craftatlas perf` prints in-memory session counters (attempted/total units, batches, worst observed batch times (when supported), full-search and refresh counts) on demand, without sending or persisting diagnostics. Compare the same cache/build conditions before and after an optimization; a reduction in refreshes is not proof of increased FPS. For the full matrix see [testing](TESTING.md).
 
 ## Implementation boundaries
 
