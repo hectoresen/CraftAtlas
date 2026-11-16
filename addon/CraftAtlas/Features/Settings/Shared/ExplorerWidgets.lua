@@ -3,6 +3,21 @@ local _, ns = ...
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
 function ns.GetExplorerClearIcon(fileLookup)
+    -- Prefer a client-resolved broom item icon, independent of optional file-ID APIs.
+    if fileLookup == nil then
+        local cItem = type(C_Item) == "table" and C_Item or nil
+        local itemIcon = cItem and cItem.GetItemIconByID or GetItemIcon
+        if type(itemIcon) == "function" then
+            local ok, icon = pcall(itemIcon, 37011) -- native Magic Broom item
+            if ok and icon then return icon end
+        end
+        local cSpell = type(C_Spell) == "table" and C_Spell or nil
+        local spellIcon = cSpell and cSpell.GetSpellTexture or GetSpellTexture
+        if type(spellIcon) == "function" then
+            local ok, icon = pcall(spellIcon, 42667) -- native broom mount spell
+            if ok and icon then return icon end
+        end
+    end
     -- Historical native broom artwork may vary between Classic/Forever clients.
     local candidates = {
         "Interface\\Icons\\Achievement_Halloween_Witch_01",
