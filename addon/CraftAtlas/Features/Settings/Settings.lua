@@ -587,7 +587,7 @@ local function createPanel()
     local version = ns.GetInstalledReleaseVersion(ns.name)
     if version then
         local caption = font(panel, "GameFontDisableSmall")
-        caption:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 18, 14)
+        caption:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -18, 12)
         caption:SetText(version)
     end
 
