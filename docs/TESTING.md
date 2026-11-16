@@ -18,6 +18,12 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 Spec PR #52 was owner-merged. The implementation introduces `tests/test_chat_links.lua` for native item-vs-spell link selection, unsafe/missing API no-op behavior, chat editor handling and current-row identity contracts. **Standalone Lua command: NOT RUN in the connector-only authoring environment**; GitHub `lua-compatibility`/`lua-regressions` will provide CI evidence only when executed and observed. **Forever: NOT RUN** for Shift + left-click across Materiales/Fabricables uses, rows, ingredients, detail titles/icons, chat open/closed, two locales and UI scales; the exact client build has not been recorded. The removal of the extra `UI-Quickslot2` slot texture is source-confirmed, not yet visually verified in Forever. No release/live compatibility claim is made.
 
+## Craftable material tracking — implementation evidence (spec #54)
+
+The feature implementation branch introduces `Domain/CraftableTracking.lua`, `Infrastructure/InventoryCounts.lua`, per-character preferences and a native Fabricables tracking UI. `tests/test_craftable_tracking.lua` covers pure weighted progress, duplicate ingredients, unknown API data, bank open/closed and per-character persistence. Locale regression coverage is extended. **Standalone Lua and release/strict OpenSpec commands: NOT RUN in the GitHub connector authoring environment; evaluate actual CI results before merging.**
+
+**Forever-client acceptance: NOT RUN.** Record exact build and outcomes for live bag changes, bag empty/partial/full, bank open/closed, bank count freshness, multiple recipes, reload and character isolation, missing input recipes, esES/enUS labels, compact scale, existing pagination and Shift-click. **Bank counted as confirmed only while open; this is a conservative implementation choice, not proven API behavior on the real build.** Treat the spec archive as blocked until mandatory evidence is obtained.
+
 ## Automated PR and release gate
 
 The same command is used by `.github/workflows/ci.yml` and `.github/workflows/publish-release.yml`:
