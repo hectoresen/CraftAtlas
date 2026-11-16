@@ -1,0 +1,9 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/CraftAtlas.toc",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/INSTALLATION.md",
+    "docs/TESTING.md"
+  ]
+}
