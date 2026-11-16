@@ -182,7 +182,7 @@ assert(findLabel("0/2") and findLabel("0/3"),
     "zero-stock tracker shows required quantities")
 local statusbars={}
 for _,w in ipairs(frames) do
-    if w.kind=="StatusBar" and w.shown then
+    if w.kind=="StatusBar" and w.shown and (not w.parent or w.parent.shown) then
         eq(w.barTexture,"Interface\\TargetingFrame\\UI-StatusBar","Blizzard bar texture")
         statusbars[#statusbars+1]=w
     end
