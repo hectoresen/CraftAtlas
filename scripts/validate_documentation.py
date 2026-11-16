@@ -68,9 +68,9 @@ def validate(changed_paths, body):
         errors.append("Documentation evidence must specify reviewed behavior and affected docs")
     # PR metadata is not proof an agent ran a skill, but it must supply
     # reviewable code/documentation evidence, not a generic audit claim.
-    if not re.search(r"(?:README(?:\\.md)?|CHANGELOG(?:\\.md)?|docs/[A-Za-z_]+\\.md)", evidence, re.I):
+    if not re.search(r"(?:README(?:\.md)?|CHANGELOG(?:\.md)?|docs/[A-Za-z_]+\.md)", evidence, re.I):
         errors.append("Documentation evidence must identify a reviewed document")
-    if not re.search(r"(?:\\b(?:Lua|Python|source|code|implementation|runtime|behavior|adapter|module|test|fixture|data|catalog|cache|workflow|CI|API)\\b|addon/|scripts/|tests/)", evidence, re.I):
+    if not re.search(r"(?:\b(?:Lua|Python|source|code|implementation|runtime|behavior|adapter|module|test|fixture|data|catalog|cache|workflow|CI|API)\b|addon/|scripts/|tests/)", evidence, re.I):
         errors.append("Documentation evidence must identify the changed behavior, source or checks")
     if review == "updated" and not any(
         p.casefold() in evidence.casefold() for p in changed_docs
