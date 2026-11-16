@@ -23,5 +23,13 @@ Every contributor-authored PR targeting main SHALL require @hectoresen's approva
 ### Requirement: Owner-authored PRs remain possible
 Owner-authored PRs SHALL retain the PR-only administrator review bypass because self-approval is impossible. Status checks SHALL remain mandatory without bypass.
 
+#### Scenario: Owner authors a PR
+- **WHEN** @hectoresen authors a pull request and all mandatory status checks pass
+- **THEN** the owner may use the existing PR-only administrator review bypass to merge without self-approval, but cannot bypass failing checks
+
 ### Requirement: Historical proposals remain traceable
 Previously merged specification PRs SHALL be checked against real review provenance rather than requiring duplicate specification content merely due to who merged.
+
+#### Scenario: Historical contributor-merged spec had owner approval
+- **WHEN** a previously merged specification PR has a valid pre-merge APPROVED review by @hectoresen but was merged by a contributor
+- **THEN** the implementation can cite the original specification PR and does not require an identical replacement proposal
