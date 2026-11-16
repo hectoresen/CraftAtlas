@@ -1,0 +1,23 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Infrastructure/ItemInfo.lua",
+    "addon/CraftAtlas/Infrastructure/RecipeNameCache.lua",
+    "addon/CraftAtlas/Infrastructure/RecipeInfo.lua",
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "addon/CraftAtlas/Features/Settings/Shared/**",
+    "addon/CraftAtlas/Domain/MaterialSearch.lua",
+    "addon/CraftAtlas/Domain/RecipeCatalog.lua",
+    "addon/CraftAtlas/Domain/CatalogProgress.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "addon/CraftAtlas/CraftAtlas.toc",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA_MODEL.md",
+    "docs/DEVELOPMENT.md",
+    "docs/INSTALLATION.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md"
+  ]
+}
