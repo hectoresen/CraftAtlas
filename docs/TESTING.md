@@ -14,6 +14,23 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 **Interpretation:** `NOT RUN` in an older PR implementation environment means that particular command or client scenario was not executed **there**, not that the feature never merged or that subsequent GitHub CI never ran. A screenshot confirms only the specific state it depicts. Source merged ≠ final visual acceptance ≠ full live-catalog verification. Keep those categories separate; do not reopen source implementation tasks simply because client evidence is incomplete.
 
+## Native addon options
+
+Spec [#66](https://github.com/hectoresen/CraftAtlas/pull/66) was owner-approved and merged before this implementation. `tests/test_addon_configuration.lua` exercises native category registration, repeated initialization, missing APIs, both language dropdown implementations, preserved explorer state and Back history, account defaults, disabled controls, reload and minimap recovery from native options. `tests/test_material_tooltips.lua` covers both layouts with and without icons, annotation visibility, localized order, unknown items, missing icons and repeat callbacks and rebuilds.
+
+**Offline PASS.** 54 Lua files parsed and all 24 fixtures passed under Lua 5.1 via Lupa. The shared release gate (`bash scripts/validate_release_checks.sh`), all 142 Python tests, and strict OpenSpec validation (32 items) passed.
+
+**Forever client acceptance: NOT RUN.** Record the exact client build, addon locales and UI scales tested.
+
+| Scenario | Forever result |
+| --- | --- |
+| Open **Options → AddOns → CraftAtlas** before opening the explorer. Verify one category and usable controls at normal and compact scales. | **NOT RUN** |
+| Visit native options while browsing Materials or Craftables. Verify query, filter, chosen detail and Back history. Change language from each location and verify the other selector reflects it. | **NOT RUN** |
+| Change all four checkboxes and reload. Verify disabled layout controls retain their choices, then restore the hidden minimap button from native options at the saved angle and test left-click. | **NOT RUN** |
+| Inspect Copper Ore (`2770`), Linen Cloth (`2589`) and unknown item `25` on each tested tooltip surface in enUS and esES. Verify visibility, all icon and layout combinations, wrapping, native item content and rebuilds without duplicate lines. | **NOT RUN** |
+
+The OpenSpec change remains active pending the client matrix.
+
 ## Minimap button interaction
 
 Spec [#43](https://github.com/hectoresen/CraftAtlas/pull/43) covers edge tracking, release and reload, click behavior and localized hover text. `tests/test_minimap_button.lua` passed under Lua 5.1 via Lupa, including two minimap scales, a centered pointer and unavailable geometry, releases outside the map, drag releases with and without a click callback, first-click opening, preference restoration, and tooltip text, locale fallback and dismissal. All 22 isolated Lua fixtures passed and all 48 addon and test Lua files parsed. `bash scripts/validate_release_checks.sh`, `python3 -m unittest discover -s tests` (139 tests), and `openspec validate --all --strict --no-interactive` (30 items) passed.

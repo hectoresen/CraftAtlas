@@ -22,6 +22,7 @@ Domain/RecipeCatalog.lua
 Domain/CraftableTracking.lua
 Localization/Locales.lua
 Infrastructure/Preferences.lua
+Infrastructure/AddonSettings.lua
 Infrastructure/InventoryCounts.lua
 Localization/ProfessionLabels.lua
 Infrastructure/ItemInfo.lua
@@ -32,6 +33,7 @@ Infrastructure/TooltipAdapter.lua
 Infrastructure/MinimapButton.lua
 Features/Tooltip/Tooltip.lua
 Features/Settings/Shared/ExplorerWidgets.lua
+Features/Settings/PreferencesPanel.lua
 Features/Settings/RecipePanel.lua
 Features/Settings/RecipesView.lua
 Features/Settings/Settings.lua

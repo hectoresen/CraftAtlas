@@ -21,4 +21,8 @@ eventFrame:SetScript("OnEvent", function(self, event, loadedName)
     if not ok and type(print) == "function" then
         print("CraftAtlas: " .. tostring(reason))
     end
+    local optionsOk, optionsReason = ns.InitAddonOptions()
+    if not optionsOk and optionsReason and type(print) == "function" then
+        print("CraftAtlas: " .. tostring(optionsReason))
+    end
 end)

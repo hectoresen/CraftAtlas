@@ -11,6 +11,11 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Native addon options
+
+- Added General and Tooltip under the game's **Options → AddOns → CraftAtlas**. The options page shares the explorer's language preference and can restore the minimap button at its saved position.
+- Added account preferences for annotation visibility, profession icons and comma-separated tooltip layout. Existing installations retain their language, minimap angle and default appearance.
+
 ### Global Fabricables tracking mode (implementation of approved spec #62)
 
 - Track crafting is now a single opt-in per character, retained across any Fabricables recipe switch and UI reload. Each recipe still has its own ingredients and calculated stock; Include bank remains independently persisted. Old per-recipe flags do not silently enable this global mode.

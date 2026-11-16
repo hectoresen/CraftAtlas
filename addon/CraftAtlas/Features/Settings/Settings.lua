@@ -27,8 +27,6 @@ local history = {}
 local switchView
 local ROW_HEIGHT = 38
 local VISIBLE_ROWS = 6
-local languageOptions = {"auto", "esES", "enUS"}
-local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
 
 local function font(parent, fontName)
     return parent:CreateFontString(nil, "OVERLAY", fontName)
@@ -390,45 +388,6 @@ function ns.GetCatalogPerformanceSnapshot()
     }
 end
 
-local function createLanguageMenu(header)
-    local native, nativeMenu, nativeChoices = ns.CreateExplorerNativeDropdown(
-        header, languageOptions, function(value) ns.SetLanguage(value) end, 108)
-    if native then
-        native:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 5, 2)
-        ui.language = native
-        ui.languageMenu = nativeMenu
-        ui.languageChoices = nativeChoices
-        return
-    end
-    local button = ns.CreateExplorerClassicButton(header)
-    button:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -10, 3)
-    button:SetSize(120, 28)
-    ns.AddExplorerDropdownArrow(button)
-    ui.language = button
-
-    local menu = CreateFrame("Frame", nil, panel)
-    menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -3)
-    menu:SetSize(124, 96)
-    menu:SetFrameLevel(header:GetFrameLevel() + 10)
-    paint(menu, 0.09, 0.08, 0.06, 0.98)
-    menu:Hide()
-    ui.languageMenu = menu
-    ui.languageChoices = {}
-    button:SetScript("OnClick", function()
-        if menu:IsShown() then menu:Hide() else menu:Show() end
-    end)
-    for index, value in ipairs(languageOptions) do
-        local choice = ns.CreateExplorerClassicButton(menu)
-        choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
-        choice:SetSize(118, 28)
-        choice:SetScript("OnClick", function()
-            menu:Hide()
-            ns.SetLanguage(value)
-        end)
-        ui.languageChoices[value] = choice
-    end
-end
-
 local function createProfessionMenu(left)
     local button, menu, choices = ns.CreateExplorerProfessionFilter(panel, left, function(key)
         selectedProfession = key
@@ -599,7 +558,7 @@ local function createPanel()
     end)
     ui.clear = clear
     ui.clearIcon = clear.icon
-    createLanguageMenu(header)
+    ui.language = ns.CreateExplorerLanguageSelector(header)
 
     local materialsTab = ns.CreateExplorerClassicButton(panel)
     materialsTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -101)
@@ -711,7 +670,7 @@ local function createPanel()
         end
     end)
     panel:SetScript("OnHide", function()
-        ui.languageMenu:Hide()
+        ui.language.CloseMenu()
         ui.professionMenu:Hide()
         ui.search:ClearFocus()
         if ns.HideRecipePanelTooltip then ns.HideRecipePanelTooltip() end
@@ -831,11 +790,7 @@ function ns.RefreshSettings()
     showCatalogProgress()
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
-    ui.language:SetText(ns.L(languageLabels[ns.ResolveLocale(ns.GetLanguage(), ns.GetClientLocale())]))
-    local current = ns.GetLanguage()
-    for _, value in ipairs(languageOptions) do
-        ui.languageChoices[value]:SetText((current == value and "> " or "   ") .. ns.L(languageLabels[value]))
-    end
+    ui.language.Refresh()
     ui.professionChoices[""]:SetText(ns.L("ALL_PROFESSIONS"))
     for _, key in ipairs(ns.professionOrder or {}) do
         ui.professionChoices[key]:SetText(labelProfession(key))

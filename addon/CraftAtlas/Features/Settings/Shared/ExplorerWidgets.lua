@@ -380,6 +380,55 @@ function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width)
     return dropdown, popup, choices
 end
 
+local languageOptions = {"auto", "esES", "enUS"}
+local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
+
+function ns.CreateExplorerLanguageSelector(parent)
+    local button, menu, choices = ns.CreateExplorerNativeDropdown(parent, languageOptions, ns.SetLanguage, 108)
+    if button then
+        button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 5, 2)
+    else
+        button = ns.CreateExplorerClassicButton(parent)
+        button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 3)
+        button:SetSize(120, 28)
+        ns.AddExplorerDropdownArrow(button)
+
+        menu = CreateFrame("Frame", nil, parent)
+        menu:SetPoint("TOPRIGHT", button, "BOTTOMRIGHT", 0, -3)
+        menu:SetSize(124, 96)
+        menu:SetFrameLevel(parent:GetFrameLevel() + 10)
+        local background = menu:CreateTexture(nil, "BACKGROUND")
+        background:SetAllPoints()
+        background:SetColorTexture(0.09, 0.08, 0.06, 0.98)
+        menu:Hide()
+        choices = {}
+        button:SetScript("OnClick", function()
+            if menu:IsShown() then menu:Hide() else menu:Show() end
+        end)
+        for index, value in ipairs(languageOptions) do
+            local choice = ns.CreateExplorerClassicButton(menu)
+            choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
+            choice:SetSize(118, 28)
+            choice:SetScript("OnClick", function()
+                menu:Hide()
+                ns.SetLanguage(value)
+            end)
+            choices[value] = choice
+        end
+    end
+
+    return {
+        CloseMenu = function() menu:Hide() end,
+        Refresh = function()
+            local current = ns.GetLanguage()
+            button:SetText(ns.L(languageLabels[current]))
+            for _, value in ipairs(languageOptions) do
+                choices[value]:SetText((current == value and "> " or "   ") .. ns.L(languageLabels[value]))
+            end
+        end,
+    }
+end
+
 function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
     local keys = {""}
     for _, key in ipairs(ns.professionOrder or {}) do keys[#keys + 1] = key end

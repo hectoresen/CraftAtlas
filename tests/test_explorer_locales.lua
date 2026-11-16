@@ -10,6 +10,12 @@ for _, key in ipairs({"CLEAR_SEARCH", "PROFESSION_GROUP_COUNT", "ITEM_LEVEL"}) d
 end
 assert(ns.Text("CLEAR_SEARCH", "unknown", "enUS") == "Clear search")
 assert(ns.Text("PROFESSION_GROUP_COUNT", "esES", "enUS"):format(3) == "3 materiales")
+for _, key in ipairs({"CONFIG_TOOLTIP", "CONFIG_SHOW_MINIMAP", "CONFIG_SHOW_TOOLTIP_PROFESSIONS",
+    "CONFIG_HIDE_PROFESSION_ICONS", "CONFIG_SINGLE_LINE"}) do
+    local en, es = ns.Text(key, "enUS"), ns.Text(key, "esES")
+    assert(en ~= key and es ~= key and en ~= es, "localized option label required: " .. key)
+    assert(ns.Text(key, "auto", "frFR") == en)
+end
 for _, key in ipairs({"CATALOG_PREPARING_MATERIALS", "CATALOG_PREPARING_CRAFTABLES",
     "CATALOG_PREPARATION_PAUSED", "CATALOG_DIAGNOSTICS"}) do
     local en = ns.Text(key, "enUS", "enUS")
