@@ -17,6 +17,7 @@ C_Item = {
     end,
 }
 C_Spell = {GetSpellInfo = function(id)
+    if id == 1051 then return {name="", iconID=id+10} end
     return {name="Spell " .. id, iconID=id+10}
 end}
 local progressNotices, dirtyNotices = {materials=0, recipes=0},{materials=0,recipes=0}
@@ -53,11 +54,15 @@ assert(ns.GetRecipePreparation().completed==51 and ns.CatalogPercent(ns.GetRecip
 assert(ns.GetRecipePreparationMetrics().batches==3)
 assert(dirtyNotices.recipes<=4,"work notifies by batch, not by record")
 assert(ns.GetRecipeNames()[1001]=="Spell 1001")
+assert(ns.GetRecipeNames()[1051]==nil, "empty client names are unresolved, not cached")
 -- Late resolution via optional native event invalidates names without rerunning preparation.
 C_Spell.GetSpellInfo=function(id)
     if id==1001 then return {name="Updated spell",iconID=1011} end
+    if id==1051 then return {name="Resolved late",iconID=1061} end
     return {name="Spell "..id,iconID=id+10}
 end
+assert(ns.UpdateRecipeName(1051)==true, "late native names must invalidate search cache")
+assert(ns.GetRecipeNames()[1051]=="Resolved late")
 assert(ns.UpdateRecipeName(1001)==false,
     "resolved names already cached must remain stable within the session")
 print("Material and recipe fake-timer preparation PASS")
