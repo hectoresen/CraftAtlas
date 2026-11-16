@@ -8,6 +8,7 @@ local function widget(kind, parent)
     function self:SetHeight(h) self.height=h end
     function self:GetWidth() return self.width end
     function self:GetHeight() return self.height end
+    function self:GetParent() return self.parent end
     function self:SetPoint() end
     function self:ClearAllPoints() end
     function self:CreateTexture() return widget("texture",self) end
@@ -93,4 +94,9 @@ rows[1].OnEnter(rows[1])
 assert(ns.lastRecipe==800,"non-item hover should use native recipe tooltip")
 ns.HideRecipePanelTooltip()
 assert(hiddenTooltips>prior)
+ns.RefreshRecipePanel(159)
+ns.SetRecipePanelCompact(true)
+assert(rows[5].shown, "collapsing professions reclaims space for a fifth use row")
+ns.SetRecipePanelCompact(false)
+assert(not rows[5].shown, "restoring professions reserves the native detail section")
 print("Recipe vertical rows UI mock PASS")
