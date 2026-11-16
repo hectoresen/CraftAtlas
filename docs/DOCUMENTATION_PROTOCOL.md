@@ -55,3 +55,8 @@ Agent adapters may provide GitHub file APIs instead of a local `git` checkout; v
 ## Known protected-source debt
 
 `openspec/config.yaml` still includes a historical `v0.0.0` scaffold description. Updating that protected file needs **separate approved scope and validator policy**; it is not silently changed by this skill implementation. A broader reconciliation/archival process is already separately proposed.
+
+## Mandatory archive readiness audit
+
+Documentation synchronization is not complete until the agent compares the approved delta specifications, actual source behavior, tests, README and technical docs; identifies mandatory acceptance scenarios requiring real WoW Forever evidence; and records either an eligible **same-PR archive transaction** or an explicit reason for remaining active. `OpenSpec-Archive: prepared` requires an exactly matching dated lossless copy of the approved change, synchronized canonical specs and a provenance/acceptance ledger. `OpenSpec-Archive: blocked` requires named missing scenarios/tests (`NOT RUN` or failed), active tasks preserved, and a maintainer handoff. Generic archive metadata does not demonstrate skill execution or game verification. Review again after every PR code/test/acceptance revision.
+

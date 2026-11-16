@@ -51,3 +51,8 @@ Code PRs run read-only Python/release readiness and SDD/OpenSpec validation plus
 ### Cost-aware pull request validation
 
 GitHub Actions distinguishes **OpenSpec-only**, **Markdown/text-only** and **code/mixed** changes using the actual base/head diff. Specs only: strict OpenSpec/SDD, with no Lua or release readiness. Docs only: lightweight Markdown and SDD policy checks without costly Lua/Python/catalog/npm setup. Code or workflow changes: all checks, including Lua 5.1 syntax and regressions, Python/catalog/package/documentation source evidence, and strict OpenSpec. A stable `repository-validation` required status always reports, including for spec-only PRs, and fails closed if classification fails. No required status is omitted solely to save cost. See `docs/TESTING.md` and `docs/GITHUB_SETTINGS.md`.
+
+## Same-PR OpenSpec archival for implementation agents
+
+When implementing an owner-approved change, treat archive preparation as part of `documentation-sync`, not as a new follow-up PR. If accepted scenarios are actually verified, sync approved canonical specs and move the full original change to `openspec/changes/archive/YYYY-MM-DD-<change-id>/` **in the implementation branch**; otherwise retain active files and mark `OpenSpec-Archive: blocked` with named acceptance gaps. No direct main merges, no speculative checkmarks and no changes to unrelated approved specs. Reference `docs/SDD_COMPLIANCE.md` and include evidence in the PR body.
+

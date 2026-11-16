@@ -51,3 +51,8 @@ God objects; huge functions; deeply nested conditionals that can be simplified; 
 ## Review checklist
 
 Is the scope approved? Are boundaries intact? Could it be simpler? Are names and error cases clear? Are tests and real-client evidence honest? Is every dataset legal and traceable? Is documentation synchronized? Would a new maintainer understand the behavior without chat context?
+
+## OpenSpec archive and verification integrity
+
+Do not mark an approved SHALL scenario completed based only on passing offline Lua/Python fixtures when that scenario explicitly requires WoW Forever evidence. Prepare lossless same-change archives and approved canonical capability updates in the implementation PR after the mandatory documentation-sync audit, or document exact blockers and keep active specs. SDD structurally protects provenance; the maintainer reviews semantic compatibility and chooses merge.
+
