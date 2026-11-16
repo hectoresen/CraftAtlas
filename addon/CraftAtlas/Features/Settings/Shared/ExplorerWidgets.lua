@@ -86,6 +86,16 @@ function ns.UpdateExplorerPager(pager, page, pages)
 end
 
 -- Same search widget is reused by each active view, with state owned by its adapter.
+function ns.ClearExplorerSearch(search)
+    if not search or type(search.GetText) ~= "function"
+        or type(search.SetText) ~= "function" or search:GetText() == "" then
+        return false
+    end
+    search:SetText("")
+    if type(search.SetFocus) == "function" then search:SetFocus() end
+    return true
+end
+
 function ns.CreateExplorerSearchBox(header, onChange)
     local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
     search:SetPoint("LEFT", header, "LEFT", 13, 0)
