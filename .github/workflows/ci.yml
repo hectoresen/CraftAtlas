@@ -22,6 +22,8 @@ jobs:
         run: bash scripts/validate_release_checks.sh
       - name: Test documentation review gate
         run: python3 -m unittest discover -s tests -p 'test_validate_documentation.py' -v
+      - name: Enforce CI and governance regression contracts
+        run: python3 -m unittest discover -s tests -p 'test_ci_governance.py' -v
       - name: Check PR documentation attestation
         if: github.event_name == 'pull_request'
         env:
