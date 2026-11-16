@@ -39,7 +39,7 @@ class SddPolicyTests(unittest.TestCase):
     def api(path, token):
         if path == "pulls/9":
             return {"merged_at": "2026-11-01T00:00:00Z",
-                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                    "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
         if path.startswith("pulls/9/files"):
             return [{"filename": "openspec/changes/add-material-tooltip/proposal.md"}]
         raise AssertionError(path)
@@ -88,16 +88,89 @@ class SddPolicyTests(unittest.TestCase):
         def other_owner(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "someone-else"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "someone-else"}, "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
             return [{"filename": self.prefix + "proposal.md"}]
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True, api=other_owner))
+
+    def test_contributor_merge_with_owner_review_passes(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "user": {"login": "sebasgrios"},
+                        "merged_by": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if "/reviews?" in path:
+                return [{"user": {"login": "hectoresen"}, "state": "APPROVED",
+                         "submitted_at": "2026-10-31T12:00:00Z"}]
+            if "/files?" in path:
+                return [{"filename": self.prefix + "proposal.md"}]
+            raise AssertionError(path)
+        self.assertEqual(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                    self.implementation, present=True, api=api), [])
+
+    def test_contributor_merge_requires_owner_review(self):
+        for state in ("COMMENTED", "CHANGES_REQUESTED", "DISMISSED"):
+            with self.subTest(state=state):
+                def api(path, token):
+                    if path == "pulls/9":
+                        return {"merged_at": "2026-11-01T00:00:00Z",
+                                "user": {"login": "sebasgrios"},
+                                "merged_by": {"login": "hectoresen"},
+                                "base": {"ref": "main"}}
+                    if "/reviews?" in path:
+                        return [{"user": {"login": "hectoresen"}, "state": state,
+                                 "submitted_at": "2026-10-31T12:00:00Z"}]
+                    if "/files?" in path:
+                        return [{"filename": self.prefix + "proposal.md"}]
+                    raise AssertionError(path)
+                errors = self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                    self.implementation, present=True, api=api)
+                self.assertTrue(any("APPROVED" in e for e in errors), errors)
+
+    def test_review_after_merge_and_different_reviewer_are_rejected(self):
+        for login, timestamp in (("another-user", "2026-10-31T12:00:00Z"),
+                                 ("hectoresen", "2026-11-02T12:00:00Z")):
+            with self.subTest(login=login, timestamp=timestamp):
+                def api(path, token):
+                    if path == "pulls/9":
+                        return {"merged_at": "2026-11-01T00:00:00Z",
+                                "user": {"login": "sebasgrios"},
+                                "base": {"ref": "main"}}
+                    if "/reviews?" in path:
+                        return [{"user": {"login": login}, "state": "APPROVED",
+                                 "submitted_at": timestamp}]
+                    return [{"filename": self.prefix + "proposal.md"}]
+                self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                           self.implementation, present=True, api=api))
+
+    def test_owner_approval_then_changes_requested_is_rejected(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
+            if "/reviews?" in path:
+                return [
+                    {"user": {"login": "hectoresen"}, "state": "APPROVED",
+                     "submitted_at": "2026-10-29T12:00:00Z"},
+                    {"user": {"login": "hectoresen"}, "state": "CHANGES_REQUESTED",
+                     "submitted_at": "2026-10-31T12:00:00Z"}]
+            return [{"filename": self.prefix + "proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=api))
+
+    def test_missing_pr_author_fails_closed(self):
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z", "base": {"ref": "main"}}
+            return [{"filename": self.prefix + "proposal.md"}]
+        self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
+                                   self.implementation, present=True, api=api))
 
     def test_implementation_unrelated_approval_fails(self):
         def unrelated(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": "openspec/changes/unrelated/proposal.md"}]
         self.assertTrue(self.check({"addon/CraftAtlas/Core/Init.lua"},
                                    self.implementation, present=True, api=unrelated))
@@ -121,7 +194,7 @@ class SddPolicyTests(unittest.TestCase):
         def approved(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": "openspec/changes/" + change + "/proposal.md"}]
         try:
             self.assertEqual(self.check({"AGENTS.md", "CODEOWNERS"}, body,
@@ -278,7 +351,7 @@ class SddPolicyTests(unittest.TestCase):
         def approved_api(path, token):
             if path == "pulls/9":
                 return {"merged_at": "2026-11-01T00:00:00Z",
-                        "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
             return [{"filename": prefix + "proposal.md"}]
 
         self.assertEqual(self.check({"AGENTS.md", "skills/documentation-sync/SKILL.md"},
@@ -319,7 +392,7 @@ class SddPolicyTests(unittest.TestCase):
     def lifecycle_api(path, token):
         if path == "pulls/13":
             return {"merged_at": "2026-11-15T12:31:03Z",
-                    "merged_by": {"login": "hectoresen"}, "base": {"ref": "main"}}
+                    "merged_by": {"login": "hectoresen"}, "user": {"login": "hectoresen"}, "base": {"ref": "main"}}
         if path.startswith("pulls/13/files"):
             return [{"filename": "openspec/changes/reconcile-openspec-lifecycle-and-status/proposal.md"}]
         raise AssertionError(path)
@@ -372,7 +445,7 @@ class SddPolicyTests(unittest.TestCase):
         def other(path, token):
             if path == "pulls/13":
                 return {"merged_at": "2026-11-15T12:31:03Z",
-                        "merged_by": {"login": "someone"}, "base": {"ref": "main"}}
+                        "merged_by": {"login": "someone"}, "user": {"login": "sebasgrios"}, "base": {"ref": "main"}}
             return self.lifecycle_api(path, token)
         self.assertTrue(self.check({"openspec/config.yaml"}, body,
                                    present=True, api=other))
