@@ -2,7 +2,7 @@ local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
 local TRACKER_ROW_HEIGHT = 19
-local TRACKER_TOP_HEIGHT = 32
+local TRACKER_TOP_HEIGHT = 39
 local TRACKER_BOTTOM_HEIGHT = 24
 
 local function trackedPageSize(availableHeight)
