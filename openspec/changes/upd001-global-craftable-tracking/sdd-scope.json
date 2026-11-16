@@ -1,0 +1,17 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Infrastructure/Preferences.lua",
+    "addon/CraftAtlas/Features/Settings/RecipesView.lua",
+    "tests/test_craftable_tracking.lua",
+    "tests/test_explorer_layout.lua",
+    "tests/test_explorer_locales.lua",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA_MODEL.md",
+    "docs/DEVELOPMENT.md",
+    "docs/TESTING.md",
+    "docs/ROADMAP.md",
+    "docs/OPENSPEC_STATUS.md"
+  ]
+}
