@@ -87,6 +87,9 @@ local function widget(kind,parent)
     function w:SetColorTexture() end
     function w:SetHighlightTexture() end
     function w:SetStatusBarTexture(t) self.barTexture=t end
+    function w:SetBackdrop(info) self.backdrop=info end
+    function w:SetBackdropColor() end
+    function w:SetBackdropBorderColor() end
     function w:SetStatusBarColor() end
     function w:SetMinMaxValues(a,b) self.min=a self.max=b end
     function w:SetValue(v) self.value=v end
@@ -184,6 +187,7 @@ local statusbars={}
 for _,w in ipairs(frames) do
     if w.kind=="StatusBar" and w.shown and (not w.parent or w.parent.shown) then
         eq(w.barTexture,"Interface\\TargetingFrame\\UI-StatusBar","Blizzard bar texture")
+        eq(w.backdrop.edgeFile,"Interface\\\\Tooltips\\\\UI-Tooltip-Border","Blizzard frame")
         statusbars[#statusbars+1]=w
     end
 end
