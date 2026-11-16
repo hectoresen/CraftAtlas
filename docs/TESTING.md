@@ -47,7 +47,7 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 - Inspect Fabricables by spell/name, crafted-output name, numeric ID and profession; distinguish missing spell name cache from genuine empty results.
 - Compare every ingredient and quantity for a selected verified recipe to the current live client (e.g., spell 19093 consumes items 14044, 14341 and 15410 in the pinned source). Confirm correct enchantment/non-item fallback.
 - Verify native tooltip data for items and recipes; no fabricated quality, stats or learned/craftable status.
-- Verify material → craftable → ingredient → material navigation, Back history, preserved searches, languages, clear-search broom (asset visibility without item-cache metadata, empty state and safe fallback), installed release version/hidden development version and X close/reopen from minimap and slash.
+- Verify material → craftable → ingredient → material navigation, Back history, preserved searches, languages, search-clear X inside the input (hidden while empty, shown after typing, click clears and returns focus), installed release version/hidden development version and X close/reopen from minimap and slash.
 - Test separate tooltip origins (bags, bank, guild bank, chat, auction, vendor, mail, quest rewards and crafting); record each as PASS/FAIL/NOT RUN.
 - Check source licenses/provenance, current-server recipe mapping and any known gaps before claiming live completeness.
 
