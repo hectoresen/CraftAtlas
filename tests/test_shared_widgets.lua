@@ -15,7 +15,7 @@ local function ui()
     o.CreateFontString=function() return ui() end
     return o
 end
-CreateFrame=function(_,_,parent) local o=ui() o.parent=parent created[#created+1]=o return o end
+CreateFrame=function(_,_,parent,template) local o=ui() o.parent=parent o.template=template created[#created+1]=o return o end
 local ns = {
     L = function(key) local map={PREVIOUS_PAGE="Previous",NEXT_PAGE="Next",RECIPE_PAGE_STATUS="Page %d / %d",USED_BY="Used by professions"} return map[key] end,
     professionOrder={"ALCHEMY"}
@@ -41,6 +41,7 @@ assert(section.expanded==false and toggles==1)
 section.OnClick(section)
 assert(section.expanded==true and toggles==2)
 local classic = ns.CreateExplorerClassicButton(ui())
+assert(classic.template=="UIPanelButtonTemplate", "classic UI must keep Blizzard red button template")
 ns.SetExplorerTabSelected(classic, true)
 assert(classic.LockHighlightCalled, "active classic button retains native highlight")
 ns.SetExplorerTabSelected(classic, false)
