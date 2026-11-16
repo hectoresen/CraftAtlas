@@ -553,7 +553,6 @@ local function createPanel()
     title:SetPoint("CENTER", header, "CENTER", 0, 0)
     title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
-    ui.preparation = ns.CreateExplorerCatalogProgress(header)
 
     local search = ns.CreateExplorerSearchBox(header, function(value)
         if switching or value == searchQuery then return end
@@ -612,6 +611,7 @@ local function createPanel()
         end
     end)
     ui.materialsTab, ui.recipesTab, ui.back = materialsTab, recipesTab, back
+    ui.preparation = ns.CreateExplorerCatalogProgress(panel, recipesTab, back)
 
     local left = CreateFrame("Frame", nil, panel)
     left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -137)
