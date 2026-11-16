@@ -29,6 +29,15 @@ local function calculatePageSize(availableHeight)
         math.floor((availableHeight + listTop - 39) / ROW_HEIGHT)))
 end
 
+local function setContentVisible()
+    if not state.grid then return end
+    local visible = state.visible ~= false and state.section.expanded
+    local method = visible and "Show" or "Hide"
+    for _, frame in ipairs({state.grid, state.previous, state.next, state.pageLabel}) do
+        if frame then frame[method](frame) end
+    end
+end
+
 local function renderPage()
     if not state.grid then return end
     local visible, page, pages, total =
@@ -77,10 +86,12 @@ function ns.InitRecipePanel(parent, availableHeight)
     if state.grid then return end
     local headingY, listY = ns.MaterialDetailSectionOffsets(availableHeight)
     state.pageSize = calculatePageSize(availableHeight)
-    state.heading = font(parent, "GameFontNormal")
-    state.heading:SetPoint("TOPLEFT", parent, "TOPLEFT", 16, headingY)
-    state.count = font(parent, "GameFontDisableSmall")
-    state.count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, headingY - 1)
+    state.section = ns.CreateExplorerSection(parent, "CRAFTABLE_USES_HEADING", headingY, function()
+        setContentVisible()
+    end)
+    state.heading = state.section.label
+    state.count = font(state.section, "GameFontDisableSmall")
+    state.count:SetPoint("RIGHT", state.section, "RIGHT", -31, 0)
 
     local grid = CreateFrame("Frame", nil, parent)
     grid:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, listY)
@@ -116,15 +127,15 @@ function ns.InitRecipePanel(parent, availableHeight)
     state.previous, state.next, state.pageLabel =
         state.pager.previous, state.pager.next, state.pager.label
     ns.RefreshRecipePanel(nil)
+    state.visible = true
+    setContentVisible()
 end
 
 function ns.SetRecipePanelVisible(visible)
     if not state.grid then return end
-    local method = visible and "Show" or "Hide"
-    for _, frame in ipairs({state.grid, state.heading, state.count,
-        state.previous, state.next, state.pageLabel}) do
-        frame[method](frame)
-    end
+    state.visible = visible
+    if visible then state.section:Show() else state.section:Hide() end
+    setContentVisible()
     if not visible then clearHover() end
 end
 
