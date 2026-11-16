@@ -44,33 +44,28 @@ local function refreshTrackingCounts(recipe)
 end
 
 local function createNativeBar(parent)
-    -- A Blizzard StatusBar with Blizzard's native tooltip-style frame.
-    -- Keep the frame visible when the fill value is exactly zero.
-    local bar = CreateFrame("StatusBar", nil, parent)
-    if type(bar.SetStatusBarTexture) == "function" then
-        bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        bar:SetStatusBarColor(0.18, 0.68, 0.22)
-        bar:SetMinMaxValues(0, 1)
-    end
-
-    local frame = CreateFrame("Frame", nil, bar, "BackdropTemplate")
-    frame:SetAllPoints(bar)
-    if type(frame.SetBackdrop) == "function" then
-        frame:SetBackdrop({
+    -- A true Blizzard StatusBar using native fill and tooltip-frame assets.
+    -- The backdrop belongs to the status bar, not an overlay hiding its fill.
+    local bar = CreateFrame("StatusBar", nil, parent, "BackdropTemplate")
+    if type(bar.SetBackdrop) == "function" then
+        bar:SetBackdrop({
             bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
             edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
             edgeSize = 9,
             insets = {left = 2, right = 2, top = 2, bottom = 2},
         })
-        if type(frame.SetBackdropColor) == "function" then
-            frame:SetBackdropColor(0.04, 0.04, 0.04, 0.93)
+        if type(bar.SetBackdropColor) == "function" then
+            bar:SetBackdropColor(0.04, 0.04, 0.04, 0.93)
         end
-        if type(frame.SetBackdropBorderColor) == "function" then
-            frame:SetBackdropBorderColor(0.55, 0.49, 0.34, 1)
+        if type(bar.SetBackdropBorderColor) == "function" then
+            bar:SetBackdropBorderColor(0.55, 0.49, 0.34, 1)
         end
     end
-    if type(frame.EnableMouse) == "function" then frame:EnableMouse(false) end
-    bar.nativeFrame = frame
+    if type(bar.SetStatusBarTexture) == "function" then
+        bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+        bar:SetStatusBarColor(0.18, 0.68, 0.22)
+        bar:SetMinMaxValues(0, 1)
+    end
     return bar
 end
 
