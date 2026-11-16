@@ -1,0 +1,12 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Infrastructure/MinimapButton.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "tests/test_minimap_button.lua",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/INSTALLATION.md",
+    "docs/TESTING.md"
+  ]
+}
