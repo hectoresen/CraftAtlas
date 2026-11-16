@@ -830,7 +830,21 @@ function ns.InitSettings()
     SLASH_CRAFTATLAS1 = "/craftatlas"
     SlashCmdList = SlashCmdList or {}
     SlashCmdList.CRAFTATLAS = function(input)
-        local id = tonumber(string.match(input or "", "^%s*(%d+)%s*$"))
+        local argument = string.lower(string.match(input or "", "^%s*(.-)%s*$"))
+        if argument == "perf" then
+            local m = ns.GetMaterialPreparationMetrics()
+            local r = ns.GetRecipePreparationMetrics()
+            local u = ns.GetCatalogPerformanceSnapshot()
+            if type(print) == "function" then
+                print("CraftAtlas: " .. string.format(ns.L("CATALOG_DIAGNOSTICS"),
+                    m.attempts, m.units, m.batches,
+                    r.attempts, r.units, r.batches,
+                    u.materialsSearch, u.recipesSearch, u.fullRefreshes,
+                    u.backgroundRefreshes))
+            end
+            return
+        end
+        local id = tonumber(string.match(argument, "^%d+$"))
         ns.OpenSettings(id)
     end
 end
