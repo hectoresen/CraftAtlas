@@ -38,6 +38,10 @@ texlua tests/test_catalog_header.lua
 
 Run applicable commands in a local checkout with a compatible interpreter. **This document does not claim each Lua command was executed in CI.** `python3 scripts/build_materials.py --release --check` includes a stricter catalog live-evidence gate and may intentionally reject a snapshot without full accepted evidence.
 
+## Owner screenshot: intermediate Fabricables progress (2026-11-16)
+
+The owner supplied an actual WoW Forever screenshot of Fabricables during first-use processing, showing the Spanish progress label at **66%**, partial result count, and visible native recipe details. This demonstrates that the intermediate build rendered the percentage and continued showing results; it is **not** a measured frame-rate improvement, and not proof of finished loading, compact-scale compatibility, or name-cache completeness. The owner requested a visual refinement because the label/bar sat too close to the header's gold divider. The subsequent change places the text **inside** a compact dark-gold progress track, 5 logical pixels above that divider, with high-contrast inline text and no extra frames per update. **This revised appearance: NOT RUN** in the client, awaiting owner screenshot and review. The large yellow "Captura de pantalla realizada" message visible over the recipe detail is a screenshot notification, not a CraftAtlas widget.
+
 ## Catalog preparation regression and performance protocol
 
 The optimization implementation adds `tests/test_catalog_progress.lua` (progress math and one-refresh gate), `tests/test_catalog_preparation.lua` (20/25-unit fake-timer schedules, no duplicate workers), `tests/test_catalog_scheduler_failure.lua` (missing scheduler), `tests/test_catalog_header.lua` (native bounded indicator) and `tests/test_catalog_progress_contract.py` (source/refresh/locale constraints). **Standalone Lua tests and Forever-client profiling: NOT RUN in the connector-only implementation environment.** The Python CI checks exercise source contracts, but do not simulate frame timing or confirm FPS gains.
