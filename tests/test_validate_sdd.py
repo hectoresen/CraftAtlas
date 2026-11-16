@@ -1,6 +1,7 @@
 """Tests for PR-to-OpenSpec policy. Python standard library only."""
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -489,6 +490,8 @@ class AtomicArchiveTests(unittest.TestCase):
                 return paths if text else paths.encode("utf-8")
             if cmd[:2] == ["git", "show"]:
                 path = cmd[2].split(":", 1)[1]
+                if path not in self.base:
+                    raise subprocess.CalledProcessError(128, cmd)
                 value = self.base[path]
                 return value.decode("utf-8") if text else value
             raise AssertionError(cmd)
