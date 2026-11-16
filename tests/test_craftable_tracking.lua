@@ -75,6 +75,7 @@ local function widget(kind, parent)
     function self:CreateTexture() return widget("Texture", self) end
     function self:CreateFontString() return widget("FontString", self) end
     function self:SetTexture(value) self.texture=value end
+    function self:SetHighlightTexture() end
     function self:SetColorTexture() self.color=true end
     function self:SetStatusBarTexture() end
     function self:SetStatusBarColor() end
