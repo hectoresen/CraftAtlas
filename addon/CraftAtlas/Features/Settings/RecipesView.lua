@@ -4,7 +4,7 @@ local ITEMS_PER_PAGE = 5
 local function trackedPageSize(availableHeight)
     -- Keep the aggregate tracker above the native bottom pager.
     return math.max(1, math.min(ITEMS_PER_PAGE,
-        math.floor((availableHeight - 143 - 80) / 39)))
+        math.floor((availableHeight - 143 - 118) / 39)))
 end
 
 local function setCheck(button, checked)
@@ -151,12 +151,13 @@ local function render()
         if tracking then
             local percent = coverage and coverage.percent
             local valid = coverage and coverage.verified
+            view.trackerLabel:SetText(ns.L("TRACK_PROGRESS"))
             if #view.ingredients == 0 then
-                view.trackerLabel:SetText(ns.L("TRACK_NO_INGREDIENTS"))
+                view.trackerPercent:SetText(ns.L("TRACK_NO_INGREDIENTS"))
             else
-                view.trackerLabel:SetText(ns.L("TRACK_PROGRESS") .. ": " ..
+                view.trackerPercent:SetText(
                     (percent and (tostring(percent) .. "%") or ns.L("TRACK_UNKNOWN")) ..
-                    (valid and "" or (" (" .. ns.L("TRACK_UNVERIFIED") .. ")")))
+                    (valid and "" or (" · " .. ns.L("TRACK_UNVERIFIED"))))
             end
             if type(view.trackerBar.SetValue) == "function" then
                 view.trackerBar:SetValue(percent or 0)
@@ -208,7 +209,7 @@ local function render()
     -- Position the tracking section directly below the current ingredient page,
     -- rather than marooning the summary against the bottom pager.
     if view.trackerFooter then
-        local footerTop = -(#visible * 39 + 6)
+        local footerTop = -(#visible * 39 + 10)
         view.trackerFooter:ClearAllPoints()
         view.trackerFooter:SetPoint("TOPLEFT", view.itemList, "TOPLEFT", 0, footerTop)
         view.trackerFooter:SetPoint("TOPRIGHT", view.itemList, "TOPRIGHT", 0, footerTop)
@@ -316,7 +317,7 @@ function ns.InitRecipeDetail(parent)
         local progress = CreateFrame("StatusBar", nil, row)
         progress:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 1)
         progress:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -5, 1)
-        progress:SetHeight(5)
+        progress:SetHeight(7)
         local track = progress:CreateTexture(nil, "BACKGROUND")
         track:SetAllPoints(progress)
         track:SetColorTexture(0.16, 0.13, 0.09, 0.95)
@@ -327,7 +328,7 @@ function ns.InitRecipeDetail(parent)
         trackBorder:SetColorTexture(0.49, 0.39, 0.23, 0.75)
         if type(progress.SetStatusBarTexture) == "function" then
             progress:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-            progress:SetStatusBarColor(0.66, 0.54, 0.24)
+            progress:SetStatusBarColor(0.76, 0.60, 0.22)
             progress:SetMinMaxValues(0, 100)
         end
         progress:Hide()
@@ -344,26 +345,34 @@ function ns.InitRecipeDetail(parent)
     end)
 
     local trackerFooter = CreateFrame("Frame", nil, frame)
-    trackerFooter:SetPoint("TOPLEFT", itemList, "TOPLEFT", 0, -45)
-    trackerFooter:SetPoint("TOPRIGHT", itemList, "TOPRIGHT", 0, -45)
-    trackerFooter:SetHeight(38)
+    trackerFooter:SetPoint("TOPLEFT", itemList, "TOPLEFT", 0, -49)
+    trackerFooter:SetPoint("TOPRIGHT", itemList, "TOPRIGHT", 0, -49)
+    trackerFooter:SetHeight(66)
     view.trackerFooter = trackerFooter
-
-    -- A separate native-style section, visually distinct from ingredient rows.
+    local panelBackground = trackerFooter:CreateTexture(nil, "BACKGROUND")
+    panelBackground:SetAllPoints(trackerFooter)
+    panelBackground:SetColorTexture(0.11, 0.095, 0.078, 0.94)
     local separator = trackerFooter:CreateTexture(nil, "ARTWORK")
     separator:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 0, 0)
     separator:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", 0, 0)
     separator:SetHeight(2)
-    separator:SetColorTexture(0.74, 0.54, 0.20, 0.95)
+    separator:SetColorTexture(0.72, 0.54, 0.24, 0.95)
+
     local trackerLabel = font(trackerFooter, "GameFontNormal")
-    trackerLabel:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 3, 22)
+    trackerLabel:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 8, -9)
     trackerLabel:SetTextColor(1, 0.82, 0.30)
     view.trackerLabel = trackerLabel
+
+    local trackerPercent = font(trackerFooter, "GameFontHighlightSmall")
+    trackerPercent:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -10)
+    trackerPercent:SetJustifyH("RIGHT")
+    view.trackerPercent = trackerPercent
+
     local bankCheckbox = CreateFrame("CheckButton", nil, trackerFooter, "UICheckButtonTemplate")
-    bankCheckbox:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -132, 2)
-    bankCheckbox:SetSize(18, 18)
+    bankCheckbox:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 3, -29)
+    bankCheckbox:SetSize(17, 17)
     local bankLabel = font(trackerFooter, "GameFontDisableSmall")
-    bankLabel:SetPoint("LEFT", bankCheckbox, "RIGHT", 1, 0)
+    bankLabel:SetPoint("LEFT", bankCheckbox, "RIGHT", 2, 0)
     bankLabel:SetText(ns.L("TRACK_INCLUDE_BANK"))
     view.bankCheckbox, view.bankLabel = bankCheckbox, bankLabel
     bankCheckbox:SetScript("OnClick", function(self)
@@ -372,25 +381,27 @@ function ns.InitRecipeDetail(parent)
         end
         render()
     end)
+
     local bankStatus = font(trackerFooter, "GameFontDisableSmall")
-    bankStatus:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 22)
+    bankStatus:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", -8, -32)
+    bankStatus:SetJustifyH("RIGHT")
     view.bankStatus = bankStatus
+
     local trackerBar = CreateFrame("StatusBar", nil, trackerFooter)
-    trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 0, 6)
-    trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", 0, 6)
+    trackerBar:SetPoint("BOTTOMLEFT", trackerFooter, "BOTTOMLEFT", 8, 6)
+    trackerBar:SetPoint("BOTTOMRIGHT", trackerFooter, "BOTTOMRIGHT", -8, 6)
     trackerBar:SetHeight(9)
-    -- The full-width track remains visible even at exactly 0% progress.
     local background = trackerBar:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(trackerBar)
-    background:SetColorTexture(0.14, 0.11, 0.08, 0.98)
+    background:SetColorTexture(0.24, 0.20, 0.15, 1)
     local outline = trackerBar:CreateTexture(nil, "BORDER")
     outline:SetPoint("BOTTOMLEFT", trackerBar, "BOTTOMLEFT", 0, 0)
     outline:SetPoint("BOTTOMRIGHT", trackerBar, "BOTTOMRIGHT", 0, 0)
     outline:SetHeight(1)
-    outline:SetColorTexture(0.5, 0.37, 0.18, 0.95)
+    outline:SetColorTexture(0.52, 0.42, 0.24, 0.95)
     if type(trackerBar.SetStatusBarTexture) == "function" then
         trackerBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        trackerBar:SetStatusBarColor(0.67, 0.52, 0.21)
+        trackerBar:SetStatusBarColor(0.76, 0.59, 0.20)
         trackerBar:SetMinMaxValues(0, 100)
     end
     view.trackerBar = trackerBar
