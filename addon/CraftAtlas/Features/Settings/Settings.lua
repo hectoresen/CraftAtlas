@@ -50,6 +50,19 @@ local function refreshProfessionDetail()
     if not ui.professionUses then return end
     local state = ui.professionUses
     if ns.SetRecipePanelCompact then ns.SetRecipePanelCompact(not state.section.expanded) end
+    local width = type(state.parent.GetWidth) == "function" and state.parent:GetWidth() or 0
+    local pageSize = ns.ExplorerProfessionPageSize(width)
+    if state.pageSize ~= pageSize or state.lastWidth ~= width then
+        state.pageSize, state.lastWidth = pageSize, width
+        state.page = math.min(state.page, math.max(1, math.ceil(#state.keys / pageSize)))
+        local columnWidth = math.max(0, width - 36) / pageSize
+        for i, cell in ipairs(state.cells) do
+            cell:ClearAllPoints()
+            cell:SetPoint("TOPLEFT", state.parent, "TOPLEFT",
+                18 + (i - 1) * columnWidth, -124)
+            cell:SetSize(columnWidth, 29)
+        end
+    end
     local first = (state.page - 1) * state.pageSize + 1
     for i, cell in ipairs(state.cells) do
         local key = state.keys[first + i - 1]
@@ -76,7 +89,7 @@ end
 local function createProfessionDetail(right)
     local width = type(right.GetWidth) == "function" and right:GetWidth() or 0
     local pageSize = ns.ExplorerProfessionPageSize(width)
-    local state = {keys = {}, page = 1, pageSize = pageSize, cells = {}}
+    local state = {keys = {}, page = 1, pageSize = pageSize, parent = right, cells = {}}
     ui.professionUses = state
     state.section = ns.CreateExplorerSection(right, "USED_BY", -92, function()
         refreshProfessionDetail()
@@ -85,7 +98,7 @@ local function createProfessionDetail(right)
     -- two at compact scales. Only page when the real list exceeds capacity.
     local innerWidth = math.max(0, width - 36)
     local columnWidth = innerWidth / pageSize
-    for i = 1, pageSize do
+    for i = 1, 4 do
         local cell = CreateFrame("Frame", nil, right)
         cell:SetPoint("TOPLEFT", right, "TOPLEFT",
             18 + (i - 1) * columnWidth, -124)
@@ -111,6 +124,7 @@ local function createProfessionDetail(right)
         end)
         state[direction] = button
     end
+    -- Reflow against the final pane width, even if layout was unresolved at construction.
     refreshProfessionDetail()
 end
 
