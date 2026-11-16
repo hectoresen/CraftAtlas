@@ -234,4 +234,27 @@ for _,w in ipairs(frames) do
 end
 eq(progressBars,4,"three material progress bars plus total on one page")
 assert(findLabel("0/1"),"third material progress belongs in separate section")
+-- Prevent the previous visual regression: compact row math alone is
+-- insufficient when second-line text and bars intersect the next row.
+local trackerRows = {}
+local bankButton
+for _,w in ipairs(frames) do
+    if w.kind=="Frame" and w.shown and w.height==23 and w.name and w.bar then
+        trackerRows[#trackerRows+1]=w
+    elseif w.kind=="CheckButton" and w.parent and w.parent.points
+        and w.points and w.points.TOPLEFT and w.points.TOPLEFT.y == -16 then
+        bankButton=w
+    end
+end
+eq(#trackerRows,3,"three separately spaced tracker rows are visible")
+for _,w in ipairs(trackerRows) do
+    local point = w.bar.points.TOPLEFT
+    assert(point and point.y <= -11,"material bar must be below first text baseline")
+    assert(-point.y + w.bar.height <= w.height,
+        "material bar must end inside its own row, before the next material")
+    assert(w.missing.points.TOPLEFT.y <= -11,
+        "missing stock must occupy a separate second text baseline")
+end
+assert(bankButton and bankButton.points.TOPLEFT.y + -bankButton.height >= -34,
+    "bank checkbox must not extend into the first tracker row")
 print("Craftable tracking native separate material rows PASS")
