@@ -27,9 +27,9 @@ assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua")
 local header=ui("Header")
 local widget=ns.CreateExplorerCatalogProgress(header)
 assert(#children==5,"one holder, track, status bar and label without extra frames")
-assert(not widget.shown and widget.width==224 and widget.height==14)
+assert(not widget.shown and widget.width==224 and widget.height==12)
 assert(widget.anchor[1]=="BOTTOM" and widget.anchor[2]==header
-    and widget.anchor[5]==5, "track clears the gold header divider")
+    and widget.anchor[5]==3, "track clears the gold header divider")
 assert(widget.track.fill[4]==0.94 and widget.label.textColor[1] > 0.9,
     "high-contrast inline text should remain readable as the bar fills")
 widget:SetProgress("active",42,"Preparing materials... 42%")
