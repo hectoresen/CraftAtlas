@@ -62,6 +62,10 @@ def scope_patterns(directory):
         patterns = json.loads((directory / "sdd-scope.json").read_text())["allowed_paths"]
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return [], ["Missing/invalid sdd-scope.json: " + str(exc)]
+    return validate_scope_values(patterns)
+
+
+def validate_scope_values(patterns):
     if not isinstance(patterns, list) or not patterns:
         return [], ["allowed_paths must be a nonempty array"]
     errors = []
@@ -433,12 +437,13 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
     info = parse_metadata(body)
     if any(len(x) > 1 for x in info.values()):
         errors.append("Duplicate PR OpenSpec metadata")
-    change, phase, approval, exemption = (
-        info[k][0] if info[k] else None for k in ("change", "phase", "approval", "exemption"))
+    change, phase, approval, exemption, archive_state, archive_evidence = (
+        info[k][0] if info[k] else None for k in (
+            "change", "phase", "approval", "exemption", "archive", "archive_evidence"))
     if not files:
         errors.append("Empty PR")
     if exemption:
-        if change or phase or approval:
+        if change or phase or approval or archive_state or archive_evidence:
             errors.append("Exemption may not include change metadata")
         if exemption == "bootstrap":
             if pr_number != 2 or not set(files) <= BOOTSTRAP_ALLOWED:
@@ -461,17 +466,36 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         return errors + ["OpenSpec-Change and OpenSpec-Phase are mandatory"]
     base_path = "openspec/changes/" + change + "/"
     folder = root / base_path
-    for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
-        if not (folder / name).is_file():
-            errors.append("Missing " + base_path + name)
-    if not list((folder / "specs").glob("**/spec.md")):
-        errors.append("Missing delta spec.md")
-    allowed, scope_errors = scope_patterns(folder)
-    errors.extend(scope_errors)
+    if phase == "implementation" and archive_state == "prepared":
+        # The active directory is intentionally absent when archived. Load
+        # the frozen owner-approved scope and artifacts from the base ref,
+        # never from untrusted archive copies.
+        try:
+            scoped = subprocess.check_output(
+                ["git", "show", base + ":" + base_path + "sdd-scope.json"], text=True)
+            manifest = json.loads(scoped)
+            allowed, scope_errors = validate_scope_values(manifest.get("allowed_paths"))
+            errors.extend(scope_errors)
+        except (OSError, subprocess.CalledProcessError, ValueError, TypeError) as exc:
+            allowed = []
+            errors.append("Cannot load approved scope from base: " + str(exc))
+    else:
+        for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
+            if not (folder / name).is_file():
+                errors.append("Missing " + base_path + name)
+        if not list((folder / "specs").glob("**/spec.md")):
+            errors.append("Missing delta spec.md")
+        allowed, scope_errors = scope_patterns(folder)
+        errors.extend(scope_errors)
     changed = set(files)
     own = {p for p in changed if p.startswith(base_path)}
     outside = changed - own
-    if phase != "lifecycle" and any(p.startswith("openspec/changes/") for p in outside):
+    if phase != "lifecycle" and any(
+        p.startswith("openspec/changes/") and not (
+            phase == "implementation" and archive_state == "prepared"
+            and p.startswith(ARCHIVE_ROOT))
+        for p in outside
+    ):
         errors.append("Cannot change unrelated OpenSpec work")
     if exists_in_base is None:
         def exists_in_base(path):
@@ -527,13 +551,26 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         for name in ("proposal.md", "design.md", "tasks.md", "sdd-scope.json"):
             if not exists_in_base(base_path + name):
                 errors.append("Approved " + name + " not present on main")
-        if any(p != base_path + "tasks.md" for p in own):
-            errors.append("Implementation cannot rewrite approved spec, design or scope")
+        if archive_state == "prepared":
+            errors.extend(validate_implementation_archive(
+                changed, change, root, base, archive_state, archive_evidence,
+                pr_number=pr_number, approval=approval))
+        else:
+            if any(p != base_path + "tasks.md" for p in own):
+                errors.append("Implementation cannot rewrite approved spec, design or scope")
+            errors.extend(validate_implementation_archive(
+                changed, change, root, base, archive_state, archive_evidence,
+                pr_number=pr_number, approval=approval))
         if not outside:
             errors.append("Implementation PR must contain non-spec changes")
+        archive_extras = set()
+        if archive_state == "prepared":
+            archive_extras = {p for p in outside if (
+                p.startswith(ARCHIVE_ROOT) or p.startswith("openspec/specs/")
+                or p == "docs/OPENSPEC_STATUS.md")}
         if any(not (p in allowed or any(
                 x.endswith("/**") and p.startswith(x[:-2]) for x in allowed))
-                for p in outside):
+                for p in outside - archive_extras):
             errors.append("Changed files outside approved sdd-scope.json")
         # This one owner-approved governance change may update protected agent
         # instructions, but only inside its own explicitly scoped implementation.
@@ -541,6 +578,7 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         special_agent_change = change in (
             "mandatory-multiagent-documentation-gate",
             "harden-contributor-pr-governance",
+            "archive-openspec-with-implementation",
         )
         # Only this explicitly owner-approved change may introduce the root
         # CODEOWNERS file; hidden .github policy files remain forbidden.
