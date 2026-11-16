@@ -14,6 +14,7 @@ function ns.InitPreferences()
     CraftAtlasDB.version = 1
     CraftAtlasDB.language = ns.NormalizeLanguage(CraftAtlasDB.language)
     CraftAtlasDB.minimapAngle = tonumber(CraftAtlasDB.minimapAngle) or 45
+    if type(CraftAtlasDB.craftTracking) ~= "table" then CraftAtlasDB.craftTracking = {} end
     ns.state.preferences = CraftAtlasDB
     return CraftAtlasDB
 end
@@ -51,4 +52,49 @@ end
 
 function ns.L(key)
     return ns.Text(key, ns.GetLanguage(), ns.GetClientLocale())
+end
+
+-- The account-wide SavedVariables file contains isolated character maps.
+-- Do not persist tracking until both identity components are resolved.
+local function characterKey()
+    if type(UnitName) ~= "function" or type(GetRealmName) ~= "function" then return nil end
+    local name, realm = UnitName("player"), GetRealmName()
+    if type(name) ~= "string" or name == "" or type(realm) ~= "string" or realm == "" then
+        return nil
+    end
+    return realm .. ":" .. name
+end
+
+function ns.IsCraftableTracked(recipeKey)
+    local id = characterKey()
+    local db = ns.state.preferences
+    return id ~= nil and type(recipeKey) == "string" and db
+        and type(db.craftTracking) == "table"
+        and type(db.craftTracking[id]) == "table"
+        and db.craftTracking[id][recipeKey] == true or false
+end
+
+function ns.SetCraftableTracked(recipeKey, enabled)
+    local id = characterKey()
+    if not id or type(recipeKey) ~= "string" or recipeKey == "" then return false end
+    local db = ns.state.preferences or ns.InitPreferences()
+    if type(db.craftTracking[id]) ~= "table" then db.craftTracking[id] = {} end
+    if enabled then db.craftTracking[id][recipeKey] = true
+    else db.craftTracking[id][recipeKey] = nil end
+    return true
+end
+
+function ns.GetCraftBankPreference()
+    local id, db = characterKey(), ns.state.preferences
+    return id ~= nil and db and type(db.craftBankIncluded) == "table"
+        and db.craftBankIncluded[id] == true or false
+end
+
+function ns.SetCraftBankPreference(included)
+    local id = characterKey()
+    if not id then return false end
+    local db = ns.state.preferences or ns.InitPreferences()
+    if type(db.craftBankIncluded) ~= "table" then db.craftBankIncluded = {} end
+    db.craftBankIncluded[id] = included == true or nil
+    return true
 end
