@@ -684,6 +684,39 @@ class TypedIdentityTests(unittest.TestCase):
             self.assertEqual(gate._typed_reserved_ids(
                 "main", api, "token", 50, "feat001-this-change"), [])
 
+    def test_typed_proposal_full_sdd_gate_requires_matching_head_and_unique_id(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            change = "feat001-improve-materials-menu"
+            prefix = "openspec/changes/" + change + "/"
+            folder = root / prefix
+            (folder / "specs" / "materials").mkdir(parents=True)
+            for name in ("proposal.md", "design.md", "tasks.md"):
+                (folder / name).write_text("# Approved proposal\n")
+            (folder / "sdd-scope.json").write_text(
+                json.dumps({"allowed_paths": ["addon/CraftAtlas/**"]}))
+            (folder / "specs/materials/spec.md").write_text(
+                "## ADDED Requirements\n### Requirement: Feature\n")
+            body = "OpenSpec-Change: " + change + "\nOpenSpec-Phase: proposal\n"
+            with patch.object(gate.subprocess, "check_output", return_value=""):
+                api = lambda path, token: []
+                file_set = {prefix + "proposal.md", prefix + "design.md",
+                            prefix + "tasks.md", prefix + "sdd-scope.json",
+                            prefix + "specs/materials/spec.md"}
+                validate = lambda head: gate.validate(
+                    file_set, body, 55, root=root, token="token", api=api,
+                    exists_in_base=lambda p: False, head_ref=head)
+                self.assertEqual(validate("SPEC/FEAT001-improve-materials-menu"), [])
+                self.assertTrue(validate("feat/001-improve-materials-menu"))
+
+    def test_grandfathered_proposal_does_not_allow_arbitrary_new_legacy(self):
+        self.assertEqual(gate.validate_pr_identity(
+            "add-addon-configuration", "proposal", 46,
+            "spec/add-addon-configuration", "main", "token", None, None), [])
+        self.assertTrue(gate.validate_pr_identity(
+            "add-addon-configuration", "proposal", 55,
+            "spec/add-addon-configuration", "main", "token", None, None))
+
     def test_required_check_missing_differs_from_actual_skipped(self):
         empty = gate.required_context_snapshot([])
         self.assertEqual(sorted(empty["missing"]), sorted(gate.REQUIRED_PR_CONTEXTS))
