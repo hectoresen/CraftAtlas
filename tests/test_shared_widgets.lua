@@ -38,4 +38,14 @@ end)
 assert(broom:find("Broom", 1, true), "native broom chosen if available")
 local safe = ns.GetExplorerClearIcon(function() return nil end)
 assert(safe:find("DispelMagic", 1, true), "safe native fallback for missing icon")
+local current, other = {query="peacebloom"}, {query="blue"}
+local search = {
+    GetText = function() return current.query end,
+    SetText = function(_, value) current.query=value end,
+    SetFocus = function(self) self.focused=true end,
+}
+assert(ns.ClearExplorerSearch(search) == true)
+assert(current.query == "" and other.query == "blue" and search.focused,
+    "broom must clear only active view and preserve inactive view state")
+assert(ns.ClearExplorerSearch(search) == false, "empty search is harmlessly inert")
 print("Shared native UI widget smoke tests PASS")
