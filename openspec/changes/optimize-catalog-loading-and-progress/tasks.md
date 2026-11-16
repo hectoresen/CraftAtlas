@@ -26,7 +26,7 @@
 - [x] E2 Add fake-timer/UI adapter tests for bounded batch work, refresh coalescing, late metadata, state preservation and repeated reopen.
 - [ ] E3 Run `bash scripts/validate_release_checks.sh`, `python3 scripts/build_materials.py --check`, Python/Lua suites and strict OpenSpec validation, recording actual PASS/FAIL/NOT RUN.
 - [ ] E4 Run real Forever first-use/reopen tests for both views at multiple UI scales/locales, record exact build, progress screenshots and performance deltas or mark NOT RUN.
-- [ ] E5 Explicitly execute `skills/documentation-sync/SKILL.md`; synchronize README, architecture, development, testing, roadmap, changelog and relevant tasks based only on implemented behavior.
+- [x] E5 Explicitly execute `skills/documentation-sync/SKILL.md`; synchronize README, architecture, development, testing, roadmap, changelog and relevant tasks based only on implemented behavior.
 - [ ] E6 Open one implementation PR referencing the owner-merged spec PR and exact OpenSpec metadata; correct CI/SDD failures in that PR; no direct main changes, merge or release.
 
 ## Evidence ledger (implementation branch)
@@ -34,3 +34,5 @@
 - Source baseline **inspection only**: 20 material IDs/0.1s and 25 recipe records/0.08s, each with a full redraw request in main. For 593/2,506 records the theoretical batch counts are 30/101. These are not FPS/time measurements; real-client baseline profiling **NOT RUN**.
 - Implemented in `Domain/CatalogProgress.lua`, `Infrastructure/ItemInfo.lua`, `Infrastructure/RecipeNameCache.lua`, `Settings.lua` and shared UI widgets: work-unit counters, bounded scheduling, immediate user actions, coalesced background rendering, source-backed data-generation cache invalidation, native header status and guarded spell-data event support. Opt-in `/craftatlas perf` reports local counts, no telemetry.
 - Added fake timer, no-timer, pure progress, header UI mock and source-level Python contract tests. These are created, but standalone `texlua` execution and in-game responsiveness checks remain **NOT RUN** until executed on an available checkout/Forever client. No FPS speedup claim.
+
+- Documentation-sync skill executed sequentially after code/test changes: feature reality checked against README, technical boundaries against ARCHITECTURE/DEVELOPMENT/INSTALLATION and DATA_MODEL (no catalog-data change), QA evidence against TESTING and automated source-contract fixtures, milestone status against CHANGELOG/ROADMAP and this checklist. All modified files confirmed inside the frozen approved manifest except permitted tasks.md. No generated Data/ or governance files modified.
