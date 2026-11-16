@@ -49,6 +49,12 @@ DISCOVER → EXPLORE (optional) → PROPOSE → OWNER_APPROVAL
 
 OpenSpec `/opsx:archive` is applied when the change is accepted and the canonical specs have been synchronized. Agents may prepare the archive on a PR branch; do not archive a rejected or unreviewed behavior change as though accepted.
 
+## PR readiness and contributor security
+
+A functional PR is **not ready for review** unless the agent has explicitly read and executed the complete `skills/documentation-sync/SKILL.md` *after* its final code/test revision and *before* requesting review. Use all four audits sequentially when subagents are unavailable. README owns shipped behavior, technical docs own architecture and provenance, TESTING owns observed versus NOT RUN evidence, CHANGELOG owns meaningful shipped source changes and OpenSpec tasks contain only supported completions. Include a precise `Documentation-Review` and `Documentation-Evidence` record in the PR body; an unexplained `not-applicable` is not compliance.
+
+On an owner-authored PR, GitHub cannot self-approve; use the configured **PR-only** owner/admin review bypass after every required technical check passes. On contributor-authored PRs, require a different authorized approver and resolved conversations. The separate CI ruleset has no bypass for either actor. Never edit or assert repo settings on the basis of Markdown alone: verify `docs/GITHUB_SETTINGS.md` against the live GitHub API.
+
 ## Agent context-loss / handover protocol
 
 Record the change ID, branch, approved scope, current tasks, modified files, decisions, tests with exact commands/results, game-client checks and blockers. A new agent must reconstruct state from Git and OpenSpec; never rely on chat memory alone. If active tasks and code disagree, report the discrepancy before modifying either.

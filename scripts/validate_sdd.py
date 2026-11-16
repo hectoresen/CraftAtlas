@@ -363,9 +363,16 @@ def validate(files, body, pr_number, root=Path("."), base="origin/main",
         # This one owner-approved governance change may update protected agent
         # instructions, but only inside its own explicitly scoped implementation.
         # Every other implementation continues to reject AGENTS.md unconditionally.
-        special_agent_change = change == "mandatory-multiagent-documentation-gate"
+        special_agent_change = change in (
+            "mandatory-multiagent-documentation-gate",
+            "harden-contributor-pr-governance",
+        )
+        # Only this explicitly owner-approved change may introduce the root
+        # CODEOWNERS file; hidden .github policy files remain forbidden.
+        special_codeowners_change = change == "harden-contributor-pr-governance"
         if any((p.startswith(".github/") and not (is_explicit_workflow_path(p) and p in allowed))
                or (p == "AGENTS.md" and not (special_agent_change and p in allowed))
+               or (p == "CODEOWNERS" and not (special_codeowners_change and p in allowed))
                for p in outside):
             errors.append("Governance changes require a separate spec proposal")
     return errors

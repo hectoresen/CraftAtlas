@@ -17,6 +17,23 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: git fetch origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
+      - name: Determine whether full OpenSpec CLI validation is needed
+        id: changed
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          validate=false
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              openspec/*|*.lua|*.py|*.sh|*.yml|*.yaml|CODEOWNERS|AGENTS.md|skills/*)
+                validate=true
+                break
+                ;;
+            esac
+          done < <(git diff --name-only -z "origin/$BASE_REF"...HEAD)
+          echo "validate=$validate" >> "$GITHUB_OUTPUT"
+          echo "Full OpenSpec CLI needed: $validate"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -28,9 +45,12 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: python3 scripts/validate_sdd.py --base "origin/$BASE_REF" --head HEAD --event "$GITHUB_EVENT_PATH"
       - uses: actions/setup-node@v4
+        if: steps.changed.outputs.validate == 'true'
         with:
           node-version: '22'
       - name: Install official OpenSpec CLI
+        if: steps.changed.outputs.validate == 'true'
         run: npm install -g @fission-ai/openspec@latest
       - name: Validate OpenSpec specifications
+        if: steps.changed.outputs.validate == 'true'
         run: openspec validate --all --strict --no-interactive

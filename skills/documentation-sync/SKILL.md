@@ -35,6 +35,12 @@ A coordinator owns the final diff and acceptance. Run these audits in parallel o
 5. **Checks:** Inspect references, paths, links, source license and generated files; confirm documentation uses real commands and includes what CI actually runs. Execute available `bash scripts/validate_release_checks.sh`, applicable Lua/Python tests, and documentation validation. Record results and `NOT RUN` for unavailable checks and Forever client.
 6. **Final gate:** Review `git diff origin/main...HEAD` / connector change summary, verify no unsupported current claims and no out-of-scope edits. Produce a concise handoff including docs reviewed/updated/unchanged+reason, code evidence, tests executed/not run and risks. **Only then** construct/open the PR.
 
+## Review-ready evidence contract for contributors
+
+Before authoring a PR body, explicitly verify and record: (1) which implementation paths changed and user-visible behavior, (2) README claims compared against code, (3) exact technical documentation and CHANGELOG reviewed or updated, (4) actual test commands/results and `NOT RUN` client coverage, (5) matching approved OpenSpec scope and unfinished tasks, and (6) no missing licenses/provenance for changed data. An `updated` declaration must correspond to changed documentation; a `not-applicable` declaration requires an explicit reason connected to source files and existing documentation. The structural CI checks these artifacts, **not** whether a private agent invoked a particular internal tool.
+
+The GitHub PR review and technical checks rulesets are independent. The owner may bypass only the review rule by submitting a PR; no owner or contributor should bypass required CI. Do not merge or enable auto-merge yourself.
+
 ## PR attestation (required for implementation)
 
 Include exact standalone PR-body lines:
@@ -56,3 +62,7 @@ Documentation-Evidence: <specific source-to-doc review, why no user-visible docu
 ## Blockers and hard limits
 
 If a functional change lacks an approved spec, scope, or adequate evidence, **stop before PR** and report what must be resolved. Never fabricate tests/game evidence, invent files or PR approvals, skip copyright attribution, grant approval to yourself, push to main, merge, publish releases, change protected settings, or use PR metadata to bypass SDD. Read the compatible provider's filesystem/connector APIs; this Markdown protocol does not require a proprietary multiagent runtime.
+
+## Action-cost awareness
+
+OpenSpec-only proposal PRs should not force unrelated Lua/client test execution. Documentation-only PRs should not require full catalog/Lua regressions. The workflow classifies actual changed paths and retains a minimal required-status job; any mixed source/technical change receives the full suite. **This optimization never waives the skill review**: spec-only and docs-only changes still require the appropriate documentation/scope audit and truthful test evidence. Do not falsely claim intentionally skipped checks were executed.

@@ -29,6 +29,12 @@ These requirements apply to all production Lua and relevant test/helper code. Fa
 - Prefer generated compact lookup tables to manually duplicating mappings in several modules.
 - Avoid changing accepted mapping semantics without an OpenSpec change and tests.
 
+## Pull request quality and documentation gate
+
+All committed addon Lua and Lua test files must parse under Lua 5.1, and every isolated `tests/test_*.lua` fixture must complete successfully; do not leave Markdown or other non-Lua content in a `.lua` file. Keep the Python release-readiness/data checks and strict SDD workflow green. Do not silently skip pre-existing failures; repair stale fixtures and preserve the originally accepted user-facing behavior.
+
+For functional PRs explicitly execute `skills/documentation-sync/SKILL.md` after implementing and testing; update README, technical docs, changelog, and OpenSpec evidence or record an exact code-grounded justification for unchanged documentation. `AGENTS.md` is a policy contract, never a second changelog. Follow `docs/DOCUMENTATION_PROTOCOL.md` for PR evidence. CI cannot substitute for real-client checks.
+
 ## Tests and reviews
 
 - Pure domain logic gets offline deterministic tests for normal, unknown, multi-profession and malformed-data paths.

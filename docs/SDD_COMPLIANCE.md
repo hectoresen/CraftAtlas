@@ -2,6 +2,12 @@
 
 The policy in scripts/validate_sdd.py is enforced by .github/workflows/spec-compliance.yml on every pull request. It is **not** an OpenSpec command: OpenSpec generates and validates the specifications; CraftAtlas CI enforces their PR-level provenance.
 
+## Governance changes and review protection (approved spec #41)
+
+The repository now uses independent `main` review and status-check rulesets; their actual configuration is recorded in `docs/GITHUB_SETTINGS.md`. Reviewer bypass for repository admins applies **for pull requests only**, never to status checks. The author cannot approve their own PR. SDD validates **scope and provenance**, not a GitHub human approval.
+
+The owner-approved `harden-contributor-pr-governance` change is a **narrow exception** to governance-file restrictions: its implementation may update `AGENTS.md` and root `CODEOWNERS` only when each path is explicitly listed in its approved `sdd-scope.json`. Unrelated OpenSpec changes remain prohibited from modifying AGENTS and hidden `.github/` governance paths. See regression fixtures in `tests/test_validate_sdd.py`.
+
 ## Two separate pull requests (default for functional work)
 
 **Phase A: specification.** Start with the official OpenSpec /opsx:propose command inside OpenCode (or the officially generated equivalent). After review, open a PR changing **only** a new openspec/changes/<id>/ directory. In the PR description, on separate lines:

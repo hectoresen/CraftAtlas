@@ -31,6 +31,12 @@ The spec PR includes an sdd-scope.json file listing explicitly allowed implement
 
 A tiny documentation-only or maintenance PR may use OpenSpec-Exemption: docs-only or OpenSpec-Exemption: maintenance only when eligible, subject to CI and maintainer review. All changes still use a PR. Follow Conventional Commits.
 
+## Review and merge requirements
+
+The default branch is covered by independent GitHub rulesets: contributors need one independent approving review, stale approvals are dismissed after new commits, conversations must be resolved, and every PR must pass mandatory CI/SDD checks. The repository owner may use the **PR-only admin bypass for review**, not for technical validation. No contributor may approve their own PR. A GitHub auto-merge toggle, if enabled, does not waive review/check rules or give contributors merge rights. See `docs/GITHUB_SETTINGS.md`.
+
+Every code PR must pass Lua 5.1 syntax and isolated Lua regression jobs as well as Python/documentation, OpenSpec/SDD and release-readiness validation. Existing test failures are blocking work, never an excuse to remove tests. Run the canonical documentation-sync skill again after review revisions and state exactly what was tested; real WoW Forever tests remain distinct from CI.
+
 ## Data licensing
 
 Do not copy databases from third-party addons or sites without permission to redistribute. Include source, license, retrieval date, client version and verification technique for imported data. Unknown mappings remain unknown.

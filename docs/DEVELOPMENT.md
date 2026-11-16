@@ -43,3 +43,11 @@ Use `scripts/build_materials.py` to regenerate source-backed data; never edit `M
 For behavior or source changes, propose an OpenSpec change, obtain its **owner-merged specification PR**, then implement in a separate PR within the approved `sdd-scope.json`. An implementation PR may update the change's `tasks.md`, but not silently change its approved spec/design/scope. The single PR #14 combined exception is historical and nonreusable. Only @hectoresen may decide merges, release publication, repository permissions or protected settings.
 
 Before opening any PR, compare new behavior with README, architecture, data model, installation, testing, roadmap, changelog and relevant specs. Reconcile only factual updates; do not call unrun tests passed. Each PR must declare exact test commands/results, unrun Forever checks, relevant source rights, rollback and a clear review request. More precise rules live in [AGENTS.md](../AGENTS.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) and [SDD compliance](SDD_COMPLIANCE.md).
+
+## Contributor CI and review workflow
+
+Code PRs run read-only Python/release readiness and SDD/OpenSpec validation plus `lua-compatibility` (Lua 5.1 parsing) and `lua-regressions` (each isolated Lua fixture). The latter job names are not required in GitHub rulesets until the implementation is merged and observed successful; see `docs/GITHUB_SETTINGS.md`. All agents must explicitly run `skills/documentation-sync/SKILL.md` after changes and before functional PR review, including a substantive no-change rationale when applicable.
+
+### Cost-aware pull request validation
+
+GitHub Actions distinguishes **OpenSpec-only**, **Markdown/text-only** and **code/mixed** changes using the actual base/head diff. Specs only: strict OpenSpec/SDD, with no Lua or release readiness. Docs only: lightweight Markdown and SDD policy checks without costly Lua/Python/catalog/npm setup. Code or workflow changes: all checks, including Lua 5.1 syntax and regressions, Python/catalog/package/documentation source evidence, and strict OpenSpec. A stable `repository-validation` required status always reports, including for spec-only PRs, and fails closed if classification fails. No required status is omitted solely to save cost. See `docs/TESTING.md` and `docs/GITHUB_SETTINGS.md`.

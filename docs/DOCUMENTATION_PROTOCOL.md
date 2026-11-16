@@ -2,6 +2,12 @@
 
 The canonical, model-independent skill is **[documentation-sync](../skills/documentation-sync/SKILL.md)**. Every agent (Codex, Claude Code, Copilot, OpenCode, or a generic coding assistant) must **explicitly read and execute that file after implementation/testing and before opening a functional PR**, regardless of automatic skill discovery. It supports optional parallel subagents, but serial execution is fully supported.
 
+## Executable acceptance for agents
+
+Every agent must explicitly open the exact `skills/documentation-sync/SKILL.md` file, perform its feature, technical, QA and milestone audits after implementing tests, and reconcile those findings before opening **or updating** a functional PR. Automatic skill discovery is optional; executing the review is not. A standalone statement saying "skill completed" without concrete file/behavior evidence is insufficient. Source changes must be reflected in README and relevant technical docs, or include a precise README no-change rationale tied to the changed code paths and reviewed document names.
+
+`Documentation-Evidence` is **evidence**, not a claim that CI can observe private agent execution. Record source paths, which docs were modified or inspected, relevant test names/results and real-client evidence or NOT RUN. The validator rejects empty/general boilerplate and requires meaningful source-to-doc explanations. After revisions change behavior or tests, rerun the skill and update the PR body. Maintain the accepted OpenSpec scope; do not rewrite proposal/design/scope in implementation PRs.
+
 ## Documents and ownership
 
 - `README.md` owns the **current functional reality**: user features, limitations, commands, screenshots/examples and source/data scope.

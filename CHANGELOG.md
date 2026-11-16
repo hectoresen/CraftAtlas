@@ -4,6 +4,14 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased] — `0.2.0-dev`
 
+
+### Contributor governance and validation (pending implementation merge)
+- Added separate Lua 5.1 parsing and isolated Lua regression jobs to pull-request CI, with hard failures instead of silent gaps.
+- Added CODEOWNERS review requests and updated agent/contributor documentation to require verifiable documentation-sync evidence before functional PRs.
+- Hardened OpenSpec governance exceptions for the owner-approved CI/security change and documented the active independent review and CI branch rulesets.
+- Replaced a previously malformed Markdown-as-Lua test fixture with a deterministic Lua 5.1 foundation smoke test; no addon gameplay behavior changes.
+
+
 ### First-use catalog preparation (implementation PR, not released)
 - Added independent, native-header percent indicators for bounded local Materiales/Fabricables metadata preparation. Percent measures attempted work, not completed client name resolution or remote synchronization. Existing unresolved-name warnings remain.
 - Coalesced background name-cache redraw requests and cached filtered searches with query, profession, effective-locale and data-generation invalidation, preserving immediate user searches and navigation.

@@ -1,0 +1,4 @@
+# Review requests; enforcement comes from the branch rulesets, not this file.
+# For owner-authored PRs GitHub cannot record a self-approval. The owner
+# uses the PR-only administrator bypass on the review ruleset, never on CI.
+* @hectoresen
