@@ -2,6 +2,17 @@ local _, ns = ...
 
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
+function ns.GetExplorerClearIcon(fileLookup)
+    local broom = "Interface\\Icons\\INV_Misc_Broom_01"
+    local probe = fileLookup or GetFileIDFromPath
+    if type(probe) == "function" then
+        local ok, fileID = pcall(probe, broom)
+        if ok and type(fileID) == "number" and fileID > 0 then return broom end
+    end
+    -- Known Classic asset; a missing optional broom path must never show as a green square.
+    return "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
 -- The shell reserves 137 px above the list, 30 px below it, 76 px
 -- for the filter and heading, and 16 px for the bottom status.
 function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
