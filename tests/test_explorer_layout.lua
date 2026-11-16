@@ -9,12 +9,12 @@ assert(ns.ExplorerVisibleRowCount(430, 34) == 5)
 assert(ns.ExplorerVisibleRowCount(340, 34) == 2)
 assert(ns.ExplorerVisibleRowCount(800, 34) == 9)
 
--- Material profession text begins at -115 and occupies 18px.
--- Both normal and compact section headings must start below it.
+-- Profession section starts at -92, its icon row ends at -153.
+-- The recipe section must begin below it and its rows below the gold divider.
 for _, paneHeight in ipairs({343, 300, 260}) do
     local headingY, gridY = ns.MaterialDetailSectionOffsets(paneHeight)
-    assert(headingY <= -133, "section header overlaps profession text")
-    assert(gridY < headingY - 17, "cards overlap fabrication heading")
+    assert(headingY <= -160, "recipe heading overlaps profession icon row")
+    assert(gridY <= headingY - 27, "recipe rows overlap 27px section bar")
 end
 for _, size in ipairs({{800,600}, {430,340}, {1024,768}, {600,500}}) do
     local viewportWidth, viewportHeight = size[1], size[2]
