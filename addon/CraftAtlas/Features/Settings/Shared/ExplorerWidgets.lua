@@ -10,7 +10,7 @@ function ns.GetExplorerClearIcon(fileLookup)
         if ok and type(fileID) == "number" and fileID > 0 then return broom end
     end
     -- Known Classic asset; a missing optional broom path must never show as a green square.
-    return "Interface\\Icons\\INV_Misc_QuestionMark"
+    return "Interface\\Icons\\Spell_Holy_DispelMagic"
 end
 
 -- The shell reserves 137 px above the list, 30 px below it, 76 px
