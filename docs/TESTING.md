@@ -51,6 +51,10 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 - Test separate tooltip origins (bags, bank, guild bank, chat, auction, vendor, mail, quest rewards and crafting); record each as PASS/FAIL/NOT RUN.
 - Check source licenses/provenance, current-server recipe mapping and any known gaps before claiming live completeness.
 
+## Final profession density / title / release preparation
+
+The owner requested four visible consuming professions without pager for three or four matches. The implementation uses a width-aware, bounded profession row (four on normal panes, two on compact panes), hides horizontal pager controls unless there are more entries, and centers the CraftAtlas title vertically and horizontally. The tiny bottom-right footer reads only the **official packaged version**. The tracked development manifest is `0.2.0-dev`, not an official v0.2.0 release. When merged, the owner must run the release workflow with **minor** increment against the existing v0.1.0 tag; the workflow derives v0.2.0 and rewrites ZIP metadata. The source checkout must not claim to be a published release. Added Lua tests for page thresholds and official versus development version. Latest in-client verification: **NOT RUN**.
+
 ## Fabricables detail and inline-clear refinement
 
 Added `tests/test_fabricables_detail.lua` for the native ingredient-section title/collapse and changes to `tests/test_shared_widgets.lua` for the embedded search X, input focus and empty/nonempty visibility. Existing pagination, item tooltip and navigation semantics remain required. **New in-game detail and inline-clear visual acceptance: NOT RUN**, awaiting owner retest.
