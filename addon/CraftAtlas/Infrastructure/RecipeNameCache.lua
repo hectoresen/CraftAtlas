@@ -44,6 +44,14 @@ function ns.GetRecipeSpellPresentation(spellID)
     return spellNames[spellID], spellIcons[spellID]
 end
 
+-- Optional native event path for late spell metadata; no polling or retries.
+function ns.UpdateRecipeName(spellID)
+    if type(spellID) ~= "number" then return false end
+    local changed = readSpell(spellID)
+    if changed and ns.OnCatalogDataChanged then ns.OnCatalogDataChanged("recipes") end
+    return changed
+end
+
 function ns.GetRecipePreparation()
     return preparation
 end
