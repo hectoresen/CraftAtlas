@@ -3,7 +3,7 @@ local created = {}
 local function ui()
     local o = {}
     for _, method in ipairs({"SetPoint","SetSize","SetHeight","SetWidth","SetText",
-        "SetColorTexture","SetAllPoints","SetTexture","SetHighlightTexture",
+        "SetColorTexture","SetAllPoints","ClearAllPoints","SetTexture","SetHighlightTexture",
         "SetJustifyH","SetWordWrap","SetEnabled","SetFrameLevel","SetTextColor","Show","Hide"}) do
         o[method]=function(self,...) self[method.."Called"]=true end
     end
@@ -29,7 +29,8 @@ ns.StyleExplorerGroupRow(row, "Alchemy", 93, true)
 assert(row.groupBackground and row.groupArrow and row.groupName and row.groupState)
 assert(row.groupBackground.ShowCalled and row.itemBackground.HideCalled)
 assert(row.name.HideCalled and row.icon.HideCalled)
-ns.StyleExplorerItemRow(row)
+ns.StyleExplorerItemRow(row, true)
+assert(row.professions.HideCalled and row.name.ShowCalled)
 assert(row.groupBackground.HideCalled and row.itemBackground.ShowCalled)
 assert(row.name.ShowCalled and row.groupName.HideCalled)
 assert(ns.GetExplorerProfessionIcon("ALCHEMY"):find("Trade_Alchemy", 1, true))
