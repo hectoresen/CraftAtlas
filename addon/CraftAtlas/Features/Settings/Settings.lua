@@ -449,7 +449,7 @@ local function createRows(left)
     ui.rows = {}
     for index = 1, VISIBLE_ROWS do
         local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self, button)
-            if ns.IsEntityChatLinkClick(button) and self.itemID then
+            if ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) and self.itemID then
                 if currentView == "recipes" then
                     ns.InsertRecipeChatLink(ns.GetCatalogRecipe(self.itemID))
                 else
@@ -657,7 +657,7 @@ local function createPanel()
     materialLink:SetPoint("TOPLEFT", right, "TOPLEFT", 13, -13)
     materialLink:SetSize(59, 58)
     materialLink:SetScript("OnClick", function(_, button)
-        if selectedID and ns.IsEntityChatLinkClick(button) then
+        if selectedID and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
             ns.InsertEntityChatLink("item", selectedID)
         end
     end)
@@ -672,7 +672,7 @@ local function createPanel()
     materialTitleLink:SetPoint("TOPRIGHT", right, "TOPRIGHT", -11, -16)
     materialTitleLink:SetHeight(27)
     materialTitleLink:SetScript("OnClick", function(_, button)
-        if selectedID and ns.IsEntityChatLinkClick(button) then
+        if selectedID and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
             ns.InsertEntityChatLink("item", selectedID)
         end
     end)
