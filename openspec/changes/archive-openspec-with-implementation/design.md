@@ -10,7 +10,7 @@
 
 ## Proposed normal implementation contract
 
-Keep `OpenSpec-Phase: implementation` and `OpenSpec-Approval-PR: <merged proposal PR>` unchanged. Only the **corresponding approved change ID** may be closed as part of this implementation PR. No third `lifecycle` PR for an otherwise fully accepted new change.
+Keep `openspec/README.md` unchanged: the current SDD scope validator deliberately forbids adding paths under `openspec/` to the implementation allowlist. Put the new workflow instructions in `docs/SDD_COMPLIANCE.md`, `docs/AGENT_WORKFLOW.md` and the mandatory skill; updating the OpenSpec root README would need separately approved security policy.\n\nKeep `OpenSpec-Phase: implementation` and `OpenSpec-Approval-PR: <merged proposal PR>` unchanged. Only the **corresponding approved change ID** may be closed as part of this implementation PR. No third `lifecycle` PR for an otherwise fully accepted new change.
 
 Within the implementation PR:
 1. Implement and verify the accepted source behaviors and per-scenario mandatory tests.
