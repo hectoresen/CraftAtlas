@@ -13,6 +13,9 @@ The owner must open `Settings → Rules → Rulesets` and explicitly target `ref
 
 No action in this project can silently modify GitHub Settings through the current connector. User must act in the Settings UI.
 
+**SDD validator constraint (confirmed in main):** `scripts/validate_sdd.py` currently accepts modification of `AGENTS.md` only for the historical change ID `mandatory-multiagent-documentation-gate`, and permits only explicitly scoped `.github/workflows/*.yml` files under `.github/`. The approved implementation MUST extend this validator with a **narrow, exact change-ID and path allowlist** for `harden-contributor-pr-governance`, covering `AGENTS.md` and `.github/CODEOWNERS`, without weakening the existing safeguards. Add negative tests proving unrelated PRs remain rejected. The owner must review this exception as part of this specification and the subsequent implementation PR.
+
+
 ## CI layout and fail-closed validation
 
 Existing `.github/workflows/ci.yml` runs `repository-validation`: shared release-readiness script and the PR documentation validator. `.github/workflows/spec-compliance.yml` runs `traceability`, including Python validator tests, approved-spec PR provenance and OpenSpec CLI strict validation.
