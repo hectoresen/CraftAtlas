@@ -23,3 +23,9 @@
 - API behavior on the **actual** Forever build is NOT RUN; task 1.1 remains open. The bank checkbox is disabled where the count API is not exposed, and a closed or inconsistent bank returns unknown instead of cached stock.
 - Offline Lua test commands, full shared release checks, strict OpenSpec validation and current GitHub CI evidence are not claimed until they are executed. Tasks 3.1 and 3.2 remain unchecked.
 - Since complete manual client acceptance is missing, this change is **OpenSpec-Archive: blocked**; do not sync canonical specs or archive this or any unrelated change.
+
+## Owner validation checkpoint — 2026-11-16
+
+- **PASS, owner-reported in Forever:** after the bank-slot scan fix, the previously failing open-bank Hojaplata/Silverleaf ingredient count now works, as confirmed in conversation. This is a targeted observation; no exact post-fix stock count or client build was supplied.
+- **Previously observed:** bag count and weighted 33% progress for one material, and final compact tracker layout without overlapping lines in owner screenshots.
+- **Still NOT RUN / not evidenced:** full task 1.1 version-specific bank-open/closed semantics, reload and cross-character isolation, empty/full bag cases, locale and scale matrix, all event refresh variants and full task 3.2 acceptance. Preserve those unchecked tasks and **OpenSpec-Archive: blocked** until supported.
