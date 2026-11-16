@@ -46,20 +46,13 @@ pager.next.OnClick()
 assert(n==4)
 ns.UpdateExplorerPager(pager,1,3)
 assert(pager.previous.SetEnabledCalled and pager.next.SetEnabledCalled)
-local broom = ns.GetExplorerClearIcon(function(path)
-    assert(path:find("Witch", 1, true), "first probe uses established historical broom art")
-    return 12345
-end)
-assert(broom:find("Witch", 1, true), "native broom chosen if available")
-GetItemIcon = function(itemID)
-    assert(itemID == 37011)
-    return 98765
-end
-assert(ns.GetExplorerClearIcon() == 98765,
-    "client-resolved broom texture should beat unavailable optional path probes")
-GetItemIcon = nil
+local broom = ns.GetExplorerClearIcon()
+assert(broom:find("Achievement_Halloween_Witch_01", 1, true),
+    "broom texture must not depend on seasonal item metadata cache")
 local safe = ns.GetExplorerClearIcon(function() return nil end)
-assert(safe:find("DispelMagic", 1, true), "safe native fallback for missing icon")
+assert(safe:find("DispelMagic", 1, true),
+    "unknown client support uses safe native action fallback")
+assert(ns.GetExplorerClearIcon(function() return 1 end) == broom)
 local current, other = {query="peacebloom"}, {query="blue"}
 local search = {
     GetText = function() return current.query end,
