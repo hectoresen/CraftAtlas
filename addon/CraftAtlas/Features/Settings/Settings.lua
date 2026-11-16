@@ -180,7 +180,7 @@ local function updateRows()
             ns.StyleExplorerGroupRow(row, labelProfession(entry.group), entry.count, not collapsed)
             row:Show()
         elseif itemID then
-            ns.StyleExplorerItemRow(row)
+            ns.StyleExplorerItemRow(row, currentView == "materials")
             row.groupKey = nil
             local name, icon, subtitle
             if currentView == "recipes" then
