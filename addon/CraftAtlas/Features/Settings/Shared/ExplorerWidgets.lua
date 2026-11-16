@@ -173,9 +173,13 @@ function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
     section.arrow:SetSize(17, 17)
     section.expanded = true
     function section:Refresh()
-        self.label:SetText(ns.L(titleKey))
+        self.label:SetText(self.titleText or ns.L(titleKey))
         self.arrow:SetTexture(self.expanded and "Interface\\Buttons\\UI-MinusButton-Up"
             or "Interface\\Buttons\\UI-PlusButton-Up")
+    end
+    function section:SetTitle(text)
+        self.titleText = text
+        self:Refresh()
     end
     section:SetScript("OnClick", function(self)
         self.expanded = not self.expanded
