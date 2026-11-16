@@ -75,6 +75,17 @@ eq(silverleaf.bags,0,"silverleaf missing from bags")
 eq(silverleaf.bank,35,"main-bank and bank-bag stacks must be scanned")
 eq(silverleaf.available,35,"fresh scan overrides broken includeBank count")
 eq(silverleaf.bankStatus,"confirmed","bank scan is current")
+-- The slot API exists but fails: never silently accept the aggregate zero.
+local originalSlotCount = C_Container.GetContainerNumSlots
+C_Container.GetContainerNumSlots = function(container)
+    if container == -1 then return nil end
+    return originalSlotCount(container)
+end
+local incomplete = ns.ReadCraftInventoryCount(765,true)
+eq(incomplete.bankStatus,"unknown","unreadable bank cannot be confirmed empty")
+eq(incomplete.bank,nil,"unreadable bank is not a confirmed zero")
+eq(incomplete.available,0,"only current bags survive incomplete scan")
+C_Container.GetContainerNumSlots = originalSlotCount
 local earthroot = ns.ReadCraftInventoryCount(2449,true)
 eq(earthroot.available,7,"bag and bank combined without double counting")
 local absent = ns.ReadCraftInventoryCount(3371,true)
