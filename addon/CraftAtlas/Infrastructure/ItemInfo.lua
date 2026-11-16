@@ -94,26 +94,69 @@ function ns.UpdateMaterialInfo(itemID, success)
     return names[itemID] ~= oldName or icons[itemID] ~= oldIcon
 end
 
+local preparation
+local materialStats = {units = 0, batches = 0, attempts = 0, maxBatchMs = 0}
+
+local function profileNow()
+    if type(debugprofilestop) == "function" then
+        local ok, value = pcall(debugprofilestop)
+        if ok and type(value) == "number" then return value, 1 end
+    end
+    if type(GetTime) == "function" then
+        local ok, value = pcall(GetTime)
+        if ok and type(value) == "number" then return value, 1000 end
+    end
+end
+
+function ns.GetMaterialPreparation()
+    return preparation
+end
+
+function ns.GetMaterialPreparationMetrics()
+    return materialStats
+end
+
 function ns.PreloadMaterialInfo()
     if started then return end
     started = true
     local ids = {}
-    for itemID in pairs(ns.materials or {}) do ids[#ids + 1] = itemID end
+    for itemID in pairs(ns.materials or {}) do
+        ids[#ids + 1] = itemID
+    end
     table.sort(ids)
+    preparation = ns.NewCatalogProgress(#ids)
+    materialStats.units = #ids
+    if ns.OnCatalogProgressChanged then ns.OnCatalogProgressChanged("materials") end
     local position = 1
     local function batch()
+        local began, units = profileNow()
         local last = math.min(position + 19, #ids)
-        for i = position, last do ns.GetMaterialDisplay(ids[i]) end
+        local changed = false
+        for i = position, last do
+            local id = ids[i]
+            local oldName, oldIcon = names[id], icons[id]
+            ns.GetMaterialDisplay(id)
+            if oldName ~= names[id] or oldIcon ~= icons[id] then changed = true end
+        end
+        local finished = began and profileNow() or nil
+        local elapsed = began and finished and (finished - began) or nil
+        ns.AdvanceCatalogProgress(preparation, math.max(0, last - position + 1), elapsed)
+        materialStats.batches = preparation.batches
+        materialStats.attempts = preparation.completed
+        materialStats.maxBatchMs = preparation.maxBatchMs
         position = last + 1
-        if ns.RefreshMaterialResults then ns.RefreshMaterialResults() end
-        if position <= #ids then
-            if C_Timer and type(C_Timer.After) == "function" then
-                C_Timer.After(0.1, batch)
-            else
-                -- Finish the initial batch only; avoid freezing the client.
-                started = false
-            end
+        if ns.OnCatalogProgressChanged then ns.OnCatalogProgressChanged("materials") end
+        if changed and ns.OnCatalogDataChanged then ns.OnCatalogDataChanged("materials") end
+        if preparation.status == "complete" then
+            if ns.OnCatalogDataChanged then ns.OnCatalogDataChanged("materials") end
+            return
+        end
+        local timer = C_Timer and C_Timer.After
+        if type(timer) ~= "function" or not pcall(timer, 0.1, batch) then
+            ns.StopCatalogProgress(preparation)
+            if ns.OnCatalogProgressChanged then ns.OnCatalogProgressChanged("materials") end
+            if ns.OnCatalogDataChanged then ns.OnCatalogDataChanged("materials") end
         end
     end
-    batch()
+    if preparation.status == "active" then batch() end
 end
