@@ -2,16 +2,16 @@
 
 **CraftAtlas** is an offline, MIT-licensed addon for **World of Warcraft: Forever**. It shows which professions consume an item's materials and lets players explore materials and craftable results without requiring the character to know a profession.
 
-**Source version:** `0.1.0-dev` (see `addon/CraftAtlas/CraftAtlas.toc`). The maintainer has tested and accepted the in-game UI through merged PR #25. This is not a claim that every imported recipe is available on the current live realm or that every client/tooltip origin has been individually tested.
+**Source version:** `0.2.0-dev` (see `addon/CraftAtlas/CraftAtlas.toc`); the explorer hides the version for development or unknown builds and displays only the installed release manifest version for official packages. The maintainer has tested and accepted the in-game UI through merged PR #25. This is not a claim that every imported recipe is available on the current live realm or that every client/tooltip origin has been individually tested.
 
 ## Current features
 
 - **Material tooltips:** add localized, source-backed consuming professions to supported item tooltips. Multiple profession relationships are supported; unknown items are not annotated.
-- **Materiales / Materials:** searchable material catalog by client-resolved item name or itemID, filter by consuming profession, and a selectable detail showing profession uses.
-- **Se utiliza para fabricar / Used to craft:** six clickable result cards per page (normally 3 × 2). Each shows the crafted result's native icon/name when available, the consuming profession and the quantity required from the selected material. Navigate between pages, hover for game-native tooltips, or click to open the corresponding craftable detail.
-- **Fabricables / Craftables:** a separate view for source-backed craftable results and non-item profession actions. Search by known recipe name, crafted output name, profession name or spellID; filter by profession. Open a detail to inspect the output and **all known ingredient itemIDs and quantities**.
+- **Materiales / Materials:** searchable catalog grouped into collapsible consuming-profession sections with accurate matching per-group counts (and a deduplicated global total), per-view search/filter and persistent expansion choices. Profession groups have dedicated gold dividers and disclosure controls; each indented compact material row shows an icon and item name, without redundant profession subtitles. Items used by multiple professions appear in each relevant group but retain one itemID/detail.
+- **Se utiliza para fabricar / Used to craft:** bounded vertical clickable recipe rows with exact material quantities, profession, client-provided output/spell icon/name, native hover and pagination into Fabricables. The material detail groups its source-backed consuming professions into a collapsible, icon-labeled section showing up to four professions on normal panes (two on compact panes, paging only beyond capacity), alongside a separate collapsible crafting-use section that reclaims room when the profession section is closed. Optional type/item level appears only when supplied by the client.
+- **Fabricables / Craftables:** a separate view for source-backed craftable results and non-item profession actions. Search by known recipe name, crafted output name, profession name or spellID; filter by profession. Open a detail with a native-framed output icon and a collapsible **Materiales necesarios** section showing the source-backed ingredient count, **all known ingredient itemIDs and quantities**, and clickable ingredient navigation.
 - **Cross-navigation:** open a craftable result from Materiales, open one of its ingredients in Materiales, and use **Volver / Back** to return. Each view retains its own search/filter and browsing state.
-- **Shared native UI:** both views reuse the same window, search control, profession filter, recyclable result rows and pager. A normal 510 px window displays up to seven result rows; the X closes the window. The minimap button opens the same explorer and can be repositioned.
+- **Shared native UI:** both views reuse a cohesive dark WoW window, classic red WoW-native tabs and Blizzard dropdown selectors for language and profession when supported, with classic red-button fallbacks, search, recyclable rows and pager. A native close X embedded inside the search input appears only when text is entered, clears the active query and hides again when empty, separate from the top-right X that closes the window. The native shell centers the CraftAtlas title in the header and shows the installed official version unobtrusively in its bottom-right footer; it uses an emphasized CraftAtlas header and scales for compact viewports; the minimap button opens the explorer and can be repositioned.
 - **Localization:** enUS and esES with automatic client-language selection or saved manual preference.
 
 Names, icons, rarity and stats come from native WoW APIs; CraftAtlas does not invent missing item data. Client-cache misses may leave search results incomplete, and non-item recipes are distinguished from crafted items. It does **not** track learned recipes, inventory quantities or crafting eligibility, automate crafting, query auction data, sync over a network or build full dependency graphs.
@@ -43,7 +43,7 @@ Do not install GitHub's autogenerated **Source code** ZIP as though it were the 
 addon/CraftAtlas/
   Core/             Initialization and lifecycle
   Data/             Compiled materials, recipe uses and unique recipe index
-  Domain/           Pure searches, lookups, pagination and catalog logic
+  Domain/           Pure searches, profession grouping/state, lookups and pagination
   Infrastructure/   Client API, tooltip, cache, minimap and preferences
   Features/         Native Materiales/Fabricables views and tooltip display
     Settings/Shared/ Reusable search, profession, row and pager widgets

@@ -48,6 +48,21 @@ function ns.GetItemDisplay(itemID)
     return names[itemID], icons[itemID]
 end
 
+-- Optional, client-derived metadata only; absent fields remain absent.
+function ns.GetItemMetadata(itemID)
+    if type(itemID) ~= "number" or itemID < 1 then return nil end
+    local api = itemAPI()
+    local getter = api and api.GetItemInfo or GetItemInfo
+    if type(getter) ~= "function" then return nil end
+    local ok, _, _, quality, level, _, itemType = pcall(getter, itemID)
+    if not ok then return nil end
+    local metadata = {}
+    if type(level) == "number" and level > 0 then metadata.level = level end
+    if type(quality) == "number" then metadata.quality = quality end
+    if type(itemType) == "string" and itemType ~= "" then metadata.itemType = itemType end
+    return next(metadata) and metadata or nil
+end
+
 function ns.GetMaterialDisplay(itemID)
     if not (ns.IsVerifiedReagent and ns.IsVerifiedReagent(itemID)) then return nil, nil end
     return ns.GetItemDisplay(itemID)

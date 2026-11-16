@@ -1,6 +1,6 @@
 # Developer setup and repository conventions
 
-CraftAtlas is a **Lua World of Warcraft: Forever addon**, source version `0.1.0-dev`. Source code, PRs, agent instructions and engineering documentation use English; user-facing strings support enUS/esES. The maintainer has accepted the Materiales/Fabricables UI in-game, but dataset completeness, every tooltip origin and exact game-build compatibility remain separate QA tasks.
+CraftAtlas is a **Lua World of Warcraft: Forever addon**, source version `0.2.0-dev`. Source code, PRs, agent instructions and engineering documentation use English; user-facing strings support enUS/esES. The maintainer has reviewed and approved the overall Materiales/Fabricables UI in-game, but dataset completeness, every tooltip origin and exact game-build compatibility remain separate QA tasks.
 
 ## Local environment
 
@@ -15,6 +15,9 @@ python3 scripts/coverage_report.py
 texlua tests/test_addon.lua
 texlua tests/test_recipe_catalog.lua
 texlua tests/test_explorer_layout.lua
+texlua tests/test_profession_tree.lua
+texlua tests/test_release_version.lua
+texlua tests/test_recipe_cards.lua
 ```
 
 The shared shell script runs the same **Python release-readiness tests** required by both PR CI and manual release; individual Lua tests and actual game-client smoke tests must be executed and reported separately. For the full matrix see [testing](TESTING.md).
@@ -23,10 +26,10 @@ The shared shell script runs the same **Python release-readiness tests** require
 
 - `Core/`: initialization, wiring and lifecycle.
 - `Data/`: pinned source/license evidence and deterministic generated runtime indices.
-- `Domain/`: pure material lookup, filtering and recipe identity/ingredient logic, no WoW globals.
+- `Domain/`: pure material lookup, filtering, profession grouping/expansion and recipe identity/ingredient logic, no WoW globals.
 - `Infrastructure/`: guarded client APIs, asynchronous names/icons/tooltips, minimap and preferences.
 - `Features/`: native Materiales and Fabricables UI and tooltip annotation.
-- `Features/Settings/Shared/ExplorerWidgets.lua`: reusable native search, filter, rows, pager and layout; avoid duplicating a separate explorer implementation.
+- `Features/Settings/Shared/ExplorerWidgets.lua`: reusable native search, inline clear X, profession layout, filter, virtualized rows, pager and layout; avoid duplicating a separate explorer implementation.
 - `Localization/`: enUS/esES client-facing text and fallbacks.
 
 Use `scripts/build_materials.py` to regenerate source-backed data; never edit `Materials.lua`, `RecipeUses.lua` or `Recipes.lua` by hand. Recipe identity is profession+spellID, not output itemID. Never infer recipe availability/quality or learned-status from the imported dataset.

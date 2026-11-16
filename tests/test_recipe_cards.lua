@@ -8,6 +8,7 @@ local function widget(kind, parent)
     function self:SetHeight(h) self.height=h end
     function self:GetWidth() return self.width end
     function self:GetHeight() return self.height end
+    function self:GetParent() return self.parent end
     function self:SetPoint() end
     function self:ClearAllPoints() end
     function self:CreateTexture() return widget("texture",self) end
@@ -18,6 +19,7 @@ local function widget(kind, parent)
     function self:SetJustifyH() end
     function self:SetWordWrap() end
     function self:SetText(text) self.text=text end
+    function self:SetTextColor() end
     function self:SetEnabled(enabled) self.enabled=enabled end
     function self:SetScript(name,fn) self[name]=fn end
     function self:Show() self.shown=true end
@@ -55,31 +57,46 @@ assert(loadfile("addon/CraftAtlas/Domain/RecipeUsage.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/RecipePanel.lua"))("CraftAtlas",ns)
 ns.InitRecipePanel(widget("Frame"),378)
-assert(#buttons==8,"must allocate six cards and two navigation controls")
+assert(#buttons==8,"one collapsible section, five recyclable rows and two pager controls")
+local section=buttons[1]
+local rows={buttons[2],buttons[3],buttons[4],buttons[5],buttons[6]}
 local previous,nextButton=buttons[7],buttons[8]
 ns.RefreshRecipePanel(159)
-for i=1,6 do 
-    assert(buttons[i].shown,"first page six visible")
-    assert(buttons[i].icon.texture==1100+i,"one output icon per card")
+section.OnClick(section)
+assert(not rows[1].parent.shown, "collapsing use section hides the row container")
+section.OnClick(section)
+assert(rows[1].parent.shown, "expanding use section restores the row container")
+for i=1,4 do
+    assert(rows[i].shown,"first page shows bounded vertical rows")
+    assert(rows[i].icon.texture==1100+i,"one output icon per row")
 end
+assert(not rows[5].shown,"overflow row must remain hidden")
 assert(previous.enabled==false and nextButton.enabled==true)
-buttons[1].OnEnter(buttons[1])
+rows[1].OnEnter(rows[1])
 assert(ns.lastHover==2001,"native output tooltip should win")
-buttons[1].OnLeave(buttons[1])
+rows[1].OnLeave(rows[1])
 assert(hiddenTooltips>0)
 nextButton.OnClick()
-assert(buttons[1].name.text=="Output 1007")
+assert(rows[1].name.text=="Output 1005")
 nextButton.OnClick()
-assert(buttons[1].name.text=="Output 1013" and buttons[2].shown and not buttons[3].shown)
+assert(rows[1].name.text=="Output 1009" and rows[2].shown)
+assert(nextButton.enabled==true and previous.enabled==true)
+nextButton.OnClick()
+assert(rows[1].name.text=="Output 1013" and rows[2].shown and not rows[3].shown)
 assert(nextButton.enabled==false and previous.enabled==true)
 local prior=hiddenTooltips
 ns.RefreshRecipePanel(159)
-assert(buttons[1].name.text=="Output 1013","same selection should preserve page")
+assert(rows[1].name.text=="Output 1013","same selection should preserve page")
 ns.RefreshRecipePanel(765)
-assert(buttons[1].shown and not buttons[2].shown,"new selection resets to first page")
-assert(buttons[1].name.text=="Recipe 800","non-item recipe uses spell title")
-buttons[1].OnEnter(buttons[1])
+assert(rows[1].shown and not rows[2].shown,"new selection resets to first page")
+assert(rows[1].name.text=="Recipe 800","non-item recipe uses spell title")
+rows[1].OnEnter(rows[1])
 assert(ns.lastRecipe==800,"non-item hover should use native recipe tooltip")
 ns.HideRecipePanelTooltip()
 assert(hiddenTooltips>prior)
-print("Recipe cards UI mock PASS")
+ns.RefreshRecipePanel(159)
+ns.SetRecipePanelCompact(true)
+assert(rows[5].shown, "collapsing professions reclaims space for a fifth use row")
+ns.SetRecipePanelCompact(false)
+assert(not rows[5].shown, "restoring professions reserves the native detail section")
+print("Recipe vertical rows UI mock PASS")

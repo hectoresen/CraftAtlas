@@ -1,6 +1,6 @@
 # Installing and using CraftAtlas in WoW Forever
 
-**Current source:** `0.1.0-dev` (`CraftAtlas.toc`). The maintainer has accepted current UI features in Forever; imported recipe data remain a bounded beta snapshot rather than a live-realm guarantee.
+**Current source:** `0.2.0-dev` (`CraftAtlas.toc`). The maintainer has accepted current UI features in Forever; imported recipe data remain a bounded beta snapshot rather than a live-realm guarantee.
 
 ## Installation
 
@@ -8,8 +8,8 @@
 2. Extract or copy the directory under `Interface/AddOns/`. The correct path is `Interface/AddOns/CraftAtlas/CraftAtlas.toc`; avoid a second nested `CraftAtlas/`.
 3. Enable CraftAtlas in the AddOns list and log in.
 4. Use `/craftatlas` or its draggable minimap icon. The window opens on **Materiales**; switch to **Fabricables** to browse what professions produce. Use `/craftatlas 159` to select a known material by itemID.
-5. In Materiales, type a material name or itemID, apply a profession filter, select an item and inspect its fabrication-use cards. Click a card to open the Fabricables detail; click an ingredient to navigate back to its material and **Volver** to return.
-6. Choose Auto, Español or English in the language selector; the preference is saved between reloads. The top-right X closes the window.
+5. In Materiales, type a material name or itemID, optionally filter by profession, expand/collapse the distinct gold profession dividers and select an item. A material used by multiple professions can appear under each without duplicating its identity. Inspect the collapsible, icon-labeled consuming-profession section and the separate vertical fabrication-use section; click a recipe to enter Fabricables, an ingredient to return to Materiales, or **Volver** to restore the prior browsing state.
+6. Choose Auto, Español or English in the language selector; the preference is saved between reloads. The X inside search appears when text is entered and clears only the active query; the top-right X closes the window. Official packaged releases display their locally stamped version discreetly in the bottom-right footer; development checkouts hide it. The source manifest is prepared as 0.2.0-dev. After merging, select the **minor** increment in the owner's release workflow to publish v0.2.0, which stamps the installed manifest automatically.
 
 ## Diagnostics and limitations
 

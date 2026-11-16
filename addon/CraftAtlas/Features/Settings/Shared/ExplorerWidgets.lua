@@ -2,6 +2,27 @@ local _, ns = ...
 
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
+-- Prefer the explicit Magic Broom texture. The previous cache-based lookup could
+-- return the question-mark icon before WoW had loaded the seasonal item.
+function ns.GetExplorerClearIcon(fileLookup)
+    local broom = "Interface\\Icons\\Achievement_Halloween_Witch_01"
+    if type(fileLookup) == "function" then
+        local ok, supported = pcall(fileLookup, broom)
+        if ok and supported then return broom end
+        return "Interface\\Icons\\Spell_Holy_DispelMagic"
+    end
+    -- WoW bundles the icon as a client texture; no item cache/API is needed.
+    return broom
+end
+
+-- A minimum logical size is scaled uniformly for smaller physical viewports.
+function ns.ExplorerWindowGeometry(viewportWidth, viewportHeight)
+    local width = math.min(860, math.max(600, viewportWidth - 50))
+    local height = math.min(610, math.max(440, viewportHeight - 60))
+    local scale = math.min(1, (viewportWidth - 24) / width, (viewportHeight - 24) / height)
+    return width, height, math.max(0.2, scale)
+end
+
 -- The shell reserves 137 px above the list, 30 px below it, 76 px
 -- for the filter and heading, and 16 px for the bottom status.
 function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
@@ -10,9 +31,15 @@ function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
 end
 
 -- Keep profession metadata and the fabrication header in separate vertical bands.
+-- Profession icons remain in one horizontal row; compact panes page in pairs.
+-- Four fit on a normal native detail pane without occupying recipe-list height.
+function ns.ExplorerProfessionPageSize(detailWidth)
+    return type(detailWidth) == "number" and detailWidth >= 475 and 4 or 2
+end
+
 function ns.MaterialDetailSectionOffsets(availableHeight)
-    if availableHeight < 270 then return -138, -160 end
-    return -151, -174
+    if availableHeight < 270 then return -160, -188 end
+    return -167, -197
 end
 
 function ns.CreateExplorerRow(parent, height, onClick)
@@ -20,19 +47,25 @@ function ns.CreateExplorerRow(parent, height, onClick)
     row:SetHeight(height)
     local bg = row:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetColorTexture(0.12, 0.10, 0.07, 0.82)
+    bg:SetColorTexture(0.09, 0.08, 0.07, 0.30)
+    row.itemBackground = bg
+    local groupBackground = row:CreateTexture(nil, "BACKGROUND")
+    groupBackground:SetAllPoints()
+    groupBackground:SetColorTexture(0.19, 0.15, 0.09, 0.98)
+    groupBackground:Hide()
+    row.groupBackground = groupBackground
     local edge = row:CreateTexture(nil, "BORDER")
     edge:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
     edge:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT")
     edge:SetHeight(1)
-    edge:SetColorTexture(0.48, 0.38, 0.24, 0.85)
+    edge:SetColorTexture(0.48, 0.38, 0.24, 0.28)
     local hover = row:CreateTexture(nil, "BACKGROUND")
     hover:SetAllPoints()
     hover:SetColorTexture(0.42, 0.32, 0.14, 0.58)
     row:SetHighlightTexture(hover)
     local selected = row:CreateTexture(nil, "BACKGROUND")
     selected:SetAllPoints()
-    selected:SetColorTexture(0.48, 0.34, 0.10, 0.55)
+    selected:SetColorTexture(0.65, 0.47, 0.09, 0.72)
     selected:Hide()
     row.highlight = selected
     row.icon = row:CreateTexture(nil, "ARTWORK")
@@ -43,21 +76,157 @@ function ns.CreateExplorerRow(parent, height, onClick)
     row.name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
+    row.name:SetTextColor(0.98, 0.95, 0.87)
     row.professions = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     row.professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
     row.professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
     row.professions:SetJustifyH("LEFT")
     row.professions:SetWordWrap(false)
+    row.groupArrow = row:CreateTexture(nil, "OVERLAY")
+    row.groupArrow:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.groupArrow:SetSize(17, 17)
+    row.groupName = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    row.groupName:SetPoint("LEFT", row, "LEFT", 24, 0)
+    row.groupName:SetPoint("RIGHT", row, "RIGHT", -24, 0)
+    row.groupName:SetJustifyH("LEFT")
+    row.groupName:SetWordWrap(false)
+    row.groupName:SetTextColor(1, 0.82, 0.30)
+    row.groupState = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.groupState:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+    for _, element in ipairs({row.groupArrow, row.groupName, row.groupState}) do
+        element:Hide()
+    end
     row:SetScript("OnClick", function(self) if onClick then onClick(self) end end)
     return row
 end
 
+-- Client-bundled profession artwork, never fabricated catalog facts.
+local professionIcons = {
+    ALCHEMY = "Interface\\Icons\\Trade_Alchemy",
+    BLACKSMITHING = "Interface\\Icons\\Trade_BlackSmithing",
+    COOKING = "Interface\\Icons\\INV_Misc_Food_15",
+    ENCHANTING = "Interface\\Icons\\Trade_Engraving",
+    ENGINEERING = "Interface\\Icons\\Trade_Engineering",
+    FIRST_AID = "Interface\\Icons\\Spell_Holy_SealOfSacrifice",
+    FISHING = "Interface\\Icons\\Trade_Fishing",
+    LEATHERWORKING = "Interface\\Icons\\Trade_LeatherWorking",
+    MINING = "Interface\\Icons\\Trade_Mining",
+    TAILORING = "Interface\\Icons\\Trade_Tailoring",
+}
+
+function ns.GetExplorerProfessionIcon(key)
+    return professionIcons[key] or "Interface\\Icons\\INV_Misc_QuestionMark"
+end
+
+-- Group rows have their own header treatment; they never masquerade as item rows.
+function ns.StyleExplorerGroupRow(row, label, count, expanded)
+    row.groupBackground:Show()
+    row.itemBackground:Hide()
+    row.icon:Hide()
+    row.name:Hide()
+    row.professions:Hide()
+    row.highlight:Hide()
+    row.groupArrow:SetTexture(expanded and "Interface\\Buttons\\UI-MinusButton-Up"
+        or "Interface\\Buttons\\UI-PlusButton-Up")
+    row.groupName:SetText(label .. " (" .. count .. ")")
+    row.groupState:SetText(expanded and "-" or "+")
+    row.groupArrow:Show()
+    row.groupName:Show()
+    row.groupState:Show()
+end
+
+function ns.StyleExplorerItemRow(row, compact)
+    row.groupBackground:Hide()
+    row.itemBackground:Show()
+    row.groupArrow:Hide()
+    row.groupName:Hide()
+    row.groupState:Hide()
+    row.icon:ClearAllPoints()
+    row.name:ClearAllPoints()
+    if compact then
+        -- Indentation communicates parent/child hierarchy independently of color.
+        row.icon:SetPoint("LEFT", row, "LEFT", 15, 0)
+        row.name:SetPoint("LEFT", row, "LEFT", 51, 0)
+        row.name:SetPoint("RIGHT", row, "RIGHT", -3, 0)
+        row.professions:Hide()
+    else
+        row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
+        row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
+        row.name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
+        row.professions:Show()
+    end
+    row.name:Show()
+end
+
+-- Section headers share one dark bar, gold separator and collapse affordance.
+function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
+    local section = CreateFrame("Button", nil, parent)
+    section:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, top)
+    section:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, top)
+    section:SetHeight(27)
+    local bg = section:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.13, 0.11, 0.09, 0.96)
+    local edge = section:CreateTexture(nil, "BORDER")
+    edge:SetPoint("BOTTOMLEFT", section, "BOTTOMLEFT")
+    edge:SetPoint("BOTTOMRIGHT", section, "BOTTOMRIGHT")
+    edge:SetHeight(2)
+    edge:SetColorTexture(0.72, 0.54, 0.24, 0.9)
+    section.label = section:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    section.label:SetPoint("LEFT", section, "LEFT", 9, 0)
+    section.arrow = section:CreateTexture(nil, "OVERLAY")
+    section.arrow:SetPoint("RIGHT", section, "RIGHT", -5, 0)
+    section.arrow:SetSize(17, 17)
+    section.expanded = true
+    function section:Refresh()
+        self.label:SetText(self.titleText or ns.L(titleKey))
+        self.arrow:SetTexture(self.expanded and "Interface\\Buttons\\UI-MinusButton-Up"
+            or "Interface\\Buttons\\UI-PlusButton-Up")
+    end
+    function section:SetTitle(text)
+        self.titleText = text
+        self:Refresh()
+    end
+    section:SetScript("OnClick", function(self)
+        self.expanded = not self.expanded
+        self:Refresh()
+        if onToggle then onToggle(self.expanded) end
+    end)
+    section:Refresh()
+    return section
+end
+
+-- Classic's own button atlas restores the familiar red/gold affordance.
+-- Leave custom styling to grouping dividers and detail sections.
+function ns.CreateExplorerClassicButton(parent)
+    return CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+end
+
+function ns.SetExplorerTabSelected(button, selected)
+    -- Supported by native UIPanelButtonTemplate; never require custom label textures.
+    if selected then
+        button:LockHighlight()
+    else
+        button:UnlockHighlight()
+    end
+end
+
+-- The native arrow makes profession/language selectors look interactive.
+function ns.AddExplorerDropdownArrow(button)
+    local arrow = button:CreateTexture(nil, "OVERLAY")
+    arrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
+    arrow:SetSize(17, 17)
+    arrow:SetPoint("RIGHT", button, "RIGHT", -6, 0)
+    button.dropdownArrow = arrow
+    return arrow
+end
+
 function ns.CreateExplorerPager(parent, onPrevious, onNext)
-    local previous = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local previous = ns.CreateExplorerClassicButton(parent)
     previous:SetSize(76, 24)
     previous:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 9)
     previous:SetScript("OnClick", function() if onPrevious then onPrevious() end end)
-    local nextButton = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local nextButton = ns.CreateExplorerClassicButton(parent)
     nextButton:SetSize(76, 24)
     nextButton:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -14, 9)
     nextButton:SetScript("OnClick", function() if onNext then onNext() end end)
@@ -75,6 +244,43 @@ function ns.UpdateExplorerPager(pager, page, pages)
 end
 
 -- Same search widget is reused by each active view, with state owned by its adapter.
+function ns.ClearExplorerSearch(search)
+    if not search or type(search.GetText) ~= "function"
+        or type(search.SetText) ~= "function" or search:GetText() == "" then
+        return false
+    end
+    search:SetText("")
+    if type(search.SetFocus) == "function" then search:SetFocus() end
+    return true
+end
+
+-- The client already ships the same close glyph used by its native panels.
+-- Embed it into the edit box and show it only when there is text to clear.
+function ns.CreateExplorerSearchClear(search, onClick)
+    local button = CreateFrame("Button", nil, search)
+    button:SetSize(18, 18)
+    button:SetPoint("RIGHT", search, "RIGHT", -5, 0)
+    local texture = button:CreateTexture(nil, "ARTWORK")
+    texture:SetAllPoints()
+    texture:SetTexture("Interface\\Buttons\\UI-Panel-CloseButton-Up")
+    button.icon = texture
+    if type(button.SetHighlightTexture) == "function" then
+        button:SetHighlightTexture("Interface\\Buttons\\UI-Panel-CloseButton-Highlight")
+    end
+    if type(search.SetTextInsets) == "function" then
+        search:SetTextInsets(6, 25, 0, 0)
+    end
+    button:SetScript("OnClick", function()
+        if onClick then onClick() else ns.ClearExplorerSearch(search) end
+    end)
+    local function refresh()
+        if search:GetText() == "" then button:Hide() else button:Show() end
+    end
+    search:HookScript("OnTextChanged", refresh)
+    refresh()
+    return button
+end
+
 function ns.CreateExplorerSearchBox(header, onChange)
     local search = CreateFrame("EditBox", nil, header, "InputBoxTemplate")
     search:SetPoint("LEFT", header, "LEFT", 13, 0)
@@ -88,11 +294,62 @@ function ns.CreateExplorerSearchBox(header, onChange)
     return search
 end
 
+-- Use Blizzard's actual dropdown where the Classic client exposes its API.
+-- The fallback below preserves the original clickable selector on reduced clients.
+function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width)
+    if type(UIDropDownMenu_Initialize) ~= "function"
+        or type(UIDropDownMenu_CreateInfo) ~= "function"
+        or type(UIDropDownMenu_AddButton) ~= "function"
+        or type(UIDropDownMenu_SetWidth) ~= "function"
+        or type(UIDropDownMenu_SetText) ~= "function" then
+        return nil
+    end
+    local ok, dropdown = pcall(CreateFrame, "Frame", nil, parent, "UIDropDownMenuTemplate")
+    if not ok or not dropdown then return nil end
+    local labels, choices = {}, {}
+    for _, key in ipairs(keys) do
+        local entry = {}
+        function entry:SetText(value) labels[key] = value end
+        choices[key] = entry
+    end
+    dropdown.SetText = function(self, value)
+        UIDropDownMenu_SetText(self, value or "")
+    end
+    UIDropDownMenu_SetWidth(dropdown, width)
+    UIDropDownMenu_Initialize(dropdown, function(_, level)
+        if level and level ~= 1 then return end
+        for _, key in ipairs(keys) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = labels[key] or key
+            info.func = function()
+                if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
+                if onSelect then onSelect(key) end
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+    local popup = {
+        Hide = function()
+            if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
+        end,
+    }
+    return dropdown, popup, choices
+end
+
 function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
-    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local keys = {""}
+    for _, key in ipairs(ns.professionOrder or {}) do keys[#keys + 1] = key end
+    local native, nativeMenu, nativeChoices =
+        ns.CreateExplorerNativeDropdown(parent, keys, onSelect, 215)
+    if native then
+        native:SetPoint("TOPLEFT", anchor, "TOPLEFT", -1, -4)
+        return native, nativeMenu, nativeChoices
+    end
+    local button = ns.CreateExplorerClassicButton(parent)
     button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 8, -9)
     button:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -8, -9)
     button:SetHeight(28)
+    ns.AddExplorerDropdownArrow(button)
     local menu = CreateFrame("Frame", nil, parent)
     menu:SetSize(225, (#(ns.professionOrder or {}) + 1) * 25 + 8)
     menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -3)
@@ -104,7 +361,7 @@ function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
     local choices = {[""] = nil}
     for index = 0, #(ns.professionOrder or {}) do
         local key = index == 0 and "" or ns.professionOrder[index]
-        local choice = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        local choice = ns.CreateExplorerClassicButton(menu)
         choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - index * 25)
         choice:SetSize(217, 24)
         choice:SetScript("OnClick", function()
