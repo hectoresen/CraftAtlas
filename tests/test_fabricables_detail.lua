@@ -1,4 +1,5 @@
 -- Native Fabricables detail regression, no live WoW client required.
+local widgets = {}
 local function widget(kind, parent)
     local self = {kind=kind, parent=parent, shown=true, width=400, height=400}
     function self:SetAllPoints() end
@@ -23,6 +24,7 @@ local function widget(kind, parent)
     function self:UnlockHighlight() end
     function self:Show() self.shown=true end
     function self:Hide() self.shown=false end
+    widgets[#widgets+1]=self
     return self
 end
 CreateFrame = function(kind, _, parent) return widget(kind, parent) end
@@ -64,11 +66,28 @@ local parent=widget("Frame")
 ns.InitRecipeDetail(parent)
 ns.ShowRecipeDetailView(true)
 ns.SetRecipeDetail("ALCHEMY:2329")
-local frame
--- The item and section are owned by the frame; find their elements through a fixture hook.
-assert(ns.RefreshRecipeDetail, "detail module loaded")
-assert(ns.SetRecipeDetail and ns.ShowRecipeDetailView)
--- Verify normal and non-item selections do not throw and keep quantities.
+local section
+for _, candidate in ipairs(widgets) do
+    if candidate.kind=="Button" and candidate.expanded ~= nil and candidate.label then
+        section=candidate
+        break
+    end
+end
+assert(section and section.label.text=="Ingredients (3)",
+    "ingredient heading is a data-backed native divider with the real count")
+local itemList
+for _, candidate in ipairs(widgets) do
+    if candidate.kind=="Frame" and candidate.parent==section.parent and
+        candidate~=section.parent and candidate~=parent then
+        if candidate.height==400 and not candidate.SetTitle then itemList=candidate end
+    end
+end
+section.OnClick(section)
+assert(section.expanded==false, "ingredients section collapses")
+section.OnClick(section)
+assert(section.expanded==true, "ingredients section reopens")
 ns.SetRecipeDetail(nil)
+assert(section.label.text=="Ingredients (0)", "no selection shows zero ingredients")
 ns.SetRecipeDetail("ALCHEMY:2329")
+assert(section.label.text=="Ingredients (3)", "reselection restores the factual ingredient count")
 print("Fabricables detail native section smoke PASS")
