@@ -475,6 +475,48 @@ class AtomicArchiveTests(unittest.TestCase):
             pr_number=42, approval="9",
         )
 
+    def integration(self, prepared=True):
+        from unittest.mock import patch
+        def api(path, token):
+            if path == "pulls/9":
+                return {"merged_at": "2026-11-01T00:00:00Z",
+                        "merged_by": {"login": "hectoresen"},
+                        "base": {"ref": "main"}}
+            return [{"filename": self.prefix + "proposal.md"}]
+        def git_mock(cmd, text=False, **kwargs):
+            if cmd[:2] == ["git", "ls-tree"]:
+                paths = "\n".join(self.approved) + "\n"
+                return paths if text else paths.encode("utf-8")
+            if cmd[:2] == ["git", "show"]:
+                path = cmd[2].split(":", 1)[1]
+                value = self.base[path]
+                return value.decode("utf-8") if text else value
+            raise AssertionError(cmd)
+        body = (
+            "OpenSpec-Change: verified-fixture\n"
+            "OpenSpec-Phase: implementation\n"
+            "OpenSpec-Approval-PR: 9\n"
+            "OpenSpec-Archive: " + ("prepared" if prepared else "blocked") + "\n"
+            "OpenSpec-Archive-Evidence: " + self.evidence + "\n"
+        )
+        with patch.object(gate.subprocess, "check_output", side_effect=git_mock):
+            return gate.validate(
+                self.paths if prepared else {
+                    "addon/CraftAtlas/Domain/MaterialLookup.lua",
+                    self.prefix + "tasks.md"},
+                body, 42, root=self.root, base="main",
+                token="mock-token", api=api,
+                exists_in_base=lambda p: p in self.base,
+                implementation_created="2026-11-10T00:00:00Z",
+            )
+
+    def test_prepared_archive_passes_full_sdd_gate(self):
+        self.assertEqual(self.integration(), [])
+
+    def test_prepared_archive_preserves_owner_merged_approval(self):
+        self.base[self.prefix + "sdd-scope.json"] = b'{"allowed_paths":[]}'
+        self.assertTrue(self.integration())
+
     def test_complete_atomic_archive_passes(self):
         self.assertEqual(self.check(), [])
 
