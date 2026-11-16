@@ -4,7 +4,7 @@ local function ui()
     local o = {}
     for _, method in ipairs({"SetPoint","SetSize","SetHeight","SetWidth","SetText",
         "SetColorTexture","SetAllPoints","SetTexture","SetHighlightTexture",
-        "SetJustifyH","SetWordWrap","SetEnabled","SetFrameLevel","Show","Hide"}) do
+        "SetJustifyH","SetWordWrap","SetEnabled","SetFrameLevel","SetTextColor","Show","Hide"}) do
         o[method]=function(self,...) self[method.."Called"]=true end
     end
     o.CreateTexture=function() return ui() end
@@ -17,7 +17,7 @@ local function ui()
 end
 CreateFrame=function(_,_,parent) local o=ui() o.parent=parent created[#created+1]=o return o end
 local ns = {
-    L = function(key) local map={PREVIOUS_PAGE="Previous",NEXT_PAGE="Next",RECIPE_PAGE_STATUS="Page %d / %d"} return map[key] end,
+    L = function(key) local map={PREVIOUS_PAGE="Previous",NEXT_PAGE="Next",RECIPE_PAGE_STATUS="Page %d / %d",USED_BY="Used by professions"} return map[key] end,
     professionOrder={"ALCHEMY"}
 }
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
@@ -25,6 +25,20 @@ local n=0
 local row=ns.CreateExplorerRow(ui(),39,function() n=n+1 end)
 row.OnClick(row)
 assert(n==1 and row.icon and row.name and row.professions)
+ns.StyleExplorerGroupRow(row, "Alchemy", 93, true)
+assert(row.groupBackground and row.groupArrow and row.groupName and row.groupState)
+assert(row.groupBackground.ShowCalled and row.itemBackground.HideCalled)
+assert(row.name.HideCalled and row.icon.HideCalled)
+ns.StyleExplorerItemRow(row)
+assert(row.groupBackground.HideCalled and row.itemBackground.ShowCalled)
+assert(row.name.ShowCalled and row.groupName.HideCalled)
+assert(ns.GetExplorerProfessionIcon("ALCHEMY"):find("Trade_Alchemy", 1, true))
+local toggles=0
+local section=ns.CreateExplorerSection(ui(), "USED_BY", -92, function() toggles=toggles+1 end)
+section.OnClick(section)
+assert(section.expanded==false and toggles==1)
+section.OnClick(section)
+assert(section.expanded==true and toggles==2)
 local pager=ns.CreateExplorerPager(ui(),function() n=n+1 end,function() n=n+2 end)
 pager.previous.OnClick()
 pager.next.OnClick()
