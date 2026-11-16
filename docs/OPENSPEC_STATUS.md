@@ -33,6 +33,10 @@ Canonical specifications represent capabilities synchronized from their approved
 - **Not run/not evidenced:** exhaustive live recipe-by-recipe verification, original starter 30 individual live entries at PR #4 time, all bank/auction/mail/chat tooltip origins, final progress-bar appearance, final material-tooltip art, complete scale/locale matrix, measured FPS comparison and all historical command logs.
 - **Archives:** none of these three legacy changes is archived. Their original folders remain because incomplete SHALL acceptance must not be silently waived.
 
+## Global Craftables tracking — implementation candidate (2026-11-16)
+
+Approved `upd001-global-craftable-tracking` specification [#62](https://github.com/hectoresen/CraftAtlas/pull/62) merged after the original per-recipe tracking [#55](https://github.com/hectoresen/CraftAtlas/pull/55). The new implementation changes only the per-character opt-in mode; selected-recipe stock calculation, bank freshness and original Ingredients behavior remain intact. Lua regression and CI evidence are recorded in the implementation PR and `docs/TESTING.md`. Forever testing of the **new global switch behavior remains NOT RUN**, so `upd001` remains active and `OpenSpec-Archive: blocked`; do not infer acceptance from earlier bank validation on #55.
+
 ## Governance rules
 
 The lifecycle mechanism from spec PR #13 permits this evidence-focused update **only** with its owner approval and exact path allowlist. It prohibits rewriting immutable historical proposal/design/delta specs or source scope. Subsequent functional PRs must invoke `skills/documentation-sync/SKILL.md`, report accurate test evidence and keep README/current context aligned.
