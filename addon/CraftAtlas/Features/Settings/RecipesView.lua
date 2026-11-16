@@ -1,9 +1,8 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
--- Each row needs two readable text baselines and an independent status bar.
--- The geometry fits three rows in a 440px logical pane without overlapping.
-local TRACKER_ROW_HEIGHT = 23
+-- One text baseline and a separate bar; three rows fit without collisions.
+local TRACKER_ROW_HEIGHT = 25
 local TRACKER_TOP_HEIGHT = 34
 local TRACKER_BOTTOM_HEIGHT = 19
 
@@ -82,10 +81,9 @@ local function updateTrackingMaterial(row, ingredient, observation, bankIncluded
     row.name:SetText(name or (ns.L("ITEM_ID") .. " " .. tostring(ingredient.itemID)))
     local bankKnown = bankIncluded and observation and observation.bankStatus == "confirmed"
     if type(count) == "number" then
-        local formatKey = bankKnown and "TRACK_AVAILABLE_BANK" or "TRACK_AVAILABLE_BAGS"
-        row.amount:SetText(string.format(ns.L(formatKey), count, needed))
-        row.missing:SetText(string.format(ns.L("TRACK_MISSING"),
-            math.max(0, needed - count)))
+        row.amount:SetText(string.format(ns.L("TRACK_ROW_SUMMARY"),
+            count, needed, math.max(0, needed - count)))
+        row.missing:SetText("")
     else
         row.amount:SetText(string.format(ns.L("TRACK_AVAILABLE_UNKNOWN"), needed))
         row.missing:SetText("")
@@ -416,15 +414,17 @@ function ns.InitRecipeDetail(parent)
         row.name = font(row, "GameFontHighlightSmall")
         row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 0, 0)
         row.name:SetJustifyH("LEFT")
-        row.amount = font(row, "GameFontHighlightSmall")
+        row.name:SetWordWrap(false)
+        row.amount = font(row, "GameFontDisableSmall")
         row.amount:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, 0)
         row.amount:SetJustifyH("RIGHT")
+        row.name:SetPoint("TOPRIGHT", row.amount, "TOPLEFT", -8, 0)
         row.missing = font(row, "GameFontDisableSmall")
-        row.missing:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -12)
+        row.missing:SetText("")
         row.bar = createNativeBar(row)
         row.bar:SetHeight(10)
-        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 116, -12)
-        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -12)
+        row.bar:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -13)
+        row.bar:SetPoint("TOPRIGHT", row, "TOPRIGHT", 0, -13)
         row:Hide()
         view.trackerRows[i] = row
     end
