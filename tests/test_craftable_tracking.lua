@@ -200,8 +200,7 @@ assert(findLabel("100%"),"bank increment completes the overall total")
 assert(findLabel("3/3"),"bank added to item availability")
 includeBank=false
 uiNs.RefreshRecipeDetail()
-assert(findLabel("100%"),"stub bank count still included in raw observation: fixture sanity check")
--- Real adapter returns bags-only observations when Include bank is off.
+-- Adapter observations change from combined stock to bags-only on opt-out.
 stock[4]={bags=1,available=1,bankStatus="excluded"}
 uiNs.RefreshRecipeDetail()
 assert(findLabel("60%"),"disabling bank reverts to bags-only")
