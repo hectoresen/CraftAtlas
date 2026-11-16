@@ -123,7 +123,7 @@ function ns.InitRecipeDetail(parent)
     titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -15)
     titleLink:SetHeight(27)
     titleLink:SetScript("OnClick", function(_, button)
-        if not ns.IsEntityChatLinkClick(button) then return end
+        if not ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then return end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
@@ -146,7 +146,7 @@ function ns.InitRecipeDetail(parent)
     local count = ITEMS_PER_PAGE
     for i = 1, count do
         local row = ns.CreateExplorerRow(itemList, 39, function(self, button)
-            if self.ingredient and ns.IsEntityChatLinkClick(button) then
+            if self.ingredient and ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then
                 ns.InsertEntityChatLink("item", self.ingredient.itemID)
                 return
             end
@@ -187,7 +187,7 @@ function ns.InitRecipeDetail(parent)
         end
     end)
     outputHover:SetScript("OnClick", function(_, button)
-        if not ns.IsEntityChatLinkClick(button) then return end
+        if not ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) then return end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
