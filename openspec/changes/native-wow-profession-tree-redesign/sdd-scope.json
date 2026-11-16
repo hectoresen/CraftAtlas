@@ -1,0 +1,21 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Features/Settings/**",
+    "addon/CraftAtlas/Domain/**",
+    "addon/CraftAtlas/Core/Init.lua",
+    "addon/CraftAtlas/Infrastructure/ItemInfo.lua",
+    "addon/CraftAtlas/Infrastructure/RecipeInfo.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "addon/CraftAtlas/Localization/ProfessionLabels.lua",
+    "addon/CraftAtlas/CraftAtlas.toc",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA_MODEL.md",
+    "docs/DEVELOPMENT.md",
+    "docs/INSTALLATION.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md"
+  ]
+}
