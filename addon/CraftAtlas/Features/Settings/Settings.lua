@@ -297,6 +297,15 @@ local function refreshResults(resetOffset)
 end
 
 local function createLanguageMenu(header)
+    local native, nativeMenu, nativeChoices = ns.CreateExplorerNativeDropdown(
+        header, languageOptions, function(value) ns.SetLanguage(value) end, 108)
+    if native then
+        native:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 5, 2)
+        ui.language = native
+        ui.languageMenu = nativeMenu
+        ui.languageChoices = nativeChoices
+        return
+    end
     local button = ns.CreateExplorerClassicButton(header)
     button:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -10, 3)
     button:SetSize(120, 28)
