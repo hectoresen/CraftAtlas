@@ -32,10 +32,10 @@ assert(n==4)
 ns.UpdateExplorerPager(pager,1,3)
 assert(pager.previous.SetEnabledCalled and pager.next.SetEnabledCalled)
 local broom = ns.GetExplorerClearIcon(function(path)
-    assert(path:find("Broom", 1, true), "probe must use the proposed native broom")
+    assert(path:find("Witch", 1, true), "first probe uses established historical broom art")
     return 12345
 end)
-assert(broom:find("Broom", 1, true), "native broom chosen if available")
+assert(broom:find("Witch", 1, true), "native broom chosen if available")
 local safe = ns.GetExplorerClearIcon(function() return nil end)
 assert(safe:find("DispelMagic", 1, true), "safe native fallback for missing icon")
 local current, other = {query="peacebloom"}, {query="blue"}
