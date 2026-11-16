@@ -16,7 +16,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Optional per-character, per-recipe Fabricables tracking toggle and unit-weighted ingredients progress; displays needed versus current bags and missing quantities, with native bars and paged ingredient rows.
 - Conditional bank breakdown only when the bank is open and the client can return consistent counts; closed/unsupported bank availability is explicitly unknown, never silently reused or counted.
 - Added pure calculator, defensive inventory adapter, SavedVariables tracking selection, localized labels and Lua regressions; live Forever client acceptance is NOT RUN.
-- Refined the native tracker after maintainer screenshot feedback: localized labels refresh in-place, explicit current bag/bank/required/missing counts are shown for each item (even when bag stock exceeds requirements), progress tracks remain visible at 0%, and a dedicated compact panel anchors tracking directly below paged ingredients. These corrections await fresh client verification.
+- Rebuilt Material progress as a distinct, compact paged list beneath untouched Ingredients: separate native Blizzard StatusBars for each ingredient and total, visible numeric available/required counts at 0%, localized missing quantities and bank opt-in. Verified-zero bank amounts remain zero, while unavailable closed-bank stock prompts a bank refresh. These corrections await fresh Forever verification.
 
 
 ### Native chat linking and craftable detail icon (implementation awaiting owner merge)
