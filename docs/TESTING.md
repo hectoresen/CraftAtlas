@@ -18,15 +18,17 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 Spec [#43](https://github.com/hectoresen/CraftAtlas/pull/43) covers edge tracking, release and reload, click behavior and localized hover text. `tests/test_minimap_button.lua` passed under Lua 5.1 via Lupa, including two minimap scales, a centered pointer and unavailable geometry, releases outside the map, drag releases with and without a click callback, first-click opening, preference restoration, and tooltip text, locale fallback and dismissal. All 22 isolated Lua fixtures passed and all 48 addon and test Lua files parsed. `bash scripts/validate_release_checks.sh`, `python3 -m unittest discover -s tests` (139 tests), and `openspec validate --all --strict --no-interactive` (30 items) passed.
 
-**Forever build: not recorded.** Repeat the checks below at two UI scales, starting with the explorer closed, and record the build, scales, locale and result:
+On 2026-11-16, Codex exercised the installed copy of implementation commit `5c31b6f` in the contributor's live Forever session. All 39 tracked addon files matched the checkout. `GetBuildInfo()` reported `1.60.1.70938` (interface `16001`). The client locale was esES. The two measured minimap effective scales were 0.768 (automatic UI scale) and 1.020 (manual UI scale set to 0.85). In-game diagnostics read the native frame coordinates and mouse events during the drags.
 
 | Acceptance case | Forever result |
 | --- | --- |
-| Ordinary left-click opens the same explorer as `/craftatlas`. | **NOT RUN** |
-| Sweep the icon around the minimap; its center stays on the edge. Cross the exact center and check that the icon keeps its last angle. | **NOT RUN** |
-| Release outside the map and move the pointer away. The icon stays at the release angle, the explorer stays closed, and the next ordinary left-click opens it. | **NOT RUN** |
-| Run `/reload` after a drag. The icon returns at the saved angle. | **NOT RUN** |
-| Hover in esES and enUS, check Automatic locale fallback where applicable, then move away. The title and two instructions match the locale and the tooltip closes. | **NOT RUN** |
+| Ordinary left-click opens the same explorer as `/craftatlas`. | **PASS** at both scales. |
+| The button center stays on the circular edge while moving. | **PASS** on the sampled drag paths at both scales. Four samples per scale, including release, stayed within 0.001 minimap units of the radius. A continuous full sweep was **NOT RUN**. |
+| The pointer reaches the exact minimap center and the button keeps its last valid angle. | **NOT RUN** at the exact center in the client. The Lua fixture covers exact-center coordinates. |
+| Release outside the map, move away, then left-click the icon. | **PASS** at both scales. The anchor matched the release angle, the explorer stayed closed, and the first ordinary left-click opened it. |
+| Run `/reload` after a drag. | **PASS** at both scales. The icon returned to the saved angles of approximately −156.04° and 156.20°. |
+| Hover for the title and two localized instructions, then move away. | **PASS** in Automatic with the esES client at scale 0.768 and in explicit enUS at scale 1.020. The tooltip closed on pointer exit. |
+| Automatic falls back to English on a client locale other than esES. | **NOT RUN** in the client. The Lua fixture covers this fallback. |
 
 ## Native chat links / Fabricables detail icon — implementation branch evidence
 

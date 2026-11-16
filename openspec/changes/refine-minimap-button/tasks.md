@@ -11,4 +11,4 @@
 - [ ] 2.3 Exercise the acceptance scenarios in Forever at two UI scales, including release outside the minimap, `/reload`, and hover in both locales. Record the client build and each result, using `NOT RUN` for any unexecuted case.
 - [x] 2.4 Run `documentation-sync`, update the affected behavior and testing docs, and include the findings in the separate implementation PR with the owner-merged approval reference.
 
-The offline verification and remaining Forever cases are recorded in [docs/TESTING.md](../../../docs/TESTING.md#minimap-button-interaction). Archive readiness is blocked on task 2.3.
+The offline verification and the Forever 1.60.1.70938 results at two scales are recorded in [docs/TESTING.md](../../../docs/TESTING.md#minimap-button-interaction). Task 2.3 remains open for a continuous full sweep, exact-center pointer behavior and Automatic fallback on a client locale other than esES.
