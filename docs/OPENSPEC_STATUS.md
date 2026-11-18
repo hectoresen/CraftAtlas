@@ -1,6 +1,6 @@
 # OpenSpec acceptance and current-source evidence
 
-This ledger is an evidence record, **not** an automatic certification of requirements. Last reconciled against merged `main` PRs on 2026-11-16. The current source feature summary lives in [README](../README.md), and the documented Python/Forever test distinction lives in [TESTING](TESTING.md). The historical proposal, designs, delta specs and original tasks are retained unmodified except additive status checkpoints.
+This ledger is an evidence record, **not** an automatic certification of requirements. Historical acceptance last reconciled on 2026-11-16; maintenance audit of current `main` on 2026-11-18 (head `50ddf27`, merged PR #67). The current source feature summary lives in [README](../README.md), and the documented Python/Forever test distinction lives in [TESTING](TESTING.md). The historical proposal, designs, delta specs and original tasks are retained unmodified except additive status checkpoints.
 
 ## Historical owner-approved changes
 
@@ -57,3 +57,23 @@ Older partially accepted historical changes listed above remain **OPEN**; #47 do
 | Typed change IDs, branch linkage and PR check discovery | [#48](https://github.com/hectoresen/CraftAtlas/pull/48), [#49](https://github.com/hectoresen/CraftAtlas/pull/49) specs; [#50](https://github.com/hectoresen/CraftAtlas/pull/50) implementation | **Merged**; lowercase OpenSpec IDs with uppercase branch categories | Its `resolve-typed-openspec-cli-compatibility` active change still exists on `main`: **not archived**. Do not infer archival just because implementation merged |
 
 **Ledger policy:** `merged/implemented`, `owner-observed in game`, `automated CI checked`, and `accepted + archived` are different states. Do not create duplicate implementation work for already merged #36/#38/#40/#42/#47/#50; track actual missing client evidence or incomplete archival separately through a newly authorized change when required.
+
+## Maintenance reconciliation checkpoint (2026-11-18)
+
+**No mass archive is authorized by this documentation-only audit.** The repository contains 27 active change directories under `openspec/changes/`, plus the archived atomic governance change. Of the 27 active changes, 26 retain at least one unchecked task in their original `tasks.md`; `mandatory-multiagent-documentation-gate` has its tasks checked but remains active. These counts refer to task bookkeeping, not to 26 missing implementations. Original tasks/proposals are preserved.
+
+**Merged and present in current source, previously described as pending in roadmap or changelog:** native Shift-click chat links and Fabricables detail icon fix (`fix001-native-chat-links-and-recipe-icon`), global per-character Fabricables tracking (`upd001-global-craftable-tracking`), native AddOn options (`upd002-native-addon-options`), and current minimap/list improvements. PR #67 is merged into `main`; the latest packaged release is [v0.4.0](https://github.com/hectoresen/CraftAtlas/releases/tag/v0.4.0). No feature was introduced by this audit.
+
+**Observed acceptance superseding older provisional wording:** the owner confirmed global tracker toggle retention after switching recipes, disabling and returning, and persistence on `/reload` on 2026-11-16 (recorded in `docs/TESTING.md`); the owner also confirmed the open-bank Hojaplata correction. These do **not** prove distinct-character isolation, every tooltip origin, all locale/scale combinations or exact client build. Historical unmet acceptance is not silently waived.
+
+**Explicit closure blockers / classifications:**
+
+- `add-first-playable-material-tooltips`, `expand-all-profession-material-coverage`: original starter-count, live-dataset denominator and per-origin client evidence are not completely met; retain active.
+- `enhance-addon-icon-minimap-settings` and `native-wow-profession-tree-redesign`: some original UI requirements were subsequently superseded (notably the spec's broom icon vs approved inline X); require formal specification/owner scope reconciliation before archive.
+- `feat001-track-craftable-materials`, `upd001-global-craftable-tracking`, `upd002-native-addon-options`, `fix001-native-chat-links-and-recipe-icon`: implemented; mandatory unchecked client/release-evidence tasks remain a separate acceptance matter. Preserve as blocked pending genuine evidence or approved change.
+- `mandatory-multiagent-documentation-gate`: task checklist complete; archive readiness still requires matching approved scope, canonical sync and owner acceptance, not merely checked boxes.
+- Remaining historical proposal folders: evaluate individually against actual implementation PRs, required evidence and immutable delta specs. Do not infer archived status from merge alone or check tasks retroactively without proof.
+
+**Repository governance observed 2026-11-18:** two active rulesets protect `main`; all four CI contexts (`repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`) are required with no CI bypass, and the review ruleset has `require_code_owner_review: true`. The two-account behavior matrix remains untested. This supersedes older instructions asking the owner to enable CODEOWNERS.
+
+**Disposition:** enter maintenance with a truthful *open but documented* OpenSpec ledger rather than label unverified changes complete. A future archive transaction must follow `docs/SDD_COMPLIANCE.md`, not a docs-only exemption.

@@ -49,7 +49,7 @@ UI uses WoW-native frames, no CSS framework or external runtime API. Reusable go
 
 ## Data integrity and limits
 
-A deterministic offline generator `scripts/build_materials.py` compiles `Materials.lua`, `Professions.lua`, `RecipeUses.lua`, `Recipes.lua` and coverage evidence from licensed pinned JSON source records. **593** distinct inputs, **8,455** reagent-use rows and **2,506** unique recipes are source-snapshot counts. Do not conflate source verification with testing each recipe on the current Forever server. A recipe may produce an item that itself is an ingredient. A full dependency graph, crafting automation, player-known recipes and inventory stock calculations are outside the current implementation.
+A deterministic offline generator `scripts/build_materials.py` compiles `Materials.lua`, `Professions.lua`, `RecipeUses.lua`, `Recipes.lua` and coverage evidence from licensed pinned JSON source records. **593** distinct inputs, **8,455** reagent-use rows and **2,506** unique recipes are source-snapshot counts. Do not conflate source verification with testing each recipe on the current Forever server. A recipe may produce an item that itself is an ingredient. A full dependency graph, crafting automation, player-known recipes and persistent inventory history are outside the current implementation. Opt-in Fabricables progress does calculate observed bag and conditionally available open-bank counts for the currently selected recipe.
 
 ## Validation and change control
 
