@@ -2,30 +2,22 @@
 
 This page documents GitHub administrator settings; merging this file cannot apply or edit a ruleset.
 
-## Verified protections (2026-11-16)
+## Verified protections (updated 2026-11-18)
 
 Repository `hectoresen/CraftAtlas` is public and user-owned. Two **active rulesets** target `refs/heads/main`:
 
 | Ruleset (ID) | Enforcement | Bypass |
 | --- | --- | --- |
 | `main — mandatory CI` (`27371162`) | Prevent deletion and force pushes; require `repository-validation` and `traceability`; require latest branch | **None** |
-| `main — contributor reviews` (`27376786`) | PR required, 1 independent approval, dismiss stale reviews, resolve conversations; **code-owner review must be enabled separately** | Repository admin role, **For pull requests only** |
+| `main — contributor reviews` (`27376786`) | PR required, 1 independent approval, dismiss stale reviews, resolve conversations; **code-owner review is enabled** | Repository admin role, **For pull requests only** |
 
 Confirmed via GitHub API after owner configured them. GitHub does not allow PR authors, including the owner, to approve their own PR. The owner uses an admin PR-only *review bypass*, not self-approval. Rulesets for CI and review must stay separate.
 
-`CODEOWNERS` at repository root requests `@hectoresen` reviews but **does not** independently enforce approvals. `Require review from Code Owners` was not enabled at the last verified settings audit. **Enable it** on the active review ruleset to make @hectoresen's approval mandatory for contributor-authored PRs. Owner-authored PRs rely on the already configured PR-only admin bypass; CI never has a bypass.
+`CODEOWNERS` at repository root requests `@hectoresen` reviews. GitHub's active contributor-review ruleset now has `require_code_owner_review: true` (verified via API on 2026-11-18). One approval is required for contributor PRs; the repository-admin bypass applies to review requirements on pull requests only, not to mandatory CI.
 
-## Add mandatory Lua checks after the implementation merges
+## Mandatory Lua checks — already configured
 
-Once this implementation PR is merged and its new jobs have completed successfully on a subsequent PR, open https://github.com/hectoresen/CraftAtlas/settings/rules and edit **main — mandatory CI**:
-
-1. Confirm the exact branch match `main`, enforcement `Active`, and **empty bypass list**.
-2. Under **Require status checks to pass**, retain `repository-validation` and `traceability`, then add exactly **`lua-compatibility`** and **`lua-regressions`**.
-3. Leave **Require branches to be up to date before merging** enabled. Do not select `Do not require status checks on creation`.
-4. Keep force-push and deletion restrictions. Save and verify the effective ruleset via GitHub UI/API.
-5. Do **not** add Lua checks before they have appeared as successful job names in GitHub; a missing required check makes every PR unmergeable.
-
-On **main — contributor reviews**, **enable Require review from Code Owners**, and retain **1 approval**, stale-review dismissal, conversation resolution and `Repository admins → For pull requests only`. No check requirement or unrestricted/Always allow bypass belongs there.
+Verified on 2026-11-18: `main — mandatory CI` requires `repository-validation`, `traceability`, `lua-compatibility` and `lua-regressions`; strict up-to-date checks are enabled, with **no bypass actors**. `main — contributor reviews` requires a PR, one approval, code-owner approval, dismissal of stale approvals and resolved conversations. Its admin bypass is **For pull requests only**. Do not weaken either ruleset during maintenance.
 
 ## Permissions and optional auto-merge
 
@@ -58,6 +50,6 @@ Only the owner modifies GitHub rulesets, collaborator permissions and release se
 
 On a pure OpenSpec proposal, the CI `repository-validation` job completes as a minimal required status while **SDD Compliance / traceability** validates the spec. Both Lua jobs are **skipped**, rather than run. On a Markdown/text-only PR, repository validation only runs a lightweight Markdown/foundation check and SDD verifies path policy; no full OpenSpec CLI install or Lua suite. On code/mixed PRs, all quality gates run. A failed classification fails `repository-validation`, so it cannot be used to evade required checks. GitHub treats an intentionally skipped job's conclusion as acceptable for required status checks; the technical ruleset still enforces the always-present `repository-validation` and `traceability` jobs. Do not replace those with workflow-level `paths-ignore`, because absent required checks can leave a PR stuck awaiting a status.
 
-## Required administrator action for approved spec #58 (NOT YET VERIFIED)
+## Historical spec #58 configuration status
 
-In [repository rulesets](https://github.com/hectoresen/CraftAtlas/settings/rules), edit **main — contributor reviews** (ID `27376786`) and enable **Require review from Code Owners**. Keep active enforcement targeting `refs/heads/main`, one approval, stale-review dismissal, resolved conversations, and administrator bypass **For pull requests only**. Root `CODEOWNERS` already has `* @hectoresen`. Keep **main — mandatory CI** (ID `27371162`) independent and with zero bypass. Do not grant other users Admin access. After saving, verify via GitHub UI/API and two-account acceptance: a contributor PR approved by anyone else remains blocked; an owner-approved contributor PR with green checks may be merged by an authorized contributor; an owner-authored PR still uses review-only admin bypass. **The ruleset setting is not changed by this code PR and no verification is claimed here.**
+The previously outstanding `Require review from Code Owners` administrator setting is **enabled and API-verified on 2026-11-18**. The two-account merge-eligibility matrix above remains **NOT RUN**; configuration evidence is not a live permission test.
