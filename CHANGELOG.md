@@ -1,3 +1,9 @@
+# Maintenance checkpoint (2026-11-18)
+
+- Entered maintenance mode: no new features planned until further notice; only fixes, compatibility, security, release upkeep and documentation changes.
+- Reconciled source documentation against merged `main` and latest official [v0.4.0](https://github.com/hectoresen/CraftAtlas/releases/tag/v0.4.0). The tracked `.toc` intentionally remains `0.2.0-dev` for source builds.
+- Clarified that global opt-in Fabricables tracking and native AddOn options are already implemented. Outstanding historical client test matrices remain explicit; no feature or retroactive acceptance is claimed.
+
 # Changelog
 
 ### Typed agent branch discipline and PR check discovery (merged PR #50)
@@ -16,7 +22,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Added General and Tooltip under the game's **Options → AddOns → CraftAtlas**. The options page shares the explorer's language preference and can restore the minimap button at its saved position.
 - Added account preferences for annotation visibility, profession icons and comma-separated tooltip layout. Existing installations retain their language, minimap angle and default appearance.
 
-### Global Fabricables tracking mode (implementation of approved spec #62)
+### Global Fabricables tracking mode (merged; owner-observed behavior)
 
 - Track crafting is now a single opt-in per character, retained across any Fabricables recipe switch and UI reload. Each recipe still has its own ingredients and calculated stock; Include bank remains independently persisted. Old per-recipe flags do not silently enable this global mode.
 
@@ -40,7 +46,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 - Keep the minimap button on the circular edge throughout a drag and restore the release angle on reload.
 - Open the explorer on the first ordinary left-click after a drag and show separate localized open and move instructions on hover.
 
-### Native chat linking and craftable detail icon (implementation awaiting owner merge)
+### Native chat linking and craftable detail icon (merged; client matrix incomplete)
 
 - Added Shift + left-click support for client-native item/spell links in clickable Materiales/Fabricables rows, uses, ingredients and detail icon/title surfaces; normal navigation remains unchanged.
 - Added guarded native chat insertion that never manufactures link markup or sends chat messages.
