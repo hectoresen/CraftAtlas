@@ -14,6 +14,14 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 **Interpretation:** `NOT RUN` in an older PR implementation environment means that particular command or client scenario was not executed **there**, not that the feature never merged or that subsequent GitHub CI never ran. A screenshot confirms only the specific state it depicts. Source merged ≠ final visual acceptance ≠ full live-catalog verification. Keep those categories separate; do not reopen source implementation tasks simply because client evidence is incomplete.
 
+## Slash command registration and dungeon markers
+
+**Reported behavior.** A 2026-11-21 Forever taint log records three CraftAtlas-attributed `SetRaidTarget()` blocks while Blizzard processes macro text. Each block follows a tainted read of the global `SlashCmdList`. The inspected installation reported CraftAtlas 0.4.1 and DungeonJournal 2.1.0.
+
+**Offline PASS.** The [addon configuration fixture](../tests/test_addon_configuration.lua) detects the global write on the previous code and passes with the [updated registration](../addon/CraftAtlas/Features/Settings/Settings.lua). It checks that other command entries survive, all three CraftAtlas command forms work and the minimap still opens the explorer when the native registry is absent or invalid. Lua 5.1 syntax (54 files), all 24 isolated Lua fixtures, all 142 Python tests, the shared release validation script and strict OpenSpec validation passed locally.
+
+**Forever verification: NOT RUN.** With both addons enabled, turn on `/console taintLog 1` and restart Forever. Verify `/craftatlas`, `/craftatlas 159` and `/craftatlas perf`. In the dungeon tracker, click the portrait of a nearby rare that can be marked. Confirm it becomes the target and gets a skull. Record the client build and addon versions, check for a CraftAtlas warning and save the current session's log before reloading. The log should contain no CraftAtlas-attributed `SetRaidTarget()` block for that click.
+
 ## Native explorer controls
 
 Implementation for `upd004-native-explorer-ui`, approved in [spec PR #70](https://github.com/hectoresen/CraftAtlas/pull/70). User-supplied Forever screenshots showed the explorer leaking controls over the Dungeon Journal, a protected-action warning after pressing Escape, and HUD buffs drawn over the explorer after its stratum was lowered. The revised code places the whole explorer on `DIALOG` and uses the special-window registry for Escape. [Forever UI source](https://github.com/Gethe/wow-ui-source/tree/3d8abb1da73acd38e412e24fb3f99454a6392346/Interface/AddOns)

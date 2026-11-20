@@ -873,9 +873,11 @@ function ns.OpenSettings(itemID)
 end
 
 function ns.InitSettings()
+    local slashCommands = SlashCmdList
+    if type(slashCommands) ~= "table" then return end
+
     SLASH_CRAFTATLAS1 = "/craftatlas"
-    SlashCmdList = SlashCmdList or {}
-    SlashCmdList.CRAFTATLAS = function(input)
+    slashCommands.CRAFTATLAS = function(input)
         local argument = string.lower(string.match(input or "", "^%s*(.-)%s*$"))
         if argument == "perf" then
             local m = ns.GetMaterialPreparationMetrics()
