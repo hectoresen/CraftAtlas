@@ -1,0 +1,27 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua",
+    "addon/CraftAtlas/Features/Settings/RecipePanel.lua",
+    "addon/CraftAtlas/Features/Settings/RecipesView.lua",
+    "addon/CraftAtlas/Features/Settings/PreferencesPanel.lua",
+    "addon/CraftAtlas/Infrastructure/AddonSettings.lua",
+    "addon/CraftAtlas/Infrastructure/MinimapButton.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "tests/test_explorer_close.lua",
+    "tests/test_explorer_layout.lua",
+    "tests/test_shared_widgets.lua",
+    "tests/test_minimap_button.lua",
+    "tests/test_addon_configuration.lua",
+    "tests/test_explorer_detail_contract.py",
+    "tests/test_fabricables_detail.lua",
+    "tests/test_recipe_cards.lua",
+    "tests/test_catalog_header.lua",
+    "tests/test_catalog_progress_contract.py",
+    "README.md",
+    "docs/ARCHITECTURE.md",
+    "docs/INSTALLATION.md",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ]
+}
