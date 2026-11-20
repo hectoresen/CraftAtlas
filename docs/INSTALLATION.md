@@ -1,6 +1,6 @@
 # Installing and using CraftAtlas in WoW Forever
 
-**Current source:** `0.2.0-dev` (`CraftAtlas.toc`). The maintainer has accepted current UI features in Forever; imported recipe data remain a bounded beta snapshot rather than a live-realm guarantee.
+**Current source:** `0.2.0-dev` (`CraftAtlas.toc`). See [testing](TESTING.md) for in-game evidence by revision. The imported catalog is a bounded beta snapshot.
 
 ## Installation
 
@@ -8,9 +8,9 @@
 2. Extract or copy the directory under `Interface/AddOns/`. The correct path is `Interface/AddOns/CraftAtlas/CraftAtlas.toc`; avoid a second nested `CraftAtlas/`.
 3. Start or restart Forever after installing. In the native AddOns list, look for **CraftAtlas** under **Professions** (enUS) or **Profesiones** (esES). The game language determines the category, including when the addon is disabled. Enable CraftAtlas and log in. The manifest declares the same blacksmithing artwork used by the minimap button; see [in-game test evidence](TESTING.md#native-addons-list-registration).
 4. Use `/craftatlas` or left-click the minimap icon. The window opens on **Materiales**; switch to **Fabricables** to browse what professions produce. Use `/craftatlas 159` to select a known material by itemID. Drag the icon to move it along the minimap edge; its position survives `/reload`. Hover over it for localized controls.
-5. In Materiales, type a material name or itemID, optionally filter by profession, expand/collapse the distinct gold profession dividers and select an item. A material used by multiple professions can appear under each without duplicating its identity. Inspect the collapsible, icon-labeled consuming-profession section and the separate vertical fabrication-use section; click a recipe to enter Fabricables, an ingredient to return to Materiales, or **Volver** to restore the prior browsing state.
-6. Open the game's **Options → AddOns → CraftAtlas**. Under **General**, choose the language and set whether the minimap button is shown. The language selector in the explorer uses the same preference. Under **Tooltip**, choose whether to show consuming professions, hide their icons, or display their names on a comma-separated line. Turning the annotation off retains the layout choices. Settings save for the account and apply to new or rebuilt tooltips.
-7. The X inside search appears when text is entered and clears only the active query. The top-right X closes the explorer. Official packaged releases display their locally stamped version discreetly in the bottom-right footer, while development checkouts hide it. The source manifest is prepared as 0.2.0-dev. After merging, select the **minor** increment in the owner's release workflow to publish v0.2.0, which stamps the installed manifest automatically.
+5. In Materiales, search by name or itemID in the upper-right search box. Filter and browse in the sidebar. Use the plus or minus buttons to expand or collapse profession groups. Select a material to inspect its consuming professions and crafting uses in the detail pane. Click a recipe to enter Fabricables, an ingredient to return to Materiales, or **Volver** to restore the prior browsing state.
+6. Right-click the minimap button or open **Options → AddOns → CraftAtlas**. Under **General**, the language selector marks the saved choice and the minimap setting controls button visibility. Under **Tooltip**, choose whether to show consuming professions, hide their icons, or display their names on a comma-separated line. Turning the annotation off retains the layout choices. Settings save for the account and apply to new or rebuilt tooltips.
+7. The X inside search appears when text is entered and clears only the active query. Press **Escape** or click the top-right **X** to close the explorer. Escape dismisses an open dropdown before closing the window. Official packaged releases display their locally stamped version in the bottom-right footer. The source manifest is prepared as 0.2.0-dev. After merging, select the **minor** increment in the owner's release workflow to publish v0.2.0, which stamps the installed manifest automatically.
 
 ## Diagnostics and limitations
 

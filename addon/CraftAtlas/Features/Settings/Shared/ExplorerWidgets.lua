@@ -2,6 +2,20 @@ local _, ns = ...
 
 -- Shared native controls. A view supplies values and callbacks; no domain dependency.
 
+function ns.HideExplorerTooltip(frame)
+    if not frame or not GameTooltip or not GameTooltip.GetOwner then return end
+    if GameTooltip.IsForbidden and GameTooltip:IsForbidden() then return end
+    local owner = GameTooltip:GetOwner()
+    while owner do
+        if owner == frame then
+            GameTooltip:Hide()
+            return
+        end
+        if owner.IsForbidden and owner:IsForbidden() then return end
+        owner = owner.GetParent and owner:GetParent()
+    end
+end
+
 -- Prefer the explicit Magic Broom texture. The previous cache-based lookup could
 -- return the question-mark icon before WoW had loaded the seasonal item.
 function ns.GetExplorerClearIcon(fileLookup)
@@ -23,11 +37,8 @@ function ns.ExplorerWindowGeometry(viewportWidth, viewportHeight)
     return width, height, math.max(0.2, scale)
 end
 
--- The shell reserves 137 px above the list, 30 px below it, 76 px
--- for the filter and heading, and 16 px for the bottom status.
-function ns.ExplorerVisibleRowCount(windowHeight, rowHeight)
-    local rows = math.floor((windowHeight - 167 - 76 - 16) / rowHeight)
-    return math.max(2, math.min(9, rows))
+function ns.ExplorerVisibleRowCount(listHeight, rowHeight)
+    return math.max(2, math.min(11, math.floor(listHeight / rowHeight)))
 end
 
 -- Keep profession metadata and the fabrication header in separate vertical bands.
@@ -42,60 +53,69 @@ function ns.MaterialDetailSectionOffsets(availableHeight)
     return -167, -197
 end
 
-function ns.CreateExplorerRow(parent, height, onClick)
+function ns.AddExplorerHeadingSurface(parent, height)
+    local surface = parent:CreateTexture(nil, "BACKGROUND")
+    surface:SetPoint("TOPLEFT", parent, "TOPLEFT")
+    surface:SetPoint("TOPRIGHT", parent, "TOPRIGHT")
+    surface:SetHeight(height)
+    if surface.SetAtlas then
+        surface:SetAtlas("Options_CategoryHeader_1")
+    else
+        surface:SetColorTexture(0.12, 0.07, 0.03, 0.9)
+    end
+    return surface
+end
+
+function ns.CreateExplorerRow(parent, height, onClick, sidebar)
     local row = CreateFrame("Button", nil, parent)
     row:SetHeight(height)
-    local bg = row:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.09, 0.08, 0.07, 0.30)
-    row.itemBackground = bg
-    local groupBackground = row:CreateTexture(nil, "BACKGROUND")
-    groupBackground:SetAllPoints()
-    groupBackground:SetColorTexture(0.19, 0.15, 0.09, 0.98)
-    groupBackground:Hide()
-    row.groupBackground = groupBackground
-    local edge = row:CreateTexture(nil, "BORDER")
-    edge:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
-    edge:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT")
-    edge:SetHeight(1)
-    edge:SetColorTexture(0.48, 0.38, 0.24, 0.28)
-    local hover = row:CreateTexture(nil, "BACKGROUND")
-    hover:SetAllPoints()
-    hover:SetColorTexture(0.42, 0.32, 0.14, 0.58)
-    row:SetHighlightTexture(hover)
+    row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    local hover = row.GetHighlightTexture and row:GetHighlightTexture()
+    if hover then hover:SetAlpha(0.35) end
     local selected = row:CreateTexture(nil, "BACKGROUND")
     selected:SetAllPoints()
-    selected:SetColorTexture(0.65, 0.47, 0.09, 0.72)
+    if sidebar and selected.SetAtlas then
+        selected:SetAtlas("Options_List_Active")
+    else
+        selected:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+        if selected.SetBlendMode then selected:SetBlendMode("ADD") end
+        if selected.SetAlpha then selected:SetAlpha(0.55) end
+    end
     selected:Hide()
     row.highlight = selected
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.icon:SetSize(30, 30)
     row.icon:SetPoint("LEFT", row, "LEFT", 2, 0)
-    row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -4)
     row.name:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -4)
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
-    row.name:SetTextColor(0.98, 0.95, 0.87)
     row.professions = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
-    row.professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
+    if sidebar then
+        row.professions:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 39, 4)
+        row.professions:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -3, 4)
+        row.professions:SetHeight(11)
+    else
+        row.professions:SetPoint("TOPLEFT", row, "TOPLEFT", 39, -22)
+        row.professions:SetPoint("TOPRIGHT", row, "TOPRIGHT", -2, -22)
+    end
     row.professions:SetJustifyH("LEFT")
     row.professions:SetWordWrap(false)
+    if sidebar then
+        row.groupHeader = ns.AddExplorerHeadingSurface(row, height)
+        row.groupHeader:Hide()
+    end
     row.groupArrow = row:CreateTexture(nil, "OVERLAY")
-    row.groupArrow:SetPoint("LEFT", row, "LEFT", 4, 0)
+    row.groupArrow:SetPoint("RIGHT", row, "RIGHT", -5, 0)
     row.groupArrow:SetSize(17, 17)
-    row.groupName = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    row.groupName:SetPoint("LEFT", row, "LEFT", 24, 0)
-    row.groupName:SetPoint("RIGHT", row, "RIGHT", -24, 0)
+    row.groupName = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    row.groupName:SetPoint("LEFT", row, "LEFT", 10, 0)
+    row.groupName:SetPoint("RIGHT", row, "RIGHT", -25, 0)
     row.groupName:SetJustifyH("LEFT")
     row.groupName:SetWordWrap(false)
-    row.groupName:SetTextColor(1, 0.82, 0.30)
-    row.groupState = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    row.groupState:SetPoint("RIGHT", row, "RIGHT", -6, 0)
-    for _, element in ipairs({row.groupArrow, row.groupName, row.groupState}) do
-        element:Hide()
-    end
+    row.groupArrow:Hide()
+    row.groupName:Hide()
     row:SetScript("OnClick", function(self, button) if onClick then onClick(self, button) end end)
     return row
 end
@@ -120,8 +140,7 @@ end
 
 -- Group rows have their own header treatment; they never masquerade as item rows.
 function ns.StyleExplorerGroupRow(row, label, count, expanded)
-    row.groupBackground:Show()
-    row.itemBackground:Hide()
+    if row.groupHeader then row.groupHeader:Show() end
     row.icon:Hide()
     row.name:Hide()
     row.professions:Hide()
@@ -129,18 +148,14 @@ function ns.StyleExplorerGroupRow(row, label, count, expanded)
     row.groupArrow:SetTexture(expanded and "Interface\\Buttons\\UI-MinusButton-Up"
         or "Interface\\Buttons\\UI-PlusButton-Up")
     row.groupName:SetText(label .. " (" .. count .. ")")
-    row.groupState:SetText(expanded and "-" or "+")
     row.groupArrow:Show()
     row.groupName:Show()
-    row.groupState:Show()
 end
 
 function ns.StyleExplorerItemRow(row, compact)
-    row.groupBackground:Hide()
-    row.itemBackground:Show()
+    if row.groupHeader then row.groupHeader:Hide() end
     row.groupArrow:Hide()
     row.groupName:Hide()
-    row.groupState:Hide()
     row.icon:ClearAllPoints()
     row.name:ClearAllPoints()
     if compact then
@@ -158,21 +173,15 @@ function ns.StyleExplorerItemRow(row, compact)
     row.name:Show()
 end
 
--- Section headers share one dark bar, gold separator and collapse affordance.
+-- A recessed header and native disclosure distinguish each detail section.
 function ns.CreateExplorerSection(parent, titleKey, top, onToggle)
     local section = CreateFrame("Button", nil, parent)
     section:SetPoint("TOPLEFT", parent, "TOPLEFT", 15, top)
     section:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -15, top)
     section:SetHeight(27)
-    local bg = section:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.13, 0.11, 0.09, 0.96)
-    local edge = section:CreateTexture(nil, "BORDER")
-    edge:SetPoint("BOTTOMLEFT", section, "BOTTOMLEFT")
-    edge:SetPoint("BOTTOMRIGHT", section, "BOTTOMRIGHT")
-    edge:SetHeight(2)
-    edge:SetColorTexture(0.72, 0.54, 0.24, 0.9)
-    section.label = section:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    ns.AddExplorerHeadingSurface(section, 27)
+    section:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    section.label = section:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     section.label:SetPoint("LEFT", section, "LEFT", 9, 0)
     section.arrow = section:CreateTexture(nil, "OVERLAY")
     section.arrow:SetPoint("RIGHT", section, "RIGHT", -5, 0)
@@ -202,9 +211,27 @@ function ns.CreateExplorerClassicButton(parent)
     return CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
 end
 
+function ns.CreateExplorerTab(parent)
+    local ok, tab = pcall(CreateFrame, "Button", nil, parent, "MinimalTabTemplate")
+    if ok and tab and tab.Text and tab.SetSelected then return tab end
+    local fallback = ns.CreateExplorerClassicButton(parent)
+    fallback:SetWidth(104)
+    return fallback
+end
+
+function ns.SetExplorerTabText(button, label)
+    if button.SetSelected and button.Text then
+        button.Text:SetText(label)
+        button:SetWidth(button.Text:GetStringWidth() + 40)
+    else
+        button:SetText(label)
+    end
+end
+
 function ns.SetExplorerTabSelected(button, selected)
-    -- Supported by native UIPanelButtonTemplate; never require custom label textures.
-    if selected then
+    if button.SetSelected and button.Text then
+        button:SetSelected(selected)
+    elseif selected then
         button:LockHighlight()
     else
         button:UnlockHighlight()
@@ -243,20 +270,15 @@ function ns.UpdateExplorerPager(pager, page, pages)
     pager.next:SetEnabled(page > 0 and page < pages)
 end
 
--- Small native status bar occupies the free center strip between search and language.
--- It never moves the centered title or replaces any Classic control.
-function ns.CreateExplorerCatalogProgress(panel, recipesTab, back)
-    -- The toolbar spans the space between native tabs and Back; the visual
-    -- indicator itself stays compact and centered instead of filling that gap.
+-- The footer keeps catalog preparation clear of the tabs, Back, and search.
+function ns.CreateExplorerCatalogProgress(panel)
     local holder = CreateFrame("Frame", nil, panel)
-    holder:SetPoint("LEFT", recipesTab, "RIGHT", 12, 0)
-    holder:SetPoint("RIGHT", back, "LEFT", -12, 0)
-    holder:SetHeight(24)
+    holder:SetPoint("BOTTOM", panel, "BOTTOM", 0, 8)
 
-    -- At the minimum 600px logical window the free gap is about 190px.
     -- Cap the bar so the progress fill and label read as one component.
     local width = type(panel.GetWidth) == "function" and panel:GetWidth() or 600
     local trackWidth = math.max(130, math.min(252, width - 430))
+    holder:SetSize(trackWidth, 24)
     local bar = CreateFrame("StatusBar", nil, holder)
     bar:SetSize(trackWidth, 6)
     bar:SetPoint("BOTTOM", holder, "BOTTOM", 0, 0)
@@ -312,7 +334,7 @@ function ns.CreateExplorerSearchClear(search, onClick)
         button:SetHighlightTexture("Interface\\Buttons\\UI-Panel-CloseButton-Highlight")
     end
     if type(search.SetTextInsets) == "function" then
-        search:SetTextInsets(6, 25, 0, 0)
+        search:SetTextInsets(search.searchIcon and 19 or 6, 25, 0, 0)
     end
     button:SetScript("OnClick", function()
         if onClick then onClick() else ns.ClearExplorerSearch(search) end
@@ -331,17 +353,59 @@ function ns.CreateExplorerSearchBox(header, onChange)
     search:SetSize(185, 28)
     search:SetAutoFocus(false)
     search:SetMaxLetters(120)
-    search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    local icon = search:CreateTexture(nil, "OVERLAY")
+    if icon.SetAtlas then
+        icon:SetAtlas("common-search-magnifyingglass")
+        icon:SetPoint("LEFT", search, "LEFT", 5, 0)
+        icon:SetSize(10, 10)
+        search.searchIcon = icon
+    end
     search:SetScript("OnTextChanged", function(self)
         if onChange then onChange(self:GetText()) end
     end)
     return search
 end
 
--- Use Blizzard's actual dropdown where the Classic client exposes its API.
--- The fallback below preserves the original clickable selector on reduced clients.
-function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width)
-    if type(UIDropDownMenu_Initialize) ~= "function"
+local function createModernDropdown(parent, keys, onSelect, width, getSelection, labels)
+    if type(MenuUtil) ~= "table" then return end
+    local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, parent, "WowStyle1DropdownTemplate")
+    if not ok or not dropdown or not dropdown.SetupMenu or not dropdown.IsMenuOpen
+        or not dropdown.CloseMenu then return end
+    dropdown:SetWidth(width)
+    local function isSelected(key) return getSelection() == key end
+    dropdown:SetupMenu(function(_, root)
+        for _, key in ipairs(keys) do
+            local label = labels[key]
+            if label then
+                if getSelection then
+                    root:CreateRadio(label, isSelected, onSelect, key)
+                else
+                    root:CreateButton(label, onSelect, key)
+                end
+            end
+        end
+    end)
+    local popup = {
+        IsShown = function() return dropdown:IsMenuOpen() end,
+        Hide = function() if dropdown:IsMenuOpen() then dropdown:CloseMenu() end end,
+    }
+    return dropdown, popup
+end
+
+function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width, getSelection)
+    local labels, choices = {}, {}
+    for _, key in ipairs(keys) do
+        local entry = {}
+        function entry:SetText(value) labels[key] = value end
+        choices[key] = entry
+    end
+    local modern, modernPopup = createModernDropdown(parent, keys, onSelect, width, getSelection, labels)
+    if modern then return modern, modernPopup, choices end
+
+    -- New Forever clients dismiss legacy lists without consuming Escape. If the
+    -- modern template is unavailable there, use an owned fallback popup instead.
+    if type(GameMenuEscPriority) == "table"
+        or type(UIDropDownMenu_Initialize) ~= "function"
         or type(UIDropDownMenu_CreateInfo) ~= "function"
         or type(UIDropDownMenu_AddButton) ~= "function"
         or type(UIDropDownMenu_SetWidth) ~= "function"
@@ -350,43 +414,57 @@ function ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width)
     end
     local ok, dropdown = pcall(CreateFrame, "Frame", nil, parent, "UIDropDownMenuTemplate")
     if not ok or not dropdown then return nil end
-    local labels, choices = {}, {}
-    for _, key in ipairs(keys) do
-        local entry = {}
-        function entry:SetText(value) labels[key] = value end
-        choices[key] = entry
-    end
     dropdown.SetText = function(self, value)
         UIDropDownMenu_SetText(self, value or "")
+    end
+    local function isOpen()
+        local list = DropDownList1
+        if list and type(list.IsShown) == "function" then
+            return list:IsShown() and (list.dropdown or UIDROPDOWNMENU_OPEN_MENU) == dropdown
+        end
+        return UIDROPDOWNMENU_OPEN_MENU == dropdown
+    end
+    local function closeMenu()
+        if not isOpen() then return end
+        if type(CloseDropDownMenus) == "function" then
+            CloseDropDownMenus()
+        elseif DropDownList1 then
+            DropDownList1:Hide()
+        end
     end
     UIDropDownMenu_SetWidth(dropdown, width)
     UIDropDownMenu_Initialize(dropdown, function(_, level)
         if level and level ~= 1 then return end
+        local selected = getSelection and getSelection()
         for _, key in ipairs(keys) do
             local info = UIDropDownMenu_CreateInfo()
             info.text = labels[key] or key
+            info.value = key
+            info.notCheckable = getSelection == nil
+            info.checked = selected == key
             info.func = function()
-                if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
+                closeMenu()
                 if onSelect then onSelect(key) end
             end
             UIDropDownMenu_AddButton(info, level)
         end
     end)
-    local popup = {
-        Hide = function()
-            if type(CloseDropDownMenus) == "function" then CloseDropDownMenus() end
-        end,
-    }
-    return dropdown, popup, choices
+    return dropdown, {IsShown = isOpen, Hide = closeMenu}, choices
 end
 
 local languageOptions = {"auto", "esES", "enUS"}
 local languageLabels = {auto = "AUTO", esES = "SPANISH", enUS = "ENGLISH"}
 
-function ns.CreateExplorerLanguageSelector(parent)
-    local button, menu, choices = ns.CreateExplorerNativeDropdown(parent, languageOptions, ns.SetLanguage, 108)
+function ns.CreateAddonLanguageSelector(parent)
+    local button, menu, choices = ns.CreateExplorerNativeDropdown(parent, languageOptions,
+        ns.SetLanguage, 120, ns.GetLanguage)
+    local markers
     if button then
-        button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 5, 2)
+        if button.SetupMenu then
+            button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -15, 5)
+        else
+            button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 5, 2)
+        end
     else
         button = ns.CreateExplorerClassicButton(parent)
         button:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -10, 3)
@@ -402,6 +480,7 @@ function ns.CreateExplorerLanguageSelector(parent)
         background:SetColorTexture(0.09, 0.08, 0.06, 0.98)
         menu:Hide()
         choices = {}
+        markers = {}
         button:SetScript("OnClick", function()
             if menu:IsShown() then menu:Hide() else menu:Show() end
         end)
@@ -409,6 +488,11 @@ function ns.CreateExplorerLanguageSelector(parent)
             local choice = ns.CreateExplorerClassicButton(menu)
             choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 3, -3 - (index - 1) * 30)
             choice:SetSize(118, 28)
+            local check = choice:CreateTexture(nil, "OVERLAY")
+            check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
+            check:SetSize(15, 15)
+            check:SetPoint("LEFT", choice, "LEFT", 5, 0)
+            markers[value] = check
             choice:SetScript("OnClick", function()
                 menu:Hide()
                 ns.SetLanguage(value)
@@ -423,30 +507,39 @@ function ns.CreateExplorerLanguageSelector(parent)
             local current = ns.GetLanguage()
             button:SetText(ns.L(languageLabels[current]))
             for _, value in ipairs(languageOptions) do
-                choices[value]:SetText((current == value and "> " or "   ") .. ns.L(languageLabels[value]))
+                choices[value]:SetText(ns.L(languageLabels[value]))
+                if markers then
+                    if current == value then markers[value]:Show() else markers[value]:Hide() end
+                end
             end
         end,
     }
 end
 
-function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
+function ns.CreateExplorerProfessionFilter(parent, onSelect, getSelection, popupName)
     local keys = {""}
     for _, key in ipairs(ns.professionOrder or {}) do keys[#keys + 1] = key end
+    local width = math.min(225, parent:GetWidth() - 20)
     local native, nativeMenu, nativeChoices =
-        ns.CreateExplorerNativeDropdown(parent, keys, onSelect, 215)
+        ns.CreateExplorerNativeDropdown(parent, keys, onSelect, width, getSelection)
     if native then
-        native:SetPoint("TOPLEFT", anchor, "TOPLEFT", -1, -4)
+        if native.SetupMenu then
+            native:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -12)
+        else
+            UIDropDownMenu_SetWidth(native, width - 30)
+            native:SetPoint("TOPLEFT", parent, "TOPLEFT", -1, -4)
+        end
         return native, nativeMenu, nativeChoices
     end
     local button = ns.CreateExplorerClassicButton(parent)
-    button:SetPoint("TOPLEFT", anchor, "TOPLEFT", 8, -9)
-    button:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", -8, -9)
+    button:SetPoint("TOPLEFT", parent, "TOPLEFT", 8, -9)
+    button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -8, -9)
     button:SetHeight(28)
     ns.AddExplorerDropdownArrow(button)
-    local menu = CreateFrame("Frame", nil, parent)
-    menu:SetSize(225, (#(ns.professionOrder or {}) + 1) * 25 + 8)
+    local menu = CreateFrame("Frame", popupName, parent)
+    menu:SetSize(width, (#(ns.professionOrder or {}) + 1) * 25 + 8)
     menu:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -3)
-    menu:SetFrameLevel(anchor:GetFrameLevel() + 10)
+    menu:SetFrameLevel(parent:GetFrameLevel() + 10)
     local background = menu:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints()
     background:SetColorTexture(0.08, 0.08, 0.07, 0.99)
@@ -456,7 +549,7 @@ function ns.CreateExplorerProfessionFilter(parent, anchor, onSelect)
         local key = index == 0 and "" or ns.professionOrder[index]
         local choice = ns.CreateExplorerClassicButton(menu)
         choice:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -4 - index * 25)
-        choice:SetSize(217, 24)
+        choice:SetSize(width - 8, 24)
         choice:SetScript("OnClick", function()
             menu:Hide()
             if onSelect then onSelect(key) end

@@ -64,6 +64,11 @@ local function clearCursor()
     end
 end
 
+local function addGestureHint(gesture, action)
+    local label = "|cffc79a26" .. ns.L(gesture) .. ":|r "
+    GameTooltip:AddLine(label .. ns.L(action), 1, 1, 1)
+end
+
 local function createButton()
     if button or not Minimap then
         return button
@@ -80,7 +85,7 @@ local function createButton()
     button = CreateFrame("Button", "CraftAtlasMinimapButton", minimap)
     button:SetSize(buttonSize, buttonSize)
     button:SetFrameStrata("MEDIUM")
-    button:RegisterForClicks("LeftButtonUp")
+    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:RegisterForDrag("LeftButton")
 
     local icon = button:CreateTexture(nil, "ARTWORK")
@@ -107,6 +112,8 @@ local function createButton()
     button:SetScript("OnClick", function(_, mouseButton)
         if mouseButton == "LeftButton" and not dragged and ns.OpenSettings then
             ns.OpenSettings()
+        elseif mouseButton == "RightButton" and ns.OpenAddonOptions then
+            ns.OpenAddonOptions()
         end
     end)
     button:SetScript("OnDragStart", function(self)
@@ -126,8 +133,9 @@ local function createButton()
             and GameTooltip.AddLine and GameTooltip.Show then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetText(ns.L("TITLE"))
-            GameTooltip:AddLine(ns.L("MINIMAP_OPEN"), 1, 1, 1)
-            GameTooltip:AddLine(ns.L("MINIMAP_MOVE"), 1, 1, 1)
+            addGestureHint("MINIMAP_LEFT_CLICK", "MINIMAP_OPEN")
+            addGestureHint("MINIMAP_DRAG", "MINIMAP_MOVE")
+            addGestureHint("MINIMAP_RIGHT_CLICK", "MINIMAP_OPTIONS")
             GameTooltip:Show()
         end
     end)

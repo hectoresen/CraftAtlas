@@ -1,14 +1,15 @@
-local frames, menuItems, locale
+local frames, menuItems, locale, escapeHandlers, minimalTabs
 local function newWidget(kind, name, parent, template)
     local widget = {kind = kind, name = name, parent = parent, template = template,
         text = "", shown = true, enabled = true, scripts = {}, hooks = {}, anchors = {}}
     frames[#frames + 1] = widget
+    if name then _G[name] = widget end
     for _, method in ipairs({
         "EnableMouse", "EnableMouseWheel", "Raise", "RegisterEvent", "UnregisterEvent",
         "RegisterForDrag", "RegisterForClicks", "SetAllPoints", "SetAutoFocus", "SetBackdrop",
-        "SetBackdropBorderColor", "SetBackdropColor", "SetColorTexture", "SetFrameStrata",
+        "SetBackdropBorderColor", "SetBackdropColor", "SetColorTexture", "SetVertexColor",
         "SetHighlightTexture", "SetJustifyH", "SetMaxLetters", "SetMinMaxValues", "SetMovable",
-        "SetStatusBarColor", "SetStatusBarTexture", "SetTexCoord", "SetTextColor", "SetTexture",
+        "SetStatusBarColor", "SetStatusBarTexture", "SetTexCoord", "SetTextColor",
         "SetValueStep", "SetWordWrap", "SetTextInsets",
     }) do
         widget[method] = function() end
@@ -44,6 +45,21 @@ local function newWidget(kind, name, parent, template)
     function widget:SetScale(value) self.scale = value end
     function widget:GetParent() return self.parent end
     function widget:SetParent(value) self.parent = value end
+    function widget:GetChildren()
+        local children = {}
+        for _, candidate in ipairs(frames) do
+            if candidate.parent == self and candidate.kind ~= "Texture" and candidate.kind ~= "FontString" then
+                children[#children + 1] = candidate
+            end
+        end
+        return unpack(children)
+    end
+    function widget:SetFrameStrata(value) self.strata = value end
+    function widget:GetFrameStrata()
+        return self.strata or (template == "UIPanelScrollBarTemplate" and "TOOLTIP")
+            or (self.parent and self.parent:GetFrameStrata()) or "MEDIUM"
+    end
+    function widget:SetClipsChildren(value) self.clipsChildren = value end
     function widget:SetFrameLevel(value) self.level = value end
     function widget:GetFrameLevel() return self.level or (parent and parent:GetFrameLevel() + 1) or 1 end
     function widget:SetPoint(...) self.anchors[#self.anchors + 1] = {...} end
@@ -52,7 +68,10 @@ local function newWidget(kind, name, parent, template)
         self.text = value
         if kind == "EditBox" then self:Emit("OnTextChanged") end
     end
+    function widget:SetTexture(value) self.texture = value end
+    function widget:SetAtlas(value) self.atlas = value end
     function widget:GetText() return self.text end
+    function widget:GetStringWidth() return #self.text * 7 end
     function widget:SetValue(value) self.value = value end
     function widget:SetEnabled(value) self.enabled = value end
     function widget:SetAlpha(value) self.alpha = value end
@@ -62,10 +81,27 @@ local function newWidget(kind, name, parent, template)
     function widget:UnlockHighlight() self.selected = false end
     function widget:SetFocus() self.focus = true end
     function widget:ClearFocus() self.focus = false end
+    if kind == "DropdownButton" then
+        function widget:SetupMenu(build) self.buildModernMenu = build end
+        function widget:IsMenuOpen() return self.menuOpen end
+        function widget:CloseMenu() self.menuOpen = false end
+    end
+    if template == "MinimalTabTemplate" then
+        widget.Text = widget:CreateFontString()
+        function widget:SetSelected(value) self.selected = value end
+    end
+    if template == "SettingsFrameTemplate" then
+        widget.NineSlice = newWidget("Frame", nil, widget)
+        widget.NineSlice.Text = widget.NineSlice:CreateFontString()
+        widget.ClosePanelButton = newWidget("Button", nil, widget)
+    end
     return widget
 end
 
-CreateFrame = newWidget
+CreateFrame = function(kind, name, parent, template)
+    if template == "MinimalTabTemplate" and not minimalTabs then error("template unavailable") end
+    return newWidget(kind, name, parent, template)
+end
 GetLocale = function() return locale end
 GetItemInfo = function(id)
     if id == 2770 then return "Copper Ore" end
@@ -73,18 +109,51 @@ end
 Enum = {TooltipDataType = {Item = 0}}
 TooltipDataProcessor = {AddTooltipPostCall = function() end}
 
+local function registerNativeEscape(priority, handler)
+    escapeHandlers[#escapeHandlers + 1] = {priority = priority, handler = handler}
+    table.sort(escapeHandlers, function(left, right) return left.priority < right.priority end)
+end
+
 local function start(native, optionsAPI)
     frames = {}
+    escapeHandlers = {}
+    local modern = native == "forever"
+    minimalTabs = modern
+    local nativeEscape = modern or native == "forever-fallback"
+    UISpecialFrames, UIMenus = {}, {}
+    CraftAtlasSettingsFrame, CraftAtlasExplorerEscapeFrame = nil, nil
+    CraftAtlasProfessionPopup = nil
     UIParent = newWidget("Frame")
     UIParent:SetSize(430, 340)
     Minimap = newWidget("Frame", "Minimap", UIParent)
     Minimap:SetSize(140, 140)
-    UIDropDownMenu_Initialize = native and function(frame, build) frame.buildMenu = build end or nil
+    UIDropDownMenu_Initialize = native and not modern and function(frame, build) frame.buildMenu = build end or nil
     UIDropDownMenu_CreateInfo = function() return {} end
     UIDropDownMenu_AddButton = function(info) menuItems[#menuItems + 1] = info end
     UIDropDownMenu_SetWidth = function() end
     UIDropDownMenu_SetText = function(frame, value) frame.text = value end
-    CloseDropDownMenus = function() end
+    DropDownList1 = nil
+    if native == true then
+        DropDownList1 = newWidget("Frame", "DropDownList1", UIParent)
+        DropDownList1:Hide()
+        UIMenus[1] = "DropDownList1"
+    end
+    CloseDropDownMenus = function() if DropDownList1 then DropDownList1:Hide() end end
+    MenuUtil = modern and {} or nil
+    GameMenuEscPriority = nativeEscape and {Dialog = 1, Menu = 2, AddOn = 8} or nil
+    RegisterGameMenuEscHandler = nativeEscape and function()
+        error("CraftAtlas must not register a handler in the game's Escape dispatcher")
+    end or nil
+    if modern then
+        registerNativeEscape(GameMenuEscPriority.Menu, function()
+            for _, widget in ipairs(frames) do
+                if widget.kind == "DropdownButton" and widget:IsMenuOpen() then
+                    widget:CloseMenu()
+                    return true
+                end
+            end
+        end)
+    end
     local registry = {canvases = 0, categories = {}}
     Settings = nil
     if optionsAPI then
@@ -93,12 +162,20 @@ local function start(native, optionsAPI)
                 "register only after preferences are ready")
             assert(not panel:IsShown() and panel:GetParent() == nil)
             registry.canvases = registry.canvases + 1
-            return {panel = panel, name = name}
+            return {panel = panel, name = name, GetID = function() return 17 end}
         end }
         if optionsAPI == "available" then
             Settings.RegisterAddOnCategory = function(category)
                 assert(not registry.categories[category.name])
                 registry.categories[category.name] = category
+            end
+            Settings.OpenToCategory = function(id)
+                local category = assert(registry.categories.CraftAtlas)
+                assert(id == category:GetID())
+                registry.openedID = id
+                local panel = category.panel
+                if not panel:GetParent() then panel:SetParent(newWidget("Frame", "SettingsCanvas", UIParent)) end
+                panel:Show()
             end
         end
     end
@@ -118,7 +195,8 @@ end
 
 local function visibleText(text, kind)
     return find(function(widget)
-        return widget.text == text and (not kind or widget.kind == kind) and widget:IsVisible()
+        local label = widget.Text and widget.Text.text or widget.text
+        return label == text and (not kind or widget.kind == kind) and widget:IsVisible()
     end)
 end
 
@@ -141,27 +219,92 @@ end
 local function findSelector(current, root)
     return find(function(widget)
         return widget.text == current and widget:IsVisible()
-            and (widget.buildMenu or widget.dropdownArrow) and inside(widget, root)
+            and (widget.buildModernMenu or widget.buildMenu or widget.dropdownArrow) and inside(widget, root)
     end)
 end
 
-local function choose(current, option, root)
+local function openDropdown(current, root)
     local selector = assert(findSelector(current, root), current)
+    if selector.buildModernMenu then
+        local items = {}
+        local function addItem(_, label, onSelect, key, checked)
+            items[#items + 1] = {text = label, checked = checked, func = function()
+                onSelect(key)
+                selector:CloseMenu()
+            end}
+        end
+        selector.buildModernMenu(selector, {CreateButton = addItem,
+            CreateRadio = function(menu, label, isSelected, onSelect, key)
+                addItem(menu, label, onSelect, key, isSelected(key))
+            end})
+        selector.menuOpen = true
+        return {IsShown = function() return selector:IsMenuOpen() end,
+            Hide = function() selector:CloseMenu() end}, items
+    end
     if selector.buildMenu then
         menuItems = {}
         selector.buildMenu(selector, 1)
-        for _, info in ipairs(menuItems) do
-            if info.text:match("^%s*(.-)%s*$") == option then info.func(); return end
-        end
-        error("missing native option: " .. option)
+        DropDownList1.dropdown = selector
+        DropDownList1:Show()
+        return DropDownList1, menuItems
     end
     selector:Click()
-    local choice = assert(find(function(widget)
-        return widget.kind == "Button" and widget:IsVisible() and widget.parent
-            and widget.parent.anchors[1] and widget.parent.anchors[1][2] == selector
-            and widget.text:match("^%s*(.-)%s*$") == option
-    end), option)
-    choice:Click()
+    local popup = assert(find(function(widget)
+        return widget.kind == "Frame" and widget:IsVisible()
+            and widget.anchors[1] and widget.anchors[1][2] == selector
+    end), current)
+    local items = {}
+    for _, widget in ipairs(frames) do
+        if widget.kind == "Button" and widget.parent == popup and widget:IsVisible() then
+            local check = find(function(marker)
+                return marker.parent == widget and marker.texture == "Interface\\Buttons\\UI-CheckBox-Check"
+            end)
+            items[#items + 1] = {text = widget.text, checked = check and check:IsShown(),
+                func = function() widget:Click() end}
+        end
+    end
+    return popup, items
+end
+
+local function pressEscape(search)
+    if search and search.focus then
+        search:Emit("OnEscapePressed")
+        return true
+    end
+    if RegisterGameMenuEscHandler then
+        for _, entry in ipairs(escapeHandlers) do
+            if entry.handler() then return true end
+        end
+    end
+    for _, registry in ipairs({UIMenus, UISpecialFrames}) do
+        local handled = false
+        for _, name in ipairs(registry) do
+            local widget = _G[name]
+            if widget and widget:IsShown() then
+                widget:Hide()
+                handled = true
+            end
+        end
+        if handled then return true end
+    end
+    return false
+end
+
+local function choose(current, option, root)
+    local _, items = openDropdown(current, root)
+    for _, info in ipairs(items) do
+        if info.text == option then info.func(); return end
+    end
+    error("missing option: " .. option)
+end
+
+local function checkLanguage(current, root)
+    local popup, items = openDropdown(current, root)
+    assert(#items == 3, "all language choices are available")
+    for _, info in ipairs(items) do
+        assert(not not info.checked == (info.text == current), "selected marker: " .. info.text)
+    end
+    popup:Hide()
 end
 
 local function checkbox(label)
@@ -198,6 +341,7 @@ assert(ns.GetDisplayPreference("showTooltipProfessions") == false)
 
 ns, registry = start(true, "incomplete")
 assert(not ns.InitAddonOptions() and registry.canvases == 0, "partial Settings API skips the canvas")
+assert(not ns.OpenAddonOptions(), "missing native open API leaves the current UI intact")
 SlashCmdList.CRAFTATLAS("")
 assert(named("CraftAtlasSettingsFrame"):IsVisible(), "explorer works without native registration")
 
@@ -213,14 +357,17 @@ local function explorerExists()
     return find(function(widget) return widget.name == "CraftAtlasSettingsFrame" end)
 end
 
-for _, nativeDropdown in ipairs({true, false}) do
+for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
     locale = "frFR"
     CraftAtlasDB = {minimapAngle = -90}
     ns, registry = start(nativeDropdown, "available")
     assert(ns.InitAddonOptions() and registry.canvases == 1 and not explorerExists())
     local minimap = named("CraftAtlasMinimapButton")
-    local options = openOptions(registry)
+    minimap:Emit("OnClick", "RightButton")
+    local options = registry.categories.CraftAtlas.panel
+    assert(registry.openedID == 17 and options:IsVisible())
     assert(not explorerExists() and visibleText("General") and visibleText("Tooltip"))
+    checkLanguage("Automatic", options)
     assert(checkbox("Show minimap button"):GetChecked())
     checkbox("Show minimap button"):Click()
     assert(not minimap:IsVisible())
@@ -244,7 +391,7 @@ for _, nativeDropdown in ipairs({true, false}) do
     SlashCmdList.CRAFTATLAS("")
     local window = named("CraftAtlasSettingsFrame")
     local search = assert(find(function(widget) return widget.kind == "EditBox" end))
-    assert(findSelector("Español", window) and not visibleText("Configuración", "Button"))
+    assert(not findSelector("Español", window) and not visibleText("Configuración", "Button"))
     search:SetText("2770")
     choose("Todas las profesiones", "Minería", window)
     assert(visibleText("Copper Ore", "FontString"))
@@ -266,11 +413,14 @@ for _, nativeDropdown in ipairs({true, false}) do
     assert(search.text == "2770" and visibleText("Materiales", "Button").selected)
     assert(findSelector("Minería", window) and not visibleText("Volver", "Button"))
 
-    choose("Español", "Automático", window)
     openOptions(registry)
+    choose("Español", "Automático", options)
     assert(findSelector("Automatic", options) and visibleText("Tooltip"), "Auto falls back to English")
+    checkLanguage("Automatic", options)
     choose("Automatic", "Español", options)
-    assert(findSelector("Español", window), "an already open explorer refreshes too")
+    assert(visibleText("Materiales", "Button").selected and search.text == "2770",
+        "an open explorer refreshes its labels and maintains search state")
+    assert(not findSelector("Español", window), "language remains in native options")
     options:Hide()
 
     ns, registry = start(nativeDropdown, "available")
@@ -278,6 +428,7 @@ for _, nativeDropdown in ipairs({true, false}) do
     assert(not restored:IsVisible(), "minimap visibility survives reload")
     options = openOptions(registry)
     assert(not explorerExists() and findSelector("Español", options))
+    checkLanguage("Español", options)
     assert(not checkbox("Mostrar las profesiones que usan el material"):GetChecked())
     local savedIcons = checkbox("Ocultar iconos de profesión")
     local savedSingle = checkbox("Mostrar profesiones en una sola línea")
@@ -296,6 +447,90 @@ for _, nativeDropdown in ipairs({true, false}) do
     options:Hide()
     restored:Click()
     assert(named("CraftAtlasSettingsFrame"):IsVisible() and visibleText("Materiales", "Button").selected)
+end
+
+for _, mode in ipairs({true, false, "forever", "forever-fallback"}) do
+    locale, CraftAtlasDB = "enUS", nil
+    start(mode, "available")
+    SlashCmdList.CRAFTATLAS("")
+    local window = named("CraftAtlasSettingsFrame")
+    local search = assert(find(function(widget) return widget.kind == "EditBox" end))
+    click("Craftables")
+    local tab = assert(visibleText("Craftables", "Button"))
+    assert(tab.selected and tab:GetHeight() == 37)
+    local materials = assert(visibleText("Materials", "Button"))
+    assert(search.anchors[1][5] == materials.anchors[1][5] + materials:GetHeight() / 2,
+        "search and tabs share the same toolbar center")
+    assert(find(function(widget) return widget.atlas == "Options_InnerFrame" and inside(widget, window) end))
+    assert(find(function(widget)
+        return widget.atlas == "Options_CategoryHeader_1" and widget:IsVisible() and inside(widget, window)
+    end), "detail sections use the native recessed header")
+    if mode == "forever" then
+        assert(tab.template == "MinimalTabTemplate" and tab:GetWidth() == tab.Text:GetStringWidth() + 40)
+    end
+    assert(window.template == "SettingsFrameTemplate" and window.CloseButton == window.ClosePanelButton)
+    assert(window.NineSlice.Text.text == "CraftAtlas", "native title is reused")
+    assert(search.searchIcon.atlas == "common-search-magnifyingglass")
+    local scrollbar = assert(find(function(widget) return widget.template == "UIPanelScrollBarTemplate" end))
+    local list = scrollbar:GetParent()
+    assert(list.clipsChildren and inside(list, window))
+    local buffs = newWidget("Frame", nil, UIParent)
+    buffs:SetFrameStrata("LOW")
+    local options = newWidget("Frame", nil, UIParent)
+    options:SetFrameStrata("HIGH")
+    local tooltip = newWidget("Frame", nil, UIParent)
+    tooltip:SetFrameStrata("TOOLTIP")
+    local strata = {LOW = 1, MEDIUM = 2, HIGH = 3, DIALOG = 4, TOOLTIP = 5}
+    for _, widget in ipairs(frames) do
+        if inside(widget, window) and widget:IsVisible() then
+            assert(widget:GetFrameStrata() == "DIALOG", "every control shares the window layer")
+        end
+    end
+    local windowStrata = strata[window:GetFrameStrata()]
+    assert(windowStrata > strata[buffs:GetFrameStrata()] and windowStrata > strata[options:GetFrameStrata()],
+        "the whole explorer covers buffs and ordinary panels")
+    assert(windowStrata < strata[tooltip:GetFrameStrata()], "native tooltips remain above the explorer")
+    for _, row in ipairs({list:GetChildren()}) do
+        assert(row:GetFrameStrata() == window:GetFrameStrata())
+        assert(row == scrollbar or row.anchors[1][2] == list, "recycled rows are anchored to the clipped list")
+        if row.professions then
+            local bounds = row.professions.anchors
+            assert(bounds[1][1] == "BOTTOMLEFT" and bounds[2][1] == "BOTTOMRIGHT")
+            assert(bounds[1][5] > 0 and bounds[1][5] + row.professions:GetHeight() < row:GetHeight())
+        end
+    end
+
+    if RegisterGameMenuEscHandler then
+        local shown = true
+        registerNativeEscape(GameMenuEscPriority.Dialog, function()
+            if not shown then return false end
+            shown = false
+            return true
+        end)
+        assert(pressEscape() and not shown and window:IsShown(), "native dialogs retain Escape priority")
+    end
+    local registrationCount = #UISpecialFrames + #escapeHandlers
+    assert(#UISpecialFrames == 1 and UISpecialFrames[1] == "CraftAtlasExplorerEscapeFrame")
+    local professionPopup = openDropdown("All professions", window)
+    assert(pressEscape() and window:IsShown() and not professionPopup:IsShown())
+    search:SetText("19093")
+    search:SetFocus()
+    local filterPopup = openDropdown("All professions", window)
+    assert(pressEscape(search) and window:IsShown() and not filterPopup:IsShown())
+    assert(pressEscape(search) and not window:IsShown() and not search.focus)
+    assert(not pressEscape(), "a hidden explorer never consumes Escape")
+    SlashCmdList.CRAFTATLAS("")
+    assert(window:IsShown() and visibleText("Materials", "Button").selected)
+    assert(pressEscape() and not window:IsShown(), "unfocused Escape works through the special-frame registry")
+    assert(not pressEscape(), "the game can handle the next Escape without CraftAtlas")
+    SlashCmdList.CRAFTATLAS("")
+    assert(not findSelector("Automatic", window))
+    click("Craftables")
+    assert(search:GetText() == "19093", "Escape preserves the query across reopen")
+    local popup = openDropdown("All professions", window)
+    window.CloseButton:Click()
+    assert(not window:IsShown() and not popup:IsShown(), "X still closes with a popup open")
+    assert(#UISpecialFrames + #escapeHandlers == registrationCount, "only one explorer Escape registration")
 end
 
 print("Native AddOns panel registration, shared language, explorer state and preferences PASS")

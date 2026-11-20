@@ -17,9 +17,18 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Native explorer controls
+
+- Close the explorer with Escape through the native special-window path, including from its search field. Escape dismisses an open dropdown first, and the top-right X uses the same window cleanup.
+- Use an Options-inspired native frame with a translucent body, a results sidebar and a wider detail pane. Keep the explorer and its controls together on one layer above the HUD.
+- Use the same native tabs as the game options and keep Craftables profession labels inside the row highlight.
+- Align search with the tabs and use recessed native artwork for the inset and section headings. Center catalog preparation progress in the footer.
+- Keep language selection in the AddOn settings, with the saved choice marked. Open the CraftAtlas options directly with a minimap right-click.
+- Highlight the minimap gestures in dark gold in left-click, drag and right-click order.
+
 ### Native addon options
 
-- Added General and Tooltip under the game's **Options → AddOns → CraftAtlas**. The options page shares the explorer's language preference and can restore the minimap button at its saved position.
+- Added General and Tooltip under the game's **Options → AddOns → CraftAtlas**. The options page can restore the minimap button at its saved position.
 - Added account preferences for annotation visibility, profession icons and comma-separated tooltip layout. Existing installations retain their language, minimap angle and default appearance.
 
 ### Global Fabricables tracking mode (merged; owner-observed behavior)

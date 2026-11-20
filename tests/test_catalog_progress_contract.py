@@ -1,4 +1,4 @@
-"""Contracts for catalog preparation, cache invalidation and native header placement."""
+"""Contracts for catalog preparation, cache invalidation and native footer placement."""
 import unittest
 from pathlib import Path
 
@@ -41,17 +41,16 @@ class CatalogPreparationContracts(unittest.TestCase):
         self.assertIn("cache.query == searchQuery", settings)
         self.assertIn("cache.profession == selectedProfession", settings)
 
-    def test_header_uses_native_progress_with_locales(self):
+    def test_footer_uses_native_progress_with_locales(self):
         settings = source("Features/Settings/Settings.lua")
         widgets = source("Features/Settings/Shared/ExplorerWidgets.lua")
         locale = source("Localization/Locales.lua")
         toc = source("CraftAtlas.toc")
-        self.assertIn("CreateExplorerCatalogProgress(panel, recipesTab, back)", settings)
+        self.assertIn("CreateExplorerCatalogProgress(panel)", settings)
         self.assertIn('title:SetPoint("CENTER", header, "CENTER", 0, 0)', settings)
         self.assertIn('local bar = CreateFrame("StatusBar", nil, holder)', widgets)
-        self.assertIn('holder:SetPoint("LEFT", recipesTab, "RIGHT", 12, 0)', widgets)
-        self.assertIn('holder:SetPoint("RIGHT", back, "LEFT", -12, 0)', widgets)
-        self.assertIn('holder:SetHeight(24)', widgets)
+        self.assertIn('holder:SetPoint("BOTTOM", panel, "BOTTOM", 0, 8)', widgets)
+        self.assertIn('holder:SetSize(trackWidth, 24)', widgets)
         self.assertIn('local trackWidth = math.max(130, math.min(252, width - 430))', widgets)
         self.assertIn('bar:SetSize(trackWidth, 6)', widgets)
         self.assertIn('bar:SetPoint("BOTTOM", holder, "BOTTOM", 0, 0)', widgets)

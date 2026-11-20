@@ -15,7 +15,7 @@ function ns.CreatePreferencesPanel()
     local languageSlot = CreateFrame("Frame", nil, panel)
     languageSlot:SetSize(148, 32)
     languageSlot:SetPoint("TOPLEFT", panel, "TOPLEFT", 112, -45)
-    local language = ns.CreateExplorerLanguageSelector(languageSlot)
+    local language = ns.CreateAddonLanguageSelector(languageSlot)
     local tooltip = addLabel(panel, "GameFontNormalLarge", 24, -130)
 
     local boxes = {}
