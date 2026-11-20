@@ -10,7 +10,7 @@ local function font(parent, style)
 end
 
 local function clearHover()
-    if ns.HideRecipeTooltip then ns.HideRecipeTooltip() end
+    ns.HideExplorerTooltip(state.grid)
 end
 
 local function rowTitle(use, info)
@@ -78,10 +78,6 @@ function ns.RefreshRecipePanel(itemID)
     renderPage()
 end
 
-function ns.HideRecipePanelTooltip()
-    clearHover()
-end
-
 function ns.InitRecipePanel(parent, availableHeight)
     if state.grid then return end
     local headingY, listY = ns.MaterialDetailSectionOffsets(availableHeight)
@@ -119,7 +115,7 @@ function ns.InitRecipePanel(parent, availableHeight)
             if use.outputItemID and ns.ShowOutputTooltip(self, use.outputItemID) then return end
             ns.ShowRecipeTooltip(self, use)
         end)
-        row:SetScript("OnLeave", clearHover)
+        row:SetScript("OnLeave", ns.HideExplorerTooltip)
         state.rows[index] = row
     end
 

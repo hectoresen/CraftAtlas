@@ -24,6 +24,18 @@ function ns.InitAddonOptions()
     return true
 end
 
+function ns.OpenAddonOptions()
+    local settings = Settings
+    if type(settings) ~= "table" or type(settings.OpenToCategory) ~= "function"
+        or not ns.InitAddonOptions() or type(category.GetID) ~= "function" then
+        return false
+    end
+
+    local ok, id = pcall(category.GetID, category)
+    if not ok or id == nil then return false end
+    return pcall(settings.OpenToCategory, id)
+end
+
 function ns.RefreshAddonOptions()
     if panel and panel:IsVisible() then panel:Refresh() end
 end

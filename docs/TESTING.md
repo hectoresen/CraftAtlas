@@ -14,7 +14,29 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 **Interpretation:** `NOT RUN` in an older PR implementation environment means that particular command or client scenario was not executed **there**, not that the feature never merged or that subsequent GitHub CI never ran. A screenshot confirms only the specific state it depicts. Source merged ≠ final visual acceptance ≠ full live-catalog verification. Keep those categories separate; do not reopen source implementation tasks simply because client evidence is incomplete.
 
+## Native explorer controls
+
+Implementation for `upd004-native-explorer-ui`, approved in [spec PR #70](https://github.com/hectoresen/CraftAtlas/pull/70). User-supplied Forever screenshots showed the explorer leaking controls over the Dungeon Journal, a protected-action warning after pressing Escape, and HUD buffs drawn over the explorer after its stratum was lowered. The revised code places the whole explorer on `DIALOG` and uses the special-window registry for Escape. [Forever UI source](https://github.com/Gethe/wow-ui-source/tree/3d8abb1da73acd38e412e24fb3f99454a6392346/Interface/AddOns)
+
+**Offline PASS.** Lua 5.1 via Lupa parsed 54 files and executed all 24 isolated fixtures. The addon configuration fixture covers native tab and inset artwork, toolbar alignment, bounded profession labels, options-only language selection, Escape and the registered minimap right-click destination. The minimap fixture checks dark-gold gesture labels and their order in both locales. The catalog fixture checks the footer progress placement. The 142 Python tests, `bash scripts/validate_release_checks.sh`, and `openspec validate --all --strict --no-interactive` (34 items) passed.
+
+**Partial visual evidence from sebasgrios.** Five English-language Forever captures show the Materials and Craftables layouts, the selected Craftables row with the profession label inside the highlight and preparation progress in the footer, the minimap tooltip's three gold gesture labels in order, the AddOns options with Automatic selected, and a bag tooltip with the Leatherworking annotation. The client build and UI scale are unrecorded.
+
+**Full Forever client acceptance: NOT RUN.** The captures do not establish Escape behavior, overlap and input priority, how the options window was opened, or persistence. Record the exact client build, locales, UI scales and outcomes for each scenario.
+
+| Scenario | Forever result |
+| --- | --- |
+| Close both views with Escape and X, with search focus and with a dropdown open. Then open and close the game menu with Escape and check for a protected-action warning. | **NOT RUN** |
+| Move the explorer over HUD buffs and overlap it with an ordinary game panel such as Options. Verify the window and its controls cover the overlap together, and move the pointer across it to check input. Confirm native dropdowns and tooltips remain usable. | **NOT RUN** |
+| Compare the inset and section depth with native Options. Verify the search alignment, the footer progress, and the Craftables profession subtitle at standard and compact scales. | **NOT RUN** |
+| Verify the three minimap tooltip gestures in left-click, drag and right-click order, with dark-gold labels in enUS/esES. Then right-click to open the CraftAtlas category, and verify the language choice and labels after `/reload`. | **NOT RUN** |
+| Exercise Materials and Craftables search, cross-navigation and Back, native item tooltips and links, tracking and bank state, and minimap and AddOn options. | **NOT RUN** |
+
+Archive readiness is blocked pending the Forever client matrix.
+
 ## Native addon options
+
+This section records the earlier options implementation from spec #66. See [Native explorer controls](#native-explorer-controls) for the options-only language selector and minimap right-click shortcut.
 
 Spec [#66](https://github.com/hectoresen/CraftAtlas/pull/66) was owner-approved and merged before this implementation. `tests/test_addon_configuration.lua` exercises native category registration, repeated initialization, missing APIs, both language dropdown implementations, preserved explorer state and Back history, account defaults, disabled controls, reload and minimap recovery from native options. `tests/test_material_tooltips.lua` covers both layouts with and without icons, annotation visibility, localized order, unknown items, missing icons and repeat callbacks and rebuilds.
 

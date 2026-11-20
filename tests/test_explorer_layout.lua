@@ -2,12 +2,11 @@
 local ns = {}
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas", ns)
 
--- Tabbed CraftAtlas shell: full 510px window can show seven results.
-assert(ns.ExplorerVisibleRowCount(510, 34) == 7)
-assert(ns.ExplorerVisibleRowCount(475, 34) == 6)
-assert(ns.ExplorerVisibleRowCount(430, 34) == 5)
-assert(ns.ExplorerVisibleRowCount(340, 34) == 2)
-assert(ns.ExplorerVisibleRowCount(800, 34) == 9)
+assert(ns.ExplorerVisibleRowCount(305, 34) == 8)
+assert(ns.ExplorerVisibleRowCount(237, 34) == 6)
+assert(ns.ExplorerVisibleRowCount(170, 34) == 5)
+assert(ns.ExplorerVisibleRowCount(34, 34) == 2)
+assert(ns.ExplorerVisibleRowCount(800, 34) == 11)
 
 -- Profession section starts at -92, its icon row ends at -153.
 -- The recipe section must begin below it and its rows below the gold divider.
@@ -22,10 +21,8 @@ for _, size in ipairs({{800,600}, {430,340}, {1024,768}, {600,500}}) do
     assert(width >= 600 and height >= 440 and scale > 0)
     assert(width * scale <= viewportWidth - 23)
     assert(height * scale <= viewportHeight - 23)
-    -- Search + broom + language share the lower toolbar with no horizontal collision.
-    local searchWidth = math.max(130, math.min(210, (width - 340) / 2))
-    assert(13 + searchWidth + 4 + 28 + 10 < width - 120 - 10,
-        "search and broom collide with language control")
+    local searchWidth = math.min(290, math.floor(width * 0.36))
+    assert(searchWidth + 24 <= width, "right-aligned search fits inside the upper toolbar")
 end
 -- A normal detail pane fits four icon/name pairs horizontally; compact keeps two.
 assert(ns.ExplorerProfessionPageSize(600)==4)

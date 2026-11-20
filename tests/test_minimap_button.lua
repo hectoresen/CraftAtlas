@@ -26,7 +26,9 @@ CreateFrame = function(kind, name, parent)
         SetFrameStrata = noOp,
         ClearAllPoints = noOp,
         Show = noOp,
-        RegisterForClicks = function(_, event) assert(event == "LeftButtonUp") end,
+        RegisterForClicks = function(_, left, right)
+            assert(left == "LeftButtonUp" and right == "RightButtonUp")
+        end,
         RegisterForDrag = function(_, button) assert(button == "LeftButton") end,
         SetScript = function(_, event, handler) scripts[event] = handler end,
         SetPoint = function(_, point, relative, relativePoint, x, y)
@@ -41,8 +43,9 @@ CreateFrame = function(kind, name, parent)
 end
 
 local function loadAddon()
-    local ns = { state = {}, opens = 0 }
+    local ns = { state = {}, opens = 0, optionsOpens = 0 }
     ns.OpenSettings = function() ns.opens = ns.opens + 1 end
+    ns.OpenAddonOptions = function() ns.optionsOpens = ns.optionsOpens + 1 end
     for _, path in ipairs({ "Localization/Locales.lua", "Infrastructure/Preferences.lua",
         "Infrastructure/MinimapButton.lua" }) do
         assert(loadfile("addon/CraftAtlas/" .. path))("CraftAtlas", ns)
@@ -76,13 +79,13 @@ expectAnchor(70 / math.sqrt(2), 70 / math.sqrt(2))
 assert(ns.InitMinimapButton() and framesCreated == 1, "initialization must reuse the button")
 assert(scripts.OnUpdate == nil and cursorReads == 0, "idle button must not sample the pointer")
 leftClick()
-assert(ns.opens == 1)
+assert(ns.opens == 1 and ns.optionsOpens == 0)
 emit("OnClick", "RightButton")
-assert(ns.opens == 1)
+assert(ns.opens == 1 and ns.optionsOpens == 1)
 
 for _, dragScale in ipairs({ 1, 0.5 }) do
     scale = dragScale
-    local opens, savedAngle = ns.opens, ns.GetMinimapAngle()
+    local opens, optionsOpens, savedAngle = ns.opens, ns.optionsOpens, ns.GetMinimapAngle()
     emit("OnMouseDown", "LeftButton")
     pointCursor(100, 0)
     emit("OnDragStart")
@@ -113,7 +116,8 @@ for _, dragScale in ipairs({ 1, 0.5 }) do
     if scale == 0.5 then
         emit("OnClick", "LeftButton")
     end
-    assert(ns.opens == opens, "drag release must not open the explorer")
+    assert(ns.opens == opens and ns.optionsOpens == optionsOpens,
+        "drag release must not open either screen")
     pointCursor(-300, 0)
     expectAnchor(releaseX, releaseY)
     leftClick()
@@ -149,23 +153,27 @@ GameTooltip = {
     Hide = function() visible = false end,
 }
 
-local function expectTooltip(open, move)
+local function expectTooltip(open, move, options)
     emit("OnEnter")
-    assert(visible and #lines == 3 and lines[1] == "CraftAtlas")
-    assert(lines[2] == open and lines[3] == move)
+    assert(visible and #lines == 4 and lines[1] == "CraftAtlas")
+    assert(lines[2] == open and lines[3] == move and lines[4] == options)
     emit("OnLeave")
     assert(not visible)
 end
 
 ns.SetLanguage("esES")
-expectTooltip("Click izq.: Abrir CraftAtlas", "Arrastrar: Mover icono")
+expectTooltip("|cffc79a26Clic izquierdo:|r Abrir CraftAtlas", "|cffc79a26Arrastrar:|r Mover icono",
+    "|cffc79a26Clic derecho:|r Abrir opciones del addon")
 ns.SetLanguage("enUS")
-expectTooltip("Left-click: Open CraftAtlas", "Drag: Move icon")
+expectTooltip("|cffc79a26Left-click:|r Open CraftAtlas", "|cffc79a26Drag:|r Move icon",
+    "|cffc79a26Right-click:|r Open addon options")
 ns.SetLanguage("auto")
 clientLocale = "esES"
-expectTooltip("Click izq.: Abrir CraftAtlas", "Arrastrar: Mover icono")
+expectTooltip("|cffc79a26Clic izquierdo:|r Abrir CraftAtlas", "|cffc79a26Arrastrar:|r Mover icono",
+    "|cffc79a26Clic derecho:|r Abrir opciones del addon")
 clientLocale = "frFR"
-expectTooltip("Left-click: Open CraftAtlas", "Drag: Move icon")
+expectTooltip("|cffc79a26Left-click:|r Open CraftAtlas", "|cffc79a26Drag:|r Move icon",
+    "|cffc79a26Right-click:|r Open addon options")
 GameTooltip = { SetOwner = function() error("incomplete tooltip should not be used") end }
 emit("OnEnter")
 emit("OnLeave")

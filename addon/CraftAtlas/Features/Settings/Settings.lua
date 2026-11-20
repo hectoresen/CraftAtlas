@@ -25,18 +25,26 @@ local viewState = {
 }
 local history = {}
 local switchView
-local ROW_HEIGHT = 38
+local ROW_HEIGHT = 34
 local VISIBLE_ROWS = 6
+local WINDOW_NAME = "CraftAtlasSettingsFrame"
+local ESCAPE_FRAME_NAME = "CraftAtlasExplorerEscapeFrame"
+local PROFESSION_POPUP = "CraftAtlasProfessionPopup"
+local CONTENT_TOP, CONTENT_BOTTOM = 68, 36
+local LIST_TOP, LIST_BOTTOM = 64, 18
+-- Keep the explorer above the HUD and ordinary panels, below native tooltips.
+local WINDOW_STRATA = "DIALOG"
+local TAB_HEIGHT = 37
 
 local function font(parent, fontName)
     return parent:CreateFontString(nil, "OVERLAY", fontName)
 end
 
-local function paint(parent, r, g, b, alpha)
+local function addPanelBackground(parent)
     local texture = parent:CreateTexture(nil, "BACKGROUND")
     texture:SetAllPoints()
-    texture:SetColorTexture(r, g, b, alpha)
-    return texture
+    texture:SetTexture("Interface\\Tooltips\\UI-Tooltip-Background")
+    texture:SetVertexColor(0.09, 0.09, 0.09, 0.96)
 end
 
 local function labelProfession(key)
@@ -142,7 +150,7 @@ local function showDetail()
     ui.detailIcon:Hide()
     if not valid then
         ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
-        ui.detailTitle:SetTextColor(1, 0.82, 0.30)
+        ui.detailTitle:SetTextColor(1, 1, 1)
         ui.detailMeta:SetText("")
         ui.detailID:SetText("")
         ui.professionUses.keys = {}
@@ -172,7 +180,7 @@ local function showDetail()
     if qualityColor and qualityColor.r and qualityColor.g and qualityColor.b then
         ui.detailTitle:SetTextColor(qualityColor.r, qualityColor.g, qualityColor.b)
     else
-        ui.detailTitle:SetTextColor(1, 0.82, 0.30)
+        ui.detailTitle:SetTextColor(1, 1, 1)
     end
     -- The profession section owns its localized heading; no legacy detailHeading frame.
     ui.professionUses.section:Refresh()
@@ -389,12 +397,12 @@ function ns.GetCatalogPerformanceSnapshot()
 end
 
 local function createProfessionMenu(left)
-    local button, menu, choices = ns.CreateExplorerProfessionFilter(panel, left, function(key)
+    local button, menu, choices = ns.CreateExplorerProfessionFilter(left, function(key)
         selectedProfession = key
         forcedSelection = false
         ui.professionButton:SetText(key == "" and ns.L("ALL_PROFESSIONS") or labelProfession(key))
         refreshResults(true)
-    end)
+    end, function() return selectedProfession end, PROFESSION_POPUP)
     ui.professionButton, ui.professionMenu, ui.professionChoices = button, menu, choices
 end
 
@@ -405,9 +413,13 @@ local function updateRowsAfterGroupToggle()
 end
 
 local function createRows(left)
+    local list = CreateFrame("Frame", nil, left)
+    list:SetPoint("TOPLEFT", left, "TOPLEFT", 4, -LIST_TOP)
+    list:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -2, LIST_BOTTOM)
+    if list.SetClipsChildren then list:SetClipsChildren(true) end
     ui.rows = {}
     for index = 1, VISIBLE_ROWS do
-        local row = ns.CreateExplorerRow(left, ROW_HEIGHT, function(self, button)
+        local row = ns.CreateExplorerRow(list, ROW_HEIGHT, function(self, button)
             if ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button) and self.itemID then
                 if currentView == "recipes" then
                     ns.InsertRecipeChatLink(ns.GetCatalogRecipe(self.itemID))
@@ -426,15 +438,15 @@ local function createRows(left)
             else selectedID = self.itemID end
             updateRows()
             showDetail()
-        end)
-        row:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -76 - (index - 1) * ROW_HEIGHT)
-        row:SetPoint("TOPRIGHT", left, "TOPRIGHT", -21, -76 - (index - 1) * ROW_HEIGHT)
+        end, true)
+        row:SetPoint("TOPLEFT", list, "TOPLEFT", 2, -(index - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPRIGHT", list, "TOPRIGHT", -19, -(index - 1) * ROW_HEIGHT)
         ui.rows[index] = row
     end
 
-    local scrollbar = CreateFrame("Slider", nil, left, "UIPanelScrollBarTemplate")
-    scrollbar:SetPoint("TOPRIGHT", left, "TOPRIGHT", -3, -76)
-    scrollbar:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -3, 18)
+    local scrollbar = CreateFrame("Slider", nil, list, "UIPanelScrollBarTemplate")
+    scrollbar:SetPoint("TOPRIGHT", list, "TOPRIGHT", -2, -18)
+    scrollbar:SetPoint("BOTTOMRIGHT", list, "BOTTOMRIGHT", -2, 18)
     scrollbar:SetWidth(16)
     scrollbar:SetMinMaxValues(0, 0)
     scrollbar:SetValueStep(1)
@@ -458,29 +470,72 @@ end
 -- WoW's standard close script can expect managed UIPanel registration.
 -- CraftAtlas is standalone: always hide its own frame explicitly.
 function ns.BindExplorerClose(window)
-    local close = window.CloseButton
+    local close = window.ClosePanelButton or window.CloseButton
     if not close then
         close = CreateFrame("Button", nil, window, "UIPanelCloseButton")
         close:SetPoint("TOPRIGHT", window, "TOPRIGHT", 0, 0)
-        window.CloseButton = close
     end
+    window.CloseButton = close
     close:SetScript("OnClick", function()
         window:Hide()
     end)
-    if close.SetFrameLevel and window.GetFrameLevel then
-        close:SetFrameLevel(window:GetFrameLevel() + 30)
-    end
-    if close.Raise then close:Raise() end
     close:Show()
     return close
 end
 
+local function registerFrameName(registry, name)
+    if type(registry) ~= "table" then return end
+    for _, registered in ipairs(registry) do
+        if registered == name then return end
+    end
+    registry[#registry + 1] = name
+end
+
+local function bindExplorerEscape(window, search)
+    local function dismiss()
+        if not window:IsVisible() then return false end
+        if ui.professionMenu:IsShown() then
+            ui.professionMenu:Hide()
+        else
+            window:Hide()
+        end
+        return true
+    end
+    if type(UISpecialFrames) == "table" then
+        -- The native special-window close path can hide this addon-owned frame safely.
+        -- Re-arm it if only a fallback popup was dismissed.
+        local escapeFrame = CreateFrame("Frame", ESCAPE_FRAME_NAME, window)
+        escapeFrame:Hide()
+        escapeFrame:SetScript("OnHide", function(self)
+            if dismiss() and window:IsVisible() then self:Show() end
+        end)
+        window:HookScript("OnShow", function() escapeFrame:Show() end)
+        window:HookScript("OnHide", function() escapeFrame:Hide() end)
+        registerFrameName(UISpecialFrames, ESCAPE_FRAME_NAME)
+    end
+    search:SetScript("OnEscapePressed", dismiss)
+end
+
+-- Templates can specify their own strata, including for nested controls.
+local function alignFrameStrata(frame, strata)
+    if frame.GetFrameStrata and frame:GetFrameStrata() ~= strata then
+        frame:SetFrameStrata(strata)
+    end
+    if not frame.GetChildren then return end
+    for _, child in ipairs({frame:GetChildren()}) do
+        alignFrameStrata(child, strata)
+    end
+end
+
 local function createPanel()
     if panel then return panel end
-    local ok, window = pcall(CreateFrame, "Frame", "CraftAtlasSettingsFrame", UIParent, "BasicFrameTemplateWithInset")
+    local ok, window = pcall(CreateFrame, "Frame", WINDOW_NAME, UIParent, "SettingsFrameTemplate")
     if not ok or not window then
-        window = CreateFrame("Frame", "CraftAtlasSettingsFrame", UIParent)
-        paint(window, 0.09, 0.09, 0.09, 0.96)
+        ok, window = pcall(CreateFrame, "Frame", WINDOW_NAME, UIParent, "BasicFrameTemplate")
+        if not ok or not window then
+            window = CreateFrame("Frame", WINDOW_NAME, UIParent)
+            addPanelBackground(window)
+        end
     end
     panel = window
     local scale = UIParent and UIParent.GetWidth and UIParent:GetWidth() or 800
@@ -488,40 +543,27 @@ local function createPanel()
     local logicalWidth, logicalHeight, uiScale = ns.ExplorerWindowGeometry(scale, height)
     panel:SetSize(logicalWidth, logicalHeight)
     panel:SetScale(uiScale)
-    -- The left pane begins 137 px from the top and ends 30 px above the bottom.
-    -- Leave 76 px for its filter/header and 16 px for status; use the rest for rows.
-    VISIBLE_ROWS = ns.ExplorerVisibleRowCount(panel:GetHeight(), ROW_HEIGHT)
+    local contentHeight = logicalHeight - CONTENT_TOP - CONTENT_BOTTOM - 6
+    VISIBLE_ROWS = ns.ExplorerVisibleRowCount(contentHeight - LIST_TOP - LIST_BOTTOM, ROW_HEIGHT)
     panel:SetPoint("CENTER")
-    panel:SetFrameStrata("DIALOG")
+    panel:SetFrameStrata(WINDOW_STRATA)
     panel:SetMovable(true)
     panel:EnableMouse(true)
     panel:RegisterForDrag("LeftButton")
     panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
     panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     panel:Hide()
-    if panel.TitleText then panel.TitleText:Hide() end
-    -- Do not place a raw icon over the BasicFrameTemplate frame border.
-    -- A framed crest requires a separate verified client-compatible widget.
-    -- Bind the close handler after creating overlays, so it wins the click area.
-
     local header = CreateFrame("Frame", nil, panel)
-    header:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -38)
-    header:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -12, -38)
-    header:SetHeight(54)
-    header:SetFrameLevel(panel:GetFrameLevel() + 1)
-    paint(header, 0.12, 0.10, 0.07, 0.95)
-    local divider = header:CreateTexture(nil, "ARTWORK")
-    divider:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT")
-    divider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT")
-    divider:SetHeight(2)
-    divider:SetColorTexture(0.78, 0.58, 0.20, 0.90)
+    header:SetPoint("TOPLEFT", panel, "TOPLEFT")
+    header:SetPoint("TOPRIGHT", panel, "TOPRIGHT")
+    header:SetHeight(24)
 
-    local title = font(header, GameFontNormalHuge and "GameFontNormalHuge" or "GameFontNormalLarge")
+    local title = (panel.NineSlice and panel.NineSlice.Text) or panel.TitleText or font(panel, "GameFontNormal")
+    title:ClearAllPoints()
     title:SetPoint("CENTER", header, "CENTER", 0, 0)
-    title:SetTextColor(1, 0.82, 0.30)
     ui.title = title
 
-    local search = ns.CreateExplorerSearchBox(header, function(value)
+    local search = ns.CreateExplorerSearchBox(panel, function(value)
         if switching or value == searchQuery then return end
         if value == "" and searchQuery ~= "" then ns.ClearProfessionTreeSearch(treeState) end
         if value ~= "" and searchQuery == "" then ns.ClearProfessionTreeSearch(treeState) end
@@ -529,12 +571,15 @@ local function createPanel()
         forcedSelection = false
         refreshResults(true)
     end)
-    search:SetSize(math.max(130, math.min(210, (panel:GetWidth() - 340) / 2)), 28)
+    search:SetSize(math.min(290, math.floor(logicalWidth * 0.36)), 24)
     search:ClearAllPoints()
-    search:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 13, 3)
+    search:SetPoint("RIGHT", panel, "TOPRIGHT", -24, -CONTENT_TOP + TAB_HEIGHT / 2)
     ui.search = search
-    local hint = font(header, "GameFontDisableSmall")
-    hint:SetPoint("LEFT", search, "LEFT", 7, 0)
+    local hint = font(panel, "GameFontDisableSmall")
+    hint:SetPoint("LEFT", search, "LEFT", search.searchIcon and 19 or 7, 0)
+    hint:SetPoint("RIGHT", search, "RIGHT", -22, 0)
+    hint:SetJustifyH("LEFT")
+    hint:SetWordWrap(false)
     hint:SetText(ns.L("SEARCH_PLACEHOLDER"))
     hint:SetTextColor(0.70, 0.67, 0.60)
     ui.searchHint = hint
@@ -553,23 +598,19 @@ local function createPanel()
             GameTooltip:Show()
         end
     end)
-    clear:SetScript("OnLeave", function()
-        if GameTooltip then GameTooltip:Hide() end
-    end)
+    clear:SetScript("OnLeave", ns.HideExplorerTooltip)
     ui.clear = clear
     ui.clearIcon = clear.icon
-    ui.language = ns.CreateExplorerLanguageSelector(header)
-
-    local materialsTab = ns.CreateExplorerClassicButton(panel)
-    materialsTab:SetPoint("TOPLEFT", panel, "TOPLEFT", 18, -101)
-    materialsTab:SetSize(130, 27)
+    local materialsTab = ns.CreateExplorerTab(panel)
+    materialsTab:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 24, -CONTENT_TOP)
+    materialsTab:SetHeight(TAB_HEIGHT)
     materialsTab:SetScript("OnClick", function() switchView("materials") end)
-    local recipesTab = ns.CreateExplorerClassicButton(panel)
+    local recipesTab = ns.CreateExplorerTab(panel)
     recipesTab:SetPoint("LEFT", materialsTab, "RIGHT", 8, 0)
-    recipesTab:SetSize(130, 27)
+    recipesTab:SetHeight(TAB_HEIGHT)
     recipesTab:SetScript("OnClick", function() switchView("recipes") end)
     local back = ns.CreateExplorerClassicButton(panel)
-    back:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -22, -101)
+    back:SetPoint("RIGHT", search, "LEFT", -12, 0)
     back:SetSize(76, 26)
     back:SetScript("OnClick", function()
         local entry = table.remove(history)
@@ -578,25 +619,44 @@ local function createPanel()
         end
     end)
     ui.materialsTab, ui.recipesTab, ui.back = materialsTab, recipesTab, back
-    ui.preparation = ns.CreateExplorerCatalogProgress(panel, recipesTab, back)
+    ui.preparation = ns.CreateExplorerCatalogProgress(panel)
 
-    local left = CreateFrame("Frame", nil, panel)
-    left:SetPoint("TOPLEFT", panel, "TOPLEFT", 14, -137)
-    left:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 14, 30)
-    left:SetWidth(math.floor((panel:GetWidth() - 40) * 0.38))
-    paint(left, 0.06, 0.05, 0.04, 0.85)
-    ui.left = left
-    local right = CreateFrame("Frame", nil, panel)
-    right:SetPoint("TOPLEFT", left, "TOPRIGHT", 9, 0)
-    right:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -14, 30)
-    paint(right, 0.075, 0.064, 0.055, 0.88)
+    local hasInset, content = pcall(CreateFrame, "Frame", nil, panel, "InsetFrameTemplate")
+    if not hasInset or not content then
+        content = CreateFrame("Frame", nil, panel)
+    elseif content.Bg then
+        content.Bg:Hide()
+    end
+    content:SetPoint("TOPLEFT", panel, "TOPLEFT", 12, -CONTENT_TOP)
+    content:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -12, CONTENT_BOTTOM)
+    local innerSurface = content:CreateTexture(nil, "BACKGROUND")
+    innerSurface:SetAllPoints()
+    innerSurface:SetColorTexture(0.07, 0.045, 0.025, 0.3)
+    local innerBorder = content:CreateTexture(nil, "BORDER")
+    if innerBorder.SetAtlas then
+        innerBorder:SetAllPoints()
+        innerBorder:SetAtlas("Options_InnerFrame")
+        if content.NineSlice then content.NineSlice:Hide() end
+    end
+    local left = CreateFrame("Frame", nil, content)
+    left:SetPoint("TOPLEFT", content, "TOPLEFT", 3, -3)
+    left:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", 3, 3)
+    left:SetWidth(math.floor((logicalWidth - 24) * 0.36))
+    local sidebar = left:CreateTexture(nil, "BACKGROUND")
+    sidebar:SetAllPoints()
+    sidebar:SetColorTexture(0.08, 0.05, 0.03, 0.46)
+    local divider = content:CreateTexture(nil, "BORDER")
+    divider:SetPoint("TOPLEFT", left, "TOPRIGHT")
+    divider:SetPoint("BOTTOMLEFT", left, "BOTTOMRIGHT")
+    divider:SetWidth(1)
+    divider:SetColorTexture(0.52, 0.35, 0.17, 0.55)
+    local right = CreateFrame("Frame", nil, content)
+    right:SetPoint("TOPLEFT", left, "TOPRIGHT", 8, 0)
+    right:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -3, 3)
     createProfessionMenu(left)
 
-    local resultsHeading = font(left, "GameFontNormal")
-    resultsHeading:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -51)
-    ui.resultsHeading = resultsHeading
-    local count = font(left, "GameFontDisableSmall")
-    count:SetPoint("TOPRIGHT", left, "TOPRIGHT", -11, -53)
+    local count = font(left, "GameFontHighlightSmall")
+    count:SetPoint("TOPLEFT", left, "TOPLEFT", 10, -44)
     ui.count = count
     local incomplete = font(left, "GameFontDisableSmall")
     incomplete:SetPoint("BOTTOMLEFT", left, "BOTTOMLEFT", 10, 5)
@@ -604,7 +664,7 @@ local function createPanel()
     incomplete:SetJustifyH("LEFT")
     ui.incomplete = incomplete
     local empty = font(left, "GameFontHighlight")
-    empty:SetPoint("TOPLEFT", left, "TOPLEFT", 12, -102)
+    empty:SetPoint("TOPLEFT", left, "TOPLEFT", 12, -72)
     ui.empty = empty
     createRows(left)
 
@@ -621,7 +681,7 @@ local function createPanel()
         end
     end)
     ui.materialLink = materialLink
-    local detailTitle = font(right, "GameFontNormalLarge")
+    local detailTitle = font(right, "GameFontHighlightLarge")
     detailTitle:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -19)
     detailTitle:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -19)
     detailTitle:SetJustifyH("LEFT")
@@ -646,9 +706,8 @@ local function createPanel()
     detailMeta:SetWordWrap(false)
     ui.detailMeta = detailMeta
     createProfessionDetail(right)
-    ns.InitRecipePanel(right, panel:GetHeight() - 167)
+    ns.InitRecipePanel(right, contentHeight)
     ns.InitRecipeDetail(right)
-    ui.right = right
 
     local version = ns.GetInstalledReleaseVersion(ns.name)
     if version then
@@ -670,12 +729,13 @@ local function createPanel()
         end
     end)
     panel:SetScript("OnHide", function()
-        ui.language.CloseMenu()
         ui.professionMenu:Hide()
         ui.search:ClearFocus()
-        if ns.HideRecipePanelTooltip then ns.HideRecipePanelTooltip() end
+        ns.HideExplorerTooltip(panel)
     end)
     ns.BindExplorerClose(panel)
+    bindExplorerEscape(panel, search)
+    alignFrameStrata(panel, WINDOW_STRATA)
     return panel
 end
 
@@ -703,15 +763,14 @@ local function showActiveDetail()
     end
     if ns.SetRecipePanelVisible then ns.SetRecipePanelVisible(material) end
     ns.ShowRecipeDetailView(not material)
-    ui.materialsTab:SetText(ns.L("MATERIALS_HEADING"))
-    ui.recipesTab:SetText(ns.L("CRAFTABLES_HEADING"))
+    ns.SetExplorerTabText(ui.materialsTab, ns.L("MATERIALS_HEADING"))
+    ns.SetExplorerTabText(ui.recipesTab, ns.L("CRAFTABLES_HEADING"))
     ns.SetExplorerTabSelected(ui.materialsTab, material)
     ns.SetExplorerTabSelected(ui.recipesTab, not material)
     ui.back:SetText(ns.L("BACK"))
     ui.back:SetEnabled(#history > 0)
     if #history > 0 then ui.back:Show() else ui.back:Hide() end
     ui.searchHint:SetText(ns.L(material and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
-    ui.resultsHeading:SetText(ns.L(material and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
     showCatalogProgress()
 end
 
@@ -784,13 +843,10 @@ function ns.RefreshSettings()
     showActiveDetail()
     ui.searchHint:SetText(ns.L(currentView == "materials"
         and "SEARCH_PLACEHOLDER" or "CRAFTABLES_SEARCH_PLACEHOLDER"))
-    ui.resultsHeading:SetText(ns.L(currentView == "materials"
-        and "MATERIALS_HEADING" or "CRAFTABLES_HEADING"))
     ui.professionUses.section:Refresh()
     showCatalogProgress()
     ui.professionButton:SetText(selectedProfession == "" and ns.L("ALL_PROFESSIONS")
         or labelProfession(selectedProfession))
-    ui.language.Refresh()
     ui.professionChoices[""]:SetText(ns.L("ALL_PROFESSIONS"))
     for _, key in ipairs(ns.professionOrder or {}) do
         ui.professionChoices[key]:SetText(labelProfession(key))
@@ -814,7 +870,6 @@ function ns.OpenSettings(itemID)
     ns.RefreshSettings()
     panel:Show()
     showCatalogProgress()
-    panel:Raise()
 end
 
 function ns.InitSettings()

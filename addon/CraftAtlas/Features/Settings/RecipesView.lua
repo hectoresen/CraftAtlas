@@ -116,7 +116,7 @@ local function font(parent, style)
 end
 
 local function clearTooltip()
-    if ns.HideRecipeTooltip then ns.HideRecipeTooltip() end
+    ns.HideExplorerTooltip(view.frame)
 end
 
 local function describe(recipe)
@@ -304,7 +304,7 @@ function ns.InitRecipeDetail(parent)
     view.icon:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -16)
     -- No UI-Quickslot2 overlay: its inner slot draws a duplicate inset square.
 
-    view.title = font(frame, "GameFontNormalLarge")
+    view.title = font(frame, "GameFontHighlightLarge")
     view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -18)
     view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -18)
     view.title:SetJustifyH("LEFT")
@@ -320,6 +320,9 @@ function ns.InitRecipeDetail(parent)
     end)
     view.profession = font(frame, "GameFontHighlightSmall")
     view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -40)
+    view.profession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -40)
+    view.profession:SetJustifyH("LEFT")
+    view.profession:SetWordWrap(false)
     view.output = font(frame, "GameFontDisableSmall")
     view.output:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
     view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
@@ -369,7 +372,7 @@ function ns.InitRecipeDetail(parent)
         row:SetScript("OnEnter", function(self)
             if self.ingredient then ns.ShowOutputTooltip(self, self.ingredient.itemID) end
         end)
-        row:SetScript("OnLeave", clearTooltip)
+        row:SetScript("OnLeave", ns.HideExplorerTooltip)
         view.rows[i] = row
     end
     view.pager = ns.CreateExplorerPager(frame, function()
@@ -387,11 +390,7 @@ function ns.InitRecipeDetail(parent)
     trackerFooter:SetHeight(TRACKER_TOP_HEIGHT + TRACKER_BOTTOM_HEIGHT)
     view.trackerFooter = trackerFooter
 
-    local separator = trackerFooter:CreateTexture(nil, "ARTWORK")
-    separator:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 0, 0)
-    separator:SetPoint("TOPRIGHT", trackerFooter, "TOPRIGHT", 0, 0)
-    separator:SetHeight(2)
-    separator:SetColorTexture(0.72, 0.54, 0.24, 0.95)
+    ns.AddExplorerHeadingSurface(trackerFooter, 16)
 
     local trackerLabel = font(trackerFooter, "GameFontNormal")
     trackerLabel:SetPoint("TOPLEFT", trackerFooter, "TOPLEFT", 8, -3)
@@ -506,7 +505,7 @@ function ns.InitRecipeDetail(parent)
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
-    outputHover:SetScript("OnLeave", clearTooltip)
+    outputHover:SetScript("OnLeave", ns.HideExplorerTooltip)
     frame:SetScript("OnHide", clearTooltip)
     frame:Hide()
 end

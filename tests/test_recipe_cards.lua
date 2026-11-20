@@ -29,6 +29,10 @@ local function widget(kind, parent)
     return self
 end
 CreateFrame = function(kind, name, parent) return widget(kind,parent) end
+GameTooltip = {
+    GetOwner = function(self) return self.owner end,
+    Hide = function(self) self.owner = nil; hiddenTooltips = hiddenTooltips + 1 end,
+}
 local ns
 ns = {
     L = function(key) 
@@ -41,9 +45,8 @@ ns = {
     professionOrder = {"ALCHEMY"},
     recipeUses = {},
     ProfessionLabel = function() return "Alchemy" end,
-    HideRecipeTooltip = function() hiddenTooltips=hiddenTooltips+1 end,
-    ShowOutputTooltip = function(_,id) ns.lastHover=id return true end,
-    ShowRecipeTooltip = function(_,use) ns.lastRecipe=use.spellID return true end,
+    ShowOutputTooltip = function(owner,id) GameTooltip.owner=owner; ns.lastHover=id; return true end,
+    ShowRecipeTooltip = function(owner,use) GameTooltip.owner=owner; ns.lastRecipe=use.spellID; return true end,
     GetRecipePresentation = function(use)
         return {outputIcon = 100+use.spellID, outputName = "Output "..use.spellID,
                 spellIcon = 500, spellName = "Recipe "..use.spellID}
@@ -57,7 +60,8 @@ ns.recipeUses[765] = {{800,1,2,0,2}}
 assert(loadfile("addon/CraftAtlas/Domain/RecipeUsage.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/RecipePanel.lua"))("CraftAtlas",ns)
-ns.InitRecipePanel(widget("Frame"),378)
+local detail = widget("Frame")
+ns.InitRecipePanel(detail,378)
 assert(#buttons==8,"one collapsible section, five recyclable rows and two pager controls")
 local section=buttons[1]
 local rows={buttons[2],buttons[3],buttons[4],buttons[5],buttons[6]}
@@ -93,8 +97,12 @@ assert(rows[1].shown and not rows[2].shown,"new selection resets to first page")
 assert(rows[1].name.text=="Recipe 800","non-item recipe uses spell title")
 rows[1].OnEnter(rows[1])
 assert(ns.lastRecipe==800,"non-item hover should use native recipe tooltip")
-ns.HideRecipePanelTooltip()
+ns.HideExplorerTooltip(detail)
 assert(hiddenTooltips>prior)
+local externalOwner = widget("Frame")
+GameTooltip.owner = externalOwner
+ns.HideExplorerTooltip(detail)
+assert(GameTooltip.owner == externalOwner, "an unrelated native tooltip stays open")
 ns.RefreshRecipePanel(159)
 ns.SetRecipePanelCompact(true)
 assert(rows[5].shown, "collapsing professions reclaims space for a fifth use row")

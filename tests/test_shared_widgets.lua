@@ -22,17 +22,18 @@ local ns = {
 }
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 local n=0
-local row=ns.CreateExplorerRow(ui(),39,function() n=n+1 end)
+local row=ns.CreateExplorerRow(ui(),39,function() n=n+1 end, true)
 row.OnClick(row)
 assert(n==1 and row.icon and row.name and row.professions)
 ns.StyleExplorerGroupRow(row, "Alchemy", 93, true)
-assert(row.groupBackground and row.groupArrow and row.groupName and row.groupState)
-assert(row.groupBackground.ShowCalled and row.itemBackground.HideCalled)
+assert(row.groupArrow.ShowCalled and row.groupName.ShowCalled and row.highlight.HideCalled)
+assert(row.groupHeader.ShowCalled, "profession groups display the sidebar header treatment")
 assert(row.name.HideCalled and row.icon.HideCalled)
 ns.StyleExplorerItemRow(row, true)
 assert(row.professions.HideCalled and row.name.ShowCalled)
-assert(row.groupBackground.HideCalled and row.itemBackground.ShowCalled)
 assert(row.name.ShowCalled and row.groupName.HideCalled)
+assert(row.groupArrow.HideCalled and row.SetHighlightTextureCalled)
+assert(row.groupHeader.HideCalled, "recycled item rows clear the profession header treatment")
 assert(ns.GetExplorerProfessionIcon("ALCHEMY"):find("Trade_Alchemy", 1, true))
 local toggles=0
 local section=ns.CreateExplorerSection(ui(), "USED_BY", -92, function() toggles=toggles+1 end)

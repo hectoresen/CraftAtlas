@@ -1,4 +1,4 @@
--- Native header progress mock: must be bounded and never mutate existing controls.
+-- Native footer progress mock: the track is bounded and reuses its widgets.
 local children={}
 local function ui(kind,parent)
     local self={kind=kind,parent=parent,shown=true}
@@ -26,24 +26,19 @@ CreateFrame=function(kind,_,parent) return ui(kind,parent) end
 local ns={}
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 local panel=ui("Panel")
-local tabs=ui("RecipesTab",panel)
-local back=ui("Back",panel)
-local widget=ns.CreateExplorerCatalogProgress(panel,tabs,back)
-assert(#children==7,"three existing controls plus reusable holder, track, bar and label")
+local widget=ns.CreateExplorerCatalogProgress(panel)
+assert(#children==5,"panel plus reusable holder, track, bar and label")
 assert(not widget.shown and widget.height==24)
 assert(widget.bar.width==170 and widget.bar.height==6,
-    "compact panel must keep the progress track shorter than the toolbar gap")
+    "compact panel must keep the progress track narrow")
 assert(widget.bar.anchors[1][1]=="BOTTOM" and widget.bar.anchors[1][2]==widget,
     "compact progress track stays centered within available space")
 assert(widget.label.anchors[1][1]=="BOTTOM" and widget.label.anchors[1][2]==widget.bar
     and widget.label.anchors[1][3]=="TOP",
     "the label remains immediately above the fill")
-assert(widget.anchors[1][1]=="LEFT" and widget.anchors[1][2]==tabs
-    and widget.anchors[1][3]=="RIGHT" and widget.anchors[1][4]==12,
-    "progress begins after native Fabricables tab")
-assert(widget.anchors[2][1]=="RIGHT" and widget.anchors[2][2]==back
-    and widget.anchors[2][3]=="LEFT" and widget.anchors[2][4]==-12,
-    "progress ends before native Back button")
+assert(widget.anchors[1][1]=="BOTTOM" and widget.anchors[1][2]==panel
+    and widget.anchors[1][3]=="BOTTOM" and widget.anchors[1][5]==8,
+    "progress stays separate from the top controls")
 assert(widget.track.fill[4]==0.94 and widget.label.textColor[1] > 0.9,
     "high-contrast inline text should remain readable as the bar fills")
 widget:SetProgress("active",42,"Preparing materials... 42%")
@@ -55,11 +50,9 @@ widget:SetProgress("active",999,"Preparing craftables")
 assert(widget.bar.value==100,"progress must be clamped")
 widget:SetProgress("complete",100,"Finished")
 assert(widget.track.parent==widget.bar, "track background must not span the whole toolbar")
-assert(not widget.shown and #children==7,"completed state hides and never reallocates")
+assert(not widget.shown and #children==5,"completed state hides and never reallocates")
 local wide=ui("Panel")
 wide.width=860
-local wideTab=ui("RecipesTab",wide)
-local wideBack=ui("Back",wide)
-local wideWidget=ns.CreateExplorerCatalogProgress(wide,wideTab,wideBack)
-assert(wideWidget.bar.width==252,"wide toolbar must cap the bar width")
-print("Native progress header mock PASS")
+local wideWidget=ns.CreateExplorerCatalogProgress(wide)
+assert(wideWidget.bar.width==252,"wide panel must cap the footer bar width")
+print("Native progress footer mock PASS")

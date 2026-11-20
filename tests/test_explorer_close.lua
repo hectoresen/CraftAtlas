@@ -5,8 +5,6 @@ assert(loadfile("addon/CraftAtlas/Features/Settings/Settings.lua"))("CraftAtlas"
 local function button()
     return {
         SetScript = function(self, name, action) self[name] = action end,
-        SetFrameLevel = function(self, value) self.level = value end,
-        Raise = function(self) self.raised = true end,
         Show = function(self) self.visible = true end,
         SetPoint = function(self) self.anchored = true end,
     }
@@ -14,7 +12,6 @@ end
 local function window(existing)
     return {
         CloseButton = existing and button() or nil,
-        GetFrameLevel = function() return 8 end,
         Hide = function(self) self.hidden = true end,
     }
 end
@@ -22,9 +19,15 @@ local win = window(true)
 local original = win.CloseButton
 local close = ns.BindExplorerClose(win)
 assert(close == original, "native close button should be reused")
-assert(close.level == 38 and close.raised and close.visible)
+assert(close.visible, "the X remains visible in the native title bar")
 close.OnClick()
 assert(win.hidden, "the X must hide the standalone frame")
+
+local optionsSkin = window(false)
+optionsSkin.ClosePanelButton = button()
+assert(ns.BindExplorerClose(optionsSkin) == optionsSkin.ClosePanelButton)
+optionsSkin.ClosePanelButton.OnClick()
+assert(optionsSkin.hidden, "the native Settings skin close button hides only CraftAtlas")
 
 local fallback = window(false)
 CreateFrame = function(kind, name, parent, template)
