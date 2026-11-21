@@ -19,7 +19,7 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ### Slash command registration
 
-- Register `/craftatlas` in the client's existing command table. The fix removes the global reassignment implicated in DungeonJournal's blocked skull marker. Forever verification is pending.
+- Register `/craftatlas` in the client's existing command table. The fix removes the global reassignment implicated in DungeonJournal's blocked skull marker. Full Forever acceptance evidence is pending.
 
 ### Native explorer controls
 

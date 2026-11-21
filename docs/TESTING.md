@@ -16,11 +16,15 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 ## Slash command registration and dungeon markers
 
+Implementation of [spec PR #73](https://github.com/hectoresen/CraftAtlas/pull/73).
+
 **Reported behavior.** A 2026-11-21 Forever taint log records three CraftAtlas-attributed `SetRaidTarget()` blocks while Blizzard processes macro text. Each block follows a tainted read of the global `SlashCmdList`. The inspected installation reported CraftAtlas 0.4.1 and DungeonJournal 2.1.0.
 
 **Offline PASS.** The [addon configuration fixture](../tests/test_addon_configuration.lua) detects the global write on the previous code and passes with the [updated registration](../addon/CraftAtlas/Features/Settings/Settings.lua). It checks that other command entries survive, all three CraftAtlas command forms work and the minimap still opens the explorer when the native registry is absent or invalid. Lua 5.1 syntax (54 files), all 24 isolated Lua fixtures, all 142 Python tests, the shared release validation script and strict OpenSpec validation passed locally.
 
-**Forever verification: NOT RUN.** With both addons enabled, turn on `/console taintLog 1` and restart Forever. Verify `/craftatlas`, `/craftatlas 159` and `/craftatlas perf`. In the dungeon tracker, click the portrait of a nearby rare that can be marked. Confirm it becomes the target and gets a skull. Record the client build and addon versions, check for a CraftAtlas warning and save the current session's log before reloading. The log should contain no CraftAtlas-attributed `SetRaidTarget()` block for that click.
+**Forever retest reported by sebasgrios (2026-11-21).** The contributor reported success after switching to the corrected checkout. The exact build and addon versions for that session, the individual game-client results for all three command forms and the matching taint log are unrecorded.
+
+**Full Forever acceptance: unverified.** With both addons enabled, turn on `/console taintLog 1` and restart Forever. Verify `/craftatlas`, `/craftatlas 159` and `/craftatlas perf`. In the dungeon tracker, click the portrait of a nearby rare that can be marked. Confirm it becomes the target and gets a skull. Record the client build and addon versions, check for a CraftAtlas warning and save the current session's log before reloading. The log should contain no CraftAtlas-attributed `SetRaidTarget()` block for that click.
 
 ## Native explorer controls
 
