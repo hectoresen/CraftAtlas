@@ -34,6 +34,8 @@ Implementation for `upd004-native-explorer-ui`, approved in [spec PR #70](https:
 
 **Partial visual evidence from sebasgrios.** Five English-language Forever captures show the Materials and Craftables layouts, the selected Craftables row with the profession label inside the highlight and preparation progress in the footer, the minimap tooltip's three gold gesture labels in order, the AddOns options with Automatic selected, and a bag tooltip with the Leatherworking annotation. The client build and UI scale are unrecorded.
 
+The contributor also supplied an [English-language Craftables screenshot](https://github.com/user-attachments/assets/0a8bc1ea-26a2-460b-bdfa-838df9ca1e89) with Track crafting enabled for Bronze Mace (recipe 2740). It shows the ingredient list, separate material progress bars, 9% total progress and the “Open bank to update” hint.
+
 **Full Forever client acceptance: NOT RUN.** The captures do not establish Escape behavior, overlap and input priority, how the options window was opened, or persistence. Record the exact client build, locales, UI scales and outcomes for each scenario.
 
 | Scenario | Forever result |
