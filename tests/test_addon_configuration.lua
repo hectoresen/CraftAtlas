@@ -114,7 +114,9 @@ local function registerNativeEscape(priority, handler)
     table.sort(escapeHandlers, function(left, right) return left.priority < right.priority end)
 end
 
-local function start(native, optionsAPI)
+local function start(native, optionsAPI, settingsEnvironment)
+    if not settingsEnvironment then SlashCmdList = {} end
+    SLASH_CRAFTATLAS1 = nil
     frames = {}
     escapeHandlers = {}
     local modern = native == "forever"
@@ -181,7 +183,13 @@ local function start(native, optionsAPI)
     end
     local ns = {}
     for path in io.lines("addon/CraftAtlas/CraftAtlas.toc") do
-        if path:match("%.lua$") then assert(loadfile("addon/CraftAtlas/" .. path))("CraftAtlas", ns) end
+        if path:match("%.lua$") then
+            local loadModule = assert(loadfile("addon/CraftAtlas/" .. path))
+            if settingsEnvironment and path == "Features/Settings/Settings.lua" then
+                setfenv(loadModule, settingsEnvironment)
+            end
+            loadModule("CraftAtlas", ns)
+        end
     end
     frames[#frames]:Emit("OnEvent", "ADDON_LOADED", "CraftAtlas")
     return ns, registry
@@ -313,6 +321,52 @@ local function checkbox(label)
     assert(button.template == "UICheckButtonTemplate" and button:IsVisible())
     return button
 end
+
+local function startWithSlashRegistry(commands)
+    SlashCmdList = commands
+    locale, CraftAtlasDB = "enUS", nil
+    local environment = {}
+    environment._G = environment
+    setmetatable(environment, {
+        __index = _G,
+        __newindex = function(_, key, value)
+            assert(key ~= "SlashCmdList", "startup must not assign the native SlashCmdList global")
+            _G[key] = value
+        end,
+    })
+    return start("forever", "available", environment)
+end
+
+local existingCommand = function() end
+local clientCommands = {EXISTING = existingCommand}
+startWithSlashRegistry(clientCommands)
+assert(SLASH_CRAFTATLAS1 == "/craftatlas" and clientCommands.EXISTING == existingCommand)
+local slashCommand = assert(clientCommands.CRAFTATLAS, "CraftAtlas is registered in the native table")
+slashCommand("")
+local slashExplorer = named("CraftAtlasSettingsFrame")
+assert(slashExplorer:IsVisible(), "the plain slash command opens the explorer")
+slashExplorer:Hide()
+slashCommand("159")
+assert(slashExplorer:IsVisible() and visibleText("Item ID: 159", "FontString"),
+    "the numeric slash command selects the requested material")
+slashExplorer:Hide()
+local diagnostic, originalPrint = nil, print
+print = function(message) diagnostic = message end
+slashCommand("perf")
+print = originalPrint
+assert(diagnostic and diagnostic:match("^CraftAtlas: Prepared: materials ") and not slashExplorer:IsShown(),
+    "the performance command reports diagnostics and leaves the explorer closed")
+
+local function checkMinimapWithoutSlashRegistry(commands)
+    startWithSlashRegistry(commands)
+    assert(SlashCmdList == commands and SLASH_CRAFTATLAS1 == nil,
+        "an unavailable registry leaves slash registration untouched")
+    named("CraftAtlasMinimapButton"):Click()
+    assert(named("CraftAtlasSettingsFrame"):IsVisible(), "startup still provides minimap access")
+end
+
+checkMinimapWithoutSlashRegistry(nil)
+checkMinimapWithoutSlashRegistry(false)
 
 local defaults = {showMinimapButton = true, showTooltipProfessions = true,
     hideTooltipProfessionIcons = false, tooltipProfessionsOnOneLine = false}

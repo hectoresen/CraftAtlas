@@ -1,0 +1,8 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "tests/test_addon_configuration.lua",
+    "CHANGELOG.md",
+    "docs/TESTING.md"
+  ]
+}

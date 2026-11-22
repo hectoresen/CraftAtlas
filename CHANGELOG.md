@@ -17,6 +17,10 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Slash command registration
+
+- Register `/craftatlas` in the client's existing command table. The fix removes the global reassignment implicated in DungeonJournal's blocked skull marker. Full Forever acceptance evidence is pending.
+
 ### Native explorer controls
 
 - Close the explorer with Escape through the native special-window path, including from its search field. Escape dismisses an open dropdown first, and the top-right X uses the same window cleanup.
