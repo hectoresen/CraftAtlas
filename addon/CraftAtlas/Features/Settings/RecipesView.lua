@@ -133,7 +133,7 @@ local function describe(recipe)
         outputName, outputIcon = ns.GetItemDisplay(recipe.outputItemID)
     end
     return (outputName or name or (ns.L("RECIPE_ID") .. " " .. recipe.spellID)),
-        (outputIcon or spellIcon or "Interface\\Icons\\INV_Misc_QuestionMark"), name
+        (outputIcon or spellIcon or "Interface\\Icons\\INV_Misc_QuestionMark")
 end
 
 local function updateIngredientSectionVisibility()
@@ -171,8 +171,7 @@ end
 local function renderRequirements(recipe)
     if not recipe then
         setRequirementText(view.requiredSkill, "")
-        setRequirementText(view.recipeStatus, "")
-        setRequirementText(view.recipeSource, "")
+        setRequirementText(view.recipeRequirement, "")
         return
     end
 
@@ -186,25 +185,14 @@ local function renderRequirements(recipe)
         local stateKey = "CRAFT_SKILL_UNVERIFIED"
         if rank ~= nil then
             skillMet = rank >= recipe.requiredSkill
-            stateKey = skillMet and "CRAFT_SKILL_MET" or "CRAFT_SKILL_UNMET"
+            stateKey = skillMet and "CRAFT_SKILL_MET" or "CRAFT_REQUIRED_SKILL"
         end
-        skillText = string.format(ns.L("CRAFT_REQUIRED_SKILL"), recipe.requiredSkill, ns.L(stateKey))
+        skillText = string.format(ns.L(stateKey), recipe.requiredSkill)
     end
     setRequirementText(view.requiredSkill, skillText, skillMet)
 
-    local learnedKey = "CRAFT_RECIPE_UNKNOWN"
-    if learned ~= nil then
-        learnedKey = learned and "CRAFT_RECIPE_LEARNED" or "CRAFT_RECIPE_UNLEARNED"
-    end
-    setRequirementText(view.recipeStatus, ns.L(learnedKey), learned)
-
-    local sourceKey = "CRAFT_SOURCE_UNKNOWN"
-    if recipe.teachingItemID then
-        sourceKey = trainer and "CRAFT_SOURCE_ITEM_OR_TRAINER" or "CRAFT_SOURCE_ITEM"
-    elseif trainer then
-        sourceKey = "CRAFT_SOURCE_TRAINER"
-    end
-    setRequirementText(view.recipeSource, ns.L(sourceKey), learned)
+    local recipeText = recipe.teachingItemID and not trainer and ns.L("CRAFT_RECIPE_REQUIRED") or ""
+    setRequirementText(view.recipeRequirement, recipeText, learned)
 end
 
 local function render()
@@ -213,23 +201,16 @@ local function render()
     if not recipe then
         view.title:SetText(ns.L("SELECT_RECIPE"))
         view.profession:SetText("")
-        view.output:SetText("")
+        view.recipeID:SetText("")
         view.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
         view.ingredients = {}
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), 0))
     else
-        local name, icon, spellName = describe(recipe)
+        local name, icon = describe(recipe)
         view.title:SetText(name)
         view.icon:SetTexture(icon)
         view.profession:SetText(ns.ProfessionLabel(recipe.professionKey))
-        local recipeLabel = ns.L("RECIPE_ID") .. " " .. tostring(recipe.spellID)
-        if recipe.outputItemID then
-            view.output:SetText((spellName and (spellName .. "  |  ") or "") .. recipeLabel)
-        elseif recipe.kind == "enchant" then
-            view.output:SetText(ns.L("RECIPE_ENCHANT_ACTION") .. "  |  " .. recipeLabel)
-        else
-            view.output:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN") .. "  |  " .. recipeLabel)
-        end
+        view.recipeID:SetText(string.format(ns.L("CRAFT_RECIPE_ID"), recipe.spellID))
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
@@ -391,26 +372,20 @@ function ns.InitRecipeDetail(parent)
     view.requiredSkill:SetJustifyH("LEFT")
     view.requiredSkill:SetWordWrap(false)
 
-    view.output = font(frame, "GameFontDisableSmall")
-    view.output:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
-    view.output:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -24)
-    view.output:SetJustifyH("LEFT")
-    view.output:SetWordWrap(false)
+    view.recipeID = font(frame, "GameFontDisableSmall")
+    view.recipeID:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
+    view.recipeID:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -24)
+    view.recipeID:SetJustifyH("LEFT")
+    view.recipeID:SetWordWrap(false)
 
-    view.recipeStatus = font(rightHeader, "GameFontHighlightSmall")
-    view.recipeStatus:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -1)
-    view.recipeStatus:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -1)
-    view.recipeStatus:SetJustifyH("LEFT")
-    view.recipeStatus:SetWordWrap(false)
-
-    view.recipeSource = font(rightHeader, "GameFontHighlightSmall")
-    view.recipeSource:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -14)
-    view.recipeSource:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -14)
-    view.recipeSource:SetJustifyH("LEFT")
-    view.recipeSource:SetWordWrap(false)
+    view.recipeRequirement = font(rightHeader, "GameFontHighlightSmall")
+    view.recipeRequirement:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -1)
+    view.recipeRequirement:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -1)
+    view.recipeRequirement:SetJustifyH("LEFT")
+    view.recipeRequirement:SetWordWrap(false)
 
     local trackCheckbox = CreateFrame("CheckButton", nil, rightHeader, "UICheckButtonTemplate")
-    trackCheckbox:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -26)
+    trackCheckbox:SetPoint("LEFT", view.recipeID, "RIGHT", 8, 0)
     trackCheckbox:SetSize(20, 20)
     local trackLabel = font(rightHeader, "GameFontHighlightSmall")
     trackLabel:SetPoint("LEFT", trackCheckbox, "RIGHT", 2, 0)

@@ -1,7 +1,7 @@
 ## Local Craftables requirements prototype
 
-- Show the selected recipe's minimum profession skill, recipe learning state and known source. Display confirmed success in dark gray, unmet requirements in dark red, and unverified states in neutral text.
-- Move Track crafting beneath the recipe information in the Fabricables detail.
+- Show the minimum profession skill and a single recipe-required label when applicable. Show a skill deficit in dark red without a suffix.
+- Show only the recipe ID in the lower left and align Track crafting with it on the right.
 
 ## Unreleased — licensed Forever catalog refresh (UPD005)
 

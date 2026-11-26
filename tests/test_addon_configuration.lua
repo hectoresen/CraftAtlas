@@ -456,7 +456,7 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
     assert(visibleText("Fabricables", "Button").selected and not visibleText("Configuración", "Button"))
     local recipeLabel = assert(find(function(widget)
         return widget.kind == "FontString" and widget:IsVisible()
-            and widget.text:find("Receta " .. use.spellID, 1, true)
+            and widget.text == "ID: " .. use.spellID
     end), "selected recipe")
     local output = recipeLabel.text
     openOptions(registry)

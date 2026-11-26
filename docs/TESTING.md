@@ -4,7 +4,7 @@ Automated tests, maintainer-reported game checks and source-data verification ar
 
 ## Craftables requirements prototype
 
-**Forever client acceptance: NOT RUN.** In the test build, open Fabricables directly with the native profession window closed. Select Alchemy spell 2329 and verify the catalog minimum of 15. Compare a character's skill below, equal to and above the minimum, and use known and unlearned recipes to check that each field changes color independently. If an API does not supply a trustworthy value, verify that the corresponding field is neutral and any catalog facts are still visible.
+**Forever client acceptance: NOT RUN.** In the test build, open Fabricables directly with the native profession window closed. Select Tailoring spell 12088 and verify that the header displays `ID: 12088` with **Track crafting** on the same row. Below Tailoring 245, verify the red minimum with no deficit suffix. This entry has no catalog teaching item, so the recipe-required label is hidden. On an entry with a teaching item, verify that the same label is gray when learned, red when unlearned, and neutral if the client cannot verify the state. Check the two colors independently.
 
 Repeat with the matching profession window open and, when available, another character's profession view. Verify that learning a recipe, increasing skill or observing a recipe at a trainer refreshes only the relevant evidence. In enUS and esES, check standard and compact scales for legible labels and usable controls. Confirm the existing Track crafting, ingredient navigation, bank and reload behavior. Record the exact Forever build, locale, scale and outcome for each scenario.
 
