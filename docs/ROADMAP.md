@@ -26,3 +26,7 @@ Catalog refreshes from newer licensed datasets, full multi-recipe planning, lear
 ## OpenSpec closure rule
 
 An implemented change is not automatically accepted and archived. [The evidence ledger](OPENSPEC_STATUS.md) distinguishes implementation, owner observation, automated tests, historical supersession, and archival eligibility. There are no current open PRs/issues as of the maintenance audit, but active OpenSpec folders retain incomplete historical tasks and evidence. Do not claim all specs closed.
+
+## Authorized accuracy maintenance: UPD005
+
+Owner-merged [specification PR #75](https://github.com/hectoresen/CraftAtlas/pull/75) approves a catalog data refresh (including source-backed camp recipes and optional planning metadata) as maintenance. This does **not** approve the future recipe-following UI. Until the separate implementation passes all required CI and real-client checks, v0.4.2 remains the last published release and data refresh acceptance is pending.
