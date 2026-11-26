@@ -6,12 +6,12 @@
 ## 2. Implement the accepted requirements
 
 - [ ] Reuse the catalog's optional required skill and teaching-item facts and add a read-only adapter for trustworthy current-character observations and unknown states.
-- [ ] Render the independent skill and recipe states in the specified header positions with localized text, dark gray, dark red and neutral colors. Verify that selection changes clear previous status.
-- [ ] Re-anchor the existing Track crafting checkbox and its label below the recipe field. Preserve the existing tracker, ingredients, navigation and native link interactions.
+- [ ] Render a numeric minimum without a deficit suffix, and one recipe-required label when the teaching item applies. Verify dark gray, dark red and neutral states and clear previous values when selection changes.
+- [ ] Show the exact format `ID: <spellID>` on the left and align the Track crafting control with that row on the right. Preserve the existing tracker, ingredients, navigation and native link interactions.
 
 ## 3. Validate and prepare a test build
 
-- [ ] Extend the relevant offline fixtures for skill below, equal to and above the minimum, recipe learned and unlearned, mixed statuses, missing catalog or client data, context changes, both locales and the tracking control position and behavior.
+- [ ] Extend the relevant offline fixtures for skill below, equal to and above the minimum, recipe learned and unlearned, mixed statuses, missing catalog or client data, a verified trainer alternative, exact ID and level copy, both locales and the tracking control alignment and behavior.
 - [ ] Run the repository release, generated-data, Lua, documentation and strict OpenSpec/SDD checks. Record exact results.
 - [ ] Build a local installable CraftAtlas ZIP from the implementation branch for Forever testing.
 - [ ] In Forever, record the client build, locales and display scales tested. Verify the three header positions, colors, unknown states, selection changes, skill and learning refreshes, and existing tracking, bank, and reload interactions. Record baseline tracking failures if reproduced.

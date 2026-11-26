@@ -4,10 +4,9 @@ Craftables lists ingredient quantities and offers progress tracking. The selecte
 
 ## What Changes
 
-- Add the minimum profession skill below the profession name in the selected Craftables detail.
-- Add recipe acquisition and learned status to the upper right of that detail. Distinguish a known teaching item, a confirmed alternative source, and an unknown acquisition method.
-- Show the skill and learned-status fields independently in dark gray when met and dark red when unmet. Show a neutral state when the relevant data is missing.
-- Move the existing Track crafting checkbox below the recipe status on the right.
+- Show the minimum profession skill under the profession name. Use only the level in dark red when the character falls short.
+- Show one localized recipe-required label on the upper right for catalog entries with a teaching item, unless the game confirms an item-free path. Color it dark gray when learned, dark red when unlearned, and neutral when the learning state is unavailable.
+- Replace the secondary recipe metadata with the exact format `ID: <spellID>` and align the existing Track crafting checkbox with that row on the right.
 
 ## Capabilities
 

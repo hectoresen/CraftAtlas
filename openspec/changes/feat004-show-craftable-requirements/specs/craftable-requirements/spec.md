@@ -12,7 +12,7 @@ CraftAtlas SHALL show the source-backed minimum below the profession. It SHALL u
 #### Scenario: Observe a skill deficit
 
 - **WHEN** the character's verified profession skill is below the selected recipe's minimum, or the character is confirmed to lack that profession
-- **THEN** the field shows the unmet state in dark red
+- **THEN** the field displays only the localized level and numeric minimum in dark red, without a deficit suffix
 
 #### Scenario: Exceed the minimum
 
@@ -25,40 +25,29 @@ CraftAtlas SHALL show the source-backed minimum below the profession. It SHALL u
 - **THEN** the field is neutral and the unavailable value is identified as unknown
 - **AND** a known minimum remains visible when only the character skill is unavailable
 
-### Requirement: Show recipe acquisition and learned status independently of skill
+### Requirement: Show a single recipe-item requirement independently of skill
 
-CraftAtlas SHALL show recipe information on the right. Localized text SHALL identify a verified teaching item or item-free source, or mark acquisition unknown. It SHALL show the current character's state for the selected recipe in dark gray if learned, dark red if unlearned, or neutral if unknown. It SHALL label that state independently of the profession skill.
+CraftAtlas SHALL show only the localized Recipe required label (Se necesita receta in esES) on the right when the catalog identifies a teaching item and the client has not verified an item-free path. For the selected recipe and current character, the label SHALL be dark gray if learned, dark red if unlearned, and neutral if unknown. This color SHALL be independent of the profession skill.
 
 #### Scenario: Meet the skill requirement but still need to learn the recipe
 
-- **WHEN** the character meets the minimum profession skill and the client confirms the selected recipe is unlearned
-- **THEN** the skill field is dark gray and the recipe field is dark red
+- **WHEN** the character meets the minimum skill and the game confirms an unlearned recipe with a catalog teaching item and no verified item-free path
+- **THEN** the skill field is dark gray and the recipe-required label is dark red
 
 #### Scenario: Know the recipe while the minimum is unmet
 
-- **WHEN** the client confirms the recipe is learned and the character has a verified profession rank below the source-backed minimum
-- **THEN** the recipe field is dark gray and the skill field is dark red
+- **WHEN** the game confirms that a character learned a recipe with a catalog teaching item and no verified item-free path, and the character's verified skill is below the minimum
+- **THEN** the recipe-required label is dark gray and the skill field is dark red
 
-#### Scenario: Show a teaching-item association and learned status
+#### Scenario: Omit the label for an item-free path or missing teaching-item data
 
-- **WHEN** the catalog associates the recipe with a teaching item and the client confirms the character has already learned it
-- **THEN** the right-hand field indicates the teaching-item association and the learned state in dark gray
-- **AND** the field does not imply that the character needs to acquire the item again
-
-#### Scenario: Show a confirmed item-free learning path
-
-- **WHEN** trustworthy Forever evidence confirms a way to learn the selected recipe without an item
-- **THEN** the field identifies that learning path and uses the color corresponding to the independently verified learned status
-
-#### Scenario: Handle missing teaching-item data
-
-- **WHEN** the selected recipe has no verified acquisition information and the client confirms the character has not learned it
-- **THEN** the recipe field shows the unlearned state in dark red and identifies the acquisition method as unknown
+- **WHEN** the client verifies an item-free way to learn the recipe or the catalog lacks a teaching-item ID
+- **THEN** the recipe-required label is hidden
 
 #### Scenario: Handle missing character recipe data
 
-- **WHEN** the character's learned status is unavailable or belongs to another character or recipe
-- **THEN** the learned status is shown as unknown in a neutral color and any verified acquisition information remains visible
+- **WHEN** a recipe qualifies for the label and the character's learned state is unavailable or belongs to another character or recipe
+- **THEN** the same recipe-required label is neutral
 
 ### Requirement: Refresh verified requirements for the active detail
 
@@ -80,15 +69,15 @@ CraftAtlas SHALL evaluate the requirements for the selected recipe when displayi
 - **WHEN** the selection changes to another recipe or is cleared
 - **THEN** facts and states from the previous selection are absent from the new detail
 
-### Requirement: Place the tracking control beneath recipe information
+### Requirement: Align tracking with the recipe ID
 
-CraftAtlas SHALL position the existing Track crafting checkbox and label below the recipe field on the right, above the ingredients section. The header SHALL keep the minimum skill, recipe field, existing recipe metadata, and tracking control readable with usable pointer targets in enUS and esES at supported standard and compact scales. The checkbox SHALL continue to use the existing per-character ingredient tracking preference with the selected recipe's ingredient quantities.
+CraftAtlas SHALL show only `ID: <spellID>` in the lower left of the selected recipe header. It SHALL align the existing Track crafting checkbox and label with the vertical center of the ID row on the right. Both controls SHALL remain readable and usable in enUS and esES at supported scales. The checkbox SHALL use the existing per-character ingredient tracking preference with the selected recipe's quantities.
 
 #### Scenario: Read the header and use tracking at different scales
 
 - **WHEN** the player shows a selected recipe in enUS or esES at a standard or compact scale
-- **THEN** the skill is below the profession, the recipe field is above the checkbox on the right, and neither section obscures existing metadata or ingredient controls
-- **AND** clicking the checkbox remains possible in each of the recipe and skill states
+- **THEN** the skill is below the profession and the lower left shows only the ID, such as `ID: 12088`, without a repeated name
+- **AND** the checkbox is on the same row on the right, remains below the recipe-required label when present, and is usable in each requirement state
 
 #### Scenario: Follow the existing ingredient tracking workflow
 
