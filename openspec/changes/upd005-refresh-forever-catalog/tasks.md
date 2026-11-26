@@ -82,3 +82,9 @@ All 28 require actual client or other authoritative evidence before dropping or 
 ### F. Documentation-sync review
 
 `README.md`, `docs/DATA_MODEL.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/TESTING.md` and `CHANGELOG.md` were reconciled against source and updated. `docs/OPENSPEC_STATUS.md` was reviewed but left unchanged because blocked implementations may not modify that protected lifecycle ledger. `docs/INSTALLATION.md` and `docs/DEVELOPMENT.md` remain unchanged because install/dev commands do not change and their paths are not in approved implementation scope. `AGENTS.md`, `openspec/README.md`, `docs/SDD_COMPLIANCE.md` and proposal/design/delta spec are unchanged governance/immutable approval artifacts.
+
+### UI finding during owner acceptance — Herbalism icon (2026-11-26)
+
+- **OWNER-REPORTED FAIL (screenshot):** Materiales detail for itemID `8925` (Crystal Vial) lists Herbalism, but its profession artwork rendered as the question-mark fallback. Cause: the newly registered `HERBALISM` and `SKINNING` keys were missing from `GetExplorerProfessionIcon` in `Features/Settings/Shared/ExplorerWidgets.lua`.
+- **FIX IN IMPLEMENTATION BRANCH:** map HERBALISM to the client icon path `Interface\\Icons\\Trade_Herbalism` and SKINNING to `Interface\\Icons\\INV_Misc_Pelt_Wolf_01`. Added offline regression assertions in `tests/test_shared_widgets.lua` for both. The data identities and ingredient facts remain unchanged.
+- **RETEST NOT RUN:** owner to verify both icons in the actual Forever client after installing this PR build; do not convert the screenshot failure into PASS without a new observation.
