@@ -14,6 +14,11 @@ local function index()
                 outputItemID = record[3] > 0 and record[3] or nil,
                 kind = record[4] == 1 and "item" or (record[4] == 2 and "enchant" or "unknown"),
                 ingredients = {},
+                requiredSkill = record[6] and record[6][1] > 0 and record[6][1] or nil,
+                teachingItemID = record[6] and record[6][2] > 0 and record[6][2] or nil,
+                camping = record[6] and record[6][3] == 1 or false,
+                difficulty = record[6] and record[6][4] or nil,
+                foreverVendorIDs = record[6] and record[6][5] or nil,
             }
             for _, ingredient in ipairs(record[5]) do
                 byKey[key].ingredients[#byKey[key].ingredients + 1] = {

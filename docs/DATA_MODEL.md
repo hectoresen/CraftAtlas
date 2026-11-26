@@ -4,17 +4,28 @@ CraftAtlas treats **numeric itemID** as the identity for materials and **profess
 
 ## Source datasets and current scope
 
-| Metric | Imported source-backed value |
+| Metric | Proposed pinned catalog |
 | --- | ---: |
-| Distinct recipe-input material itemIDs | **593** |
-| Registered consuming profession categories | **10** |
-| Materials consumed by multiple professions | **237** |
-| Verified-in-source reagent → recipe use records | **8,455** |
-| Distinct profession+spellID recipe keys | **2,506** |
+| Distinct reagent itemIDs | **592** |
+| Registered consuming profession categories | **12** |
+| Materials consumed by multiple professions | **240** |
+| Reagent → recipe use records | **8,471** |
+| Distinct profession+spellID recipe keys | **2,518** |
+| Recipe entries with no reagent facts | **5** |
+| Confirmed Forever vendor-source recipe records | **316** |
+| Legacy discrepancies deliberately retained | **28** |
 
-The values describe a **pinned, MIT-licensed LibProfessionDB Forever 1.60.1.69977 beta snapshot**, transformed from [detok/ChalkBox](https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0), copyright attribution retained in `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`. **This does not prove every recipe still exists in the live Forever realm** or that all possible materials/recipes are included. `liveClientValidated: false` in the source is about complete imported-data reconciliation, not the maintainer's successful UI smoke tests.
+The refreshed primary dataset is a pinned MIT-licensed **LibProfessionDB ProfessionDB-v1.10.1 Forever 1.60.1.70938** copy in [ImCheesecake/Altisan at `c9425394`](https://github.com/ImCheesecake/Altisan/tree/c942539402802f2ec837cac1788f8c24fea374ed/Libs/LibProfessionDB/Data/Forever/_core), attribution to Pimptasty preserved. The older base is Forever 1.60.1.69977. **No exhaustive live Forever validation has yet been performed.** Other LibProfessionDB acquisition source types borrowed from Classic emulator data are explicitly flagged as *not confirmed for Forever*. The 316 vendor records are from Forever's own captured merchant sources.
 
-Ten consuming source categories are Alchemy, Blacksmithing, Cooking, Enchanting, Engineering, First Aid, Fishing, Leatherworking, Mining and Tailoring. The index describes **recipe consumption**, not gathering nodes or the character's learned professions.
+The 12 source-backed consuming professions are Alchemy, Blacksmithing, Cooking, Enchanting, Engineering, First Aid, Fishing, Leatherworking, Mining, Tailoring, **Herbalism** and **Skinning**. The last two include source-backed camping recipes (3 each); these are *consuming* activities in this catalog, not a claim that gathering itself crafts items.
+
+### Canonical source and projections
+
+The **canonical source of truth** is `Data/recipes.source.json` with `professionKey:spellID` records, output item/kind, `ingredients` pairs, skill requirements and difficulty where known, teaching item, camping flag, native Forever vendor IDs/prices/faction where supported, and clearly labeled borrowed acquisition identifiers. It also contains genuine zero-reagent recipe identities.
+
+`Data/recipe-uses.source.json` holds positive-ingredient relations only. `Data/materials.source.json` groups those relations by reagent itemID and consuming profession. `Materials.lua`, `RecipeUses.lua`, `Recipes.lua` and `Professions.lua` are deterministic outputs of `scripts/build_materials.py`; never edit those by hand. `Recipes.lua` stores compact metadata alongside the stable five core fields, allowing future recipe planning without a new runtime service. The source JSON contains more provenance than the intentionally compact runtime metadata.
+
+`Data/reconciliation-report.json` records **every added recipe, confirmed ingredient modification and unresolved source discrepancy** against the old snapshot. Specifically, 27 spells with empty new-source reagent/output records retain their 69977 ingredients/outputs and 1251750 is retained despite being absent from the newer source. A source change is not the same as a live realm deletion.
 
 ## Local opt-in tracking state (not catalog data)
 
@@ -22,20 +33,20 @@ The tracking **display preference** is a single boolean per character in `CraftA
 
 ## One source, multiple generated runtime views
 
-| Source / artifact | Meaning |
+| Artifact | Responsibility |
 | --- | --- |
-| `Data/materials.source.json` | Attributed material relations, consuming profession, source and source recipe IDs |
-| `Data/professions.source.json` | Stable profession keys and localized enUS/esES labels |
-| `Data/recipe-uses.source.json` | Pinned source record `[reagentItemID, recipeSpellID, professionKey, quantity, outputItemID, kind]` |
-| `Data/Materials.lua` | Fast material itemID → profession indices/names |
-| `Data/Professions.lua` | Localized stable profession registry and order |
-| `Data/RecipeUses.lua` | Material itemID → recipe uses with exact required quantity |
-| `Data/Recipes.lua` | Unique profession+spellID → **all known** reagent itemIDs and quantities, optional output, kind |
-| `Data/coverage-report.json` | Scope/coverage evidence and the distinction between source and live validation |
+| `Data/recipes.source.json` | All canonical profession+spellID identities, reagents, output/kind and source-backed optional metadata, including zero-input actions |
+| `Data/recipe-uses.source.json` | Strictly positive reagent relationships and quantities |
+| `Data/materials.source.json` | Material itemID → consuming profession/recipe relations with provenance |
+| `Data/professions.source.json` | 12 stable keys and localized labels |
+| `Data/reconciliation-report.json` | Full source-to-source add/change/ambiguous record |
+| `Data/Recipes.lua` | All recipes with ingredients and compact optional metadata (required skill, teaching item, camp flag, difficulty quartet, Forever vendors) |
+| `Data/RecipeUses.lua` | Input itemID → consuming recipes and required quantity |
+| `Data/Materials.lua` | Input itemID → profession indices/names |
+| `Data/Professions.lua` | Registry/localization |
+| `Data/coverage-report.json` | Source counts and explicit live-client verification limits |
 
-`Recipes.lua` is **generated from the same reagent-use source**, not maintained as a separate database. A compact record stores `{spellID, professionIndex, outputItemID|0, kindIndex, {{reagentItemID, quantity}, ...}}`; `0` represents no known item output, including non-item enchantment effects. The builder verifies ingredient relations and rejects inconsistent output kinds/IDs and duplicated input facts.
-
-Example: item **14044** (Cindercloth Cloak) is consumed by Leatherworking spell **19093**, quantity **1**, to produce item **15138** (Onyxia Scale Cloak). It must remain in the material index despite being equippable. An item that appears only as a crafted output does **not** qualify as a material.
+The recipe identity is `professionKey:spellID`; a physical output itemID is not itself a reagent unless another recipe uses it. An enchantment without a crafted item has output ID 0, and a recipe with no ingredients still has a catalog identity but creates no material relation. No fictitious ingredient is introduced for a camp action. All positive quantities must agree between canonical source, material reverse index, recipe-use projection and generated Lua.
 
 ## Runtime behavior and constraints
 
@@ -51,10 +62,10 @@ python3 scripts/build_materials.py --check
 python3 scripts/coverage_report.py
 ```
 
-Do not hand-edit generated Lua. For an approved licensed source refresh, update the attributed source data, **reconcile both material and reagent-use relations**, regenerate and verify the resulting catalog, and record the client build/review date. For example the importer accepts:
+Do not hand-edit generated Lua. For an approved licensed source refresh, update the pinned canonical recipes, **reconcile both material and reagent-use relations**, regenerate and verify the resulting catalog, and record the client build/review date. For example the importer accepts:
 
 ```sh
 python3 scripts/build_materials.py --import-libprofessiondb /path/to/core --source-url <pinned-source-url> --client-build <build> --reviewed-at YYYY-MM-DD
 ```
 
-The importer alone does not automatically reconcile the separate recipe-use facts; mismatched relationships should fail validation. The stronger `--release --check` gate can require additional approved live data evidence. See [testing](TESTING.md) and [architecture](ARCHITECTURE.md).
+The legacy reagent-only importer does not automatically reconcile the canonical recipe catalog: do not use it as a full-refresh command. Canonical and projection mismatches must fail validation. The stronger `--release --check` gate can require additional approved live data evidence. See [testing](TESTING.md) and [architecture](ARCHITECTURE.md).

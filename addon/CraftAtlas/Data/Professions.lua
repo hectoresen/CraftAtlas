@@ -12,6 +12,8 @@ ns.professionOrder = {
     "LEATHERWORKING",
     "MINING",
     "TAILORING",
+    "HERBALISM",
+    "SKINNING",
 }
 ns.professionNames = {
     ["ALCHEMY"] = { enUS = "Alchemy", esES = "Alquimia" },
@@ -24,4 +26,6 @@ ns.professionNames = {
     ["LEATHERWORKING"] = { enUS = "Leatherworking", esES = "Peletería" },
     ["MINING"] = { enUS = "Mining", esES = "Minería" },
     ["TAILORING"] = { enUS = "Tailoring", esES = "Sastrería" },
+    ["HERBALISM"] = { enUS = "Herbalism", esES = "Herboristería" },
+    ["SKINNING"] = { enUS = "Skinning", esES = "Desuello" },
 }

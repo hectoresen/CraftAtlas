@@ -14,6 +14,12 @@ local function trackedPageSize(availableHeight)
         math.floor(remaining / (39 + TRACKER_ROW_HEIGHT))))
 end
 
+-- Forever/Classic CheckButton:GetChecked() can return 1 or nil, not only booleans.
+local function isChecked(button)
+    local value = button and button:GetChecked()
+    return value == true or value == 1
+end
+
 local function setCheck(button, checked)
     if button and type(button.SetChecked) == "function" then
         button:SetChecked(checked)
@@ -339,7 +345,14 @@ function ns.InitRecipeDetail(parent)
     trackCheckbox:SetScript("OnClick", function(self)
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe and ns.SetCraftTrackingEnabled then
-            ns.SetCraftTrackingEnabled(self:GetChecked() == true)
+            local requested = isChecked(self)
+            local saved = ns.SetCraftTrackingEnabled(requested)
+            if saved == false then
+                -- An absent character identity must never fail invisibly.
+                if type(print) == "function" then
+                    print("|cffff8b38CraftAtlas: tracking not saved; character/realm identity unavailable.|r")
+                end
+            end
             view.page = 1
             render()
         end
@@ -410,7 +423,10 @@ function ns.InitRecipeDetail(parent)
     view.bankCheckbox, view.bankLabel = bankCheckbox, bankLabel
     bankCheckbox:SetScript("OnClick", function(self)
         if ns.SetCraftBankPreference then
-            ns.SetCraftBankPreference(self:GetChecked() == true)
+            local saved = ns.SetCraftBankPreference(isChecked(self))
+            if saved == false and type(print) == "function" then
+                print("|cffff8b38CraftAtlas: bank preference not saved; character/realm identity unavailable.|r")
+            end
         end
         render()
     end)

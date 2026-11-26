@@ -143,9 +143,10 @@ locale = "frFR"
 tooltip:rebuild()
 tooltip.primary = silverleaf
 onItem(tooltip, silverleaf)
-assert(#tooltip.lines == 4)
+assert(#tooltip.lines == 5, "Silverleaf is consumed by Alchemy and Herbalism camp recipes")
 assertLine(tooltip, 3, "Used in:", 0.96, 0.81, 0.1)
 assertProfession(tooltip, 4, "Alchemy", 136240)
+assertProfession(tooltip, 5, "Herbalism")
 
 tooltip:rebuild()
 tooltip.primary = nil

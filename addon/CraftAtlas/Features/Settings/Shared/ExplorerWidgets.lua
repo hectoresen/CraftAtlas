@@ -129,8 +129,10 @@ local professionIcons = {
     ENGINEERING = "Interface\\Icons\\Trade_Engineering",
     FIRST_AID = "Interface\\Icons\\Spell_Holy_SealOfSacrifice",
     FISHING = "Interface\\Icons\\Trade_Fishing",
+    HERBALISM = "Interface\\Icons\\Trade_Herbalism",
     LEATHERWORKING = "Interface\\Icons\\Trade_LeatherWorking",
     MINING = "Interface\\Icons\\Trade_Mining",
+    SKINNING = "Interface\\Icons\\INV_Misc_Pelt_Wolf_01",
     TAILORING = "Interface\\Icons\\Trade_Tailoring",
 }
 

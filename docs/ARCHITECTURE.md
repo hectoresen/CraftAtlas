@@ -56,3 +56,7 @@ A deterministic offline generator `scripts/build_materials.py` compiles `Materia
 ## Validation and change control
 
 `bash scripts/validate_release_checks.sh` is the common PR/release gate. `.github/workflows/spec-compliance.yml` separately enforces the OpenSpec approval chain. Python and Lua fixtures supplement these; exact Forever build/manual acceptance and untested item-tooltip origins should be recorded in `docs/TESTING.md`. See [data model](DATA_MODEL.md), [development](DEVELOPMENT.md) and [SDD policy](SDD_COMPLIANCE.md).
+
+## Current pinned catalog contract (UPD005, implementation pending client acceptance)
+
+`Data/recipes.source.json` is the canonical source for all recipe identities, including zero-reagent actions and two new source-backed camp professions, HERBALISM and SKINNING. `recipe-uses.source.json` and `materials.source.json` are strictly positive-input projections. The generator validates canonical/projection equality before writing Lua. Existing 10 profession indices remain stable; two new keys are appended, preventing record-index shifts. `Domain/RecipeCatalog.lua` exposes optional required skill, teaching item, camping classification, difficulty and vendor IDs; no character learned-recipe inference is added. The 28 legacy discrepancy records remain flagged and are not accepted as current live source facts. See `docs/DATA_MODEL.md` and `Data/reconciliation-report.json` for provenance. Real-client tests are NOT RUN.

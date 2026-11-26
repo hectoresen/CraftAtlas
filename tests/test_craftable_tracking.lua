@@ -128,6 +128,17 @@ player=nil
 eq(ns.SetCraftTrackingEnabled(true),false,"identity required for global write")
 eq(ns.IsCraftTrackingEnabled(),false,"identity required for global read")
 player="Alice"
+-- Forever compatibility: realm may be absent from GetRealmName but present
+-- in UnitFullName during character initialization.
+realm=nil
+UnitFullName=function() return player,"Test Realm" end
+eq(ns.IsCraftTrackingEnabled(),false,"disabled character still resolves via full identity")
+eq(ns.SetCraftTrackingEnabled(true),true,"fallback identity persists tracking")
+eq(ns.IsCraftTrackingEnabled(),true,"fallback identity reads persisted tracking")
+realm="Test Realm"
+UnitFullName=nil
+eq(ns.IsCraftTrackingEnabled(),true,"normal identity sees fallback write")
+ns.SetCraftTrackingEnabled(false)
 ns.SetCraftBankPreference(true)
 eq(ns.GetCraftBankPreference(),true,"bank preference independent of global tracking")
 eq(ns.IsCraftTrackingEnabled(),false,"bank toggle never enables tracking")
@@ -171,7 +182,10 @@ local function widget(kind,parent)
     function w:SetScript(k,fn) self[k]=fn end
     function w:SetEnabled(v) self.enabled=v end
     function w:SetChecked(v) self.checked=v end
-    function w:GetChecked() return self.checked end
+    function w:GetChecked()
+        if self.kind == "CheckButton" then return self.checked and 1 or nil end
+        return self.checked
+    end
     function w:Show() self.shown=true end
     function w:Hide() self.shown=false end
     frames[#frames+1]=w
@@ -369,6 +383,14 @@ for _,w in ipairs(trackerRows) do
 end
 assert(bankButton and bankButton.points.TOPLEFT.y + -bankButton.height >= -34,
     "bank checkbox must not extend into the first tracker row")
+-- The real WoW 5.1 CheckButton may return numeric 1, not boolean true.
+includeBank=false
+bankButton:SetChecked(true)
+bankButton.OnClick(bankButton)
+eq(includeBank,true,"native numeric bank checkbox opt-in must persist")
+bankButton:SetChecked(false)
+bankButton.OnClick(bankButton)
+eq(includeBank,false,"native bank checkbox opt-out must persist")
 -- Toggle once, navigate to another recipe, and keep it enabled. Only the
 -- selected recipe's ingredients contribute to Material progress.
 local trackingCheckbox
@@ -400,6 +422,7 @@ end)(),"material progress hidden when global preference is disabled")
 trackingCheckbox:SetChecked(true)
 trackingCheckbox.OnClick(trackingCheckbox)
 eq(trackingEnabled,true,"re-enable global tracking on recipe A")
+eq(trackingCheckbox.checked,true,"numeric GetChecked=1 must persist opt-in")
 uiNs.SetRecipeDetail(otherRecipe.key)
 eq(trackingCheckbox.checked,true,"global opt-in survives second navigation")
 assert(findLabel("0/1 · Missing 1"),"other recipe tracker reappears without rechecking")
