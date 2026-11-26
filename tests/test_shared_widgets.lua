@@ -35,6 +35,10 @@ assert(row.name.ShowCalled and row.groupName.HideCalled)
 assert(row.groupArrow.HideCalled and row.SetHighlightTextureCalled)
 assert(row.groupHeader.HideCalled, "recycled item rows clear the profession header treatment")
 assert(ns.GetExplorerProfessionIcon("ALCHEMY"):find("Trade_Alchemy", 1, true))
+assert(ns.GetExplorerProfessionIcon("HERBALISM"):find("Trade_Herbalism", 1, true),
+    "Herbalism camp profession must use native icon instead of question mark")
+assert(ns.GetExplorerProfessionIcon("SKINNING"):find("INV_Misc_Pelt_Wolf_01", 1, true),
+    "Skinning camp profession must use native skinning icon instead of question mark")
 local toggles=0
 local section=ns.CreateExplorerSection(ui(), "USED_BY", -92, function() toggles=toggles+1 end)
 section.OnClick(section)
