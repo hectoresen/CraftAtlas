@@ -82,8 +82,17 @@ end
 -- The account-wide SavedVariables file contains isolated character maps.
 -- Do not persist tracking until both identity components are resolved.
 local function characterKey()
-    if type(UnitName) ~= "function" or type(GetRealmName) ~= "function" then return nil end
-    local name, realm = UnitName("player"), GetRealmName()
+    local name, realm
+    if type(UnitName) == "function" then name = UnitName("player") end
+    if type(GetRealmName) == "function" then realm = GetRealmName() end
+    -- Some Forever client states have the character ready before GetRealmName.
+    -- UnitFullName is a compatible fallback and must not change existing keys.
+    if (type(name) ~= "string" or name == "" or
+        type(realm) ~= "string" or realm == "") and type(UnitFullName) == "function" then
+        local fullName, fullRealm = UnitFullName("player")
+        if type(name) ~= "string" or name == "" then name = fullName end
+        if type(realm) ~= "string" or realm == "" then realm = fullRealm end
+    end
     if type(name) ~= "string" or name == "" or type(realm) ~= "string" or realm == "" then
         return nil
     end
