@@ -7,7 +7,7 @@
 
 - [ ] Reuse the catalog's optional required skill and teaching-item facts and add a read-only adapter for trustworthy current-character observations and unknown states.
 - [ ] Render the same numeric minimum in all skill states, and one recipe-required label when the teaching item applies. Verify dark gray, dark red and neutral states and clear previous values when selection changes.
-- [ ] Show the exact format `ID: <spellID>` on the left and align the Track crafting control with that row on the right. Preserve the existing tracker, ingredients, navigation and native link interactions.
+- [ ] Match the Materials detail header and first section divider. Show `ID <spellID>` on the left and align the Track crafting control with that row on the right. Preserve the existing tracker, ingredients, navigation and native link interactions.
 
 ## 3. Validate and prepare a test build
 

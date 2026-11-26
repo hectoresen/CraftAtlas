@@ -4,9 +4,10 @@ Craftables lists ingredient quantities and offers progress tracking. The selecte
 
 ## What Changes
 
-- Show the minimum profession skill under the profession name. Use the same level text in dark gray when met, dark red when unmet, and neutral when unverified.
+- Use the Materials detail layout for the Craftables icon, title, subtitle, lower metadata row, and first section divider.
+- Show the minimum profession skill as `Crafting level <level>` in enUS and `Nivel de fabricación <level>` in esES under the profession name. Use the same level text in dark gray when met, dark red when unmet, and neutral when unverified.
 - Show one localized recipe-required label on the upper right for catalog entries with a teaching item, unless the game confirms an item-free path. Color it dark gray when learned, dark red when unlearned, and neutral when the learning state is unavailable.
-- Replace the secondary recipe metadata with the exact format `ID: <spellID>` and align the existing Track crafting checkbox with that row on the right.
+- Replace the secondary recipe metadata with the exact format `ID <spellID>` and align the existing Track crafting checkbox with that row on the right.
 
 ## Capabilities
 

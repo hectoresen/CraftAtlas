@@ -2,7 +2,7 @@
 
 ### Requirement: Show the minimum profession skill for the selected recipe
 
-CraftAtlas SHALL show the source-backed minimum below the profession using only the localized skill label and numeric level. The text SHALL stay the same whether the color is dark gray for a met minimum, dark red for an unmet minimum, or neutral for unverified character skill. If the minimum is unknown, a neutral localized placeholder SHALL appear.
+CraftAtlas SHALL show the source-backed minimum below the profession as `Crafting level <level>` in enUS and `Nivel de fabricación <level>` in esES. The text SHALL stay the same whether the color is dark gray for a met minimum, dark red for an unmet minimum, or neutral for unverified character skill. If the minimum is unknown, a neutral localized placeholder SHALL appear.
 
 #### Scenario: Meet the minimum exactly
 
@@ -69,14 +69,23 @@ CraftAtlas SHALL evaluate the requirements for the selected recipe when displayi
 - **WHEN** the selection changes to another recipe or is cleared
 - **THEN** facts and states from the previous selection are absent from the new detail
 
+### Requirement: Match the Materials detail layout
+
+Craftables SHALL match the Materials detail icon, title, subtitle, lower metadata row, and first section divider positions and use the same native heading and metadata styles. The level SHALL have a full-width row below the profession. If present, the recipe-required label SHALL sit to the right of the profession.
+
+#### Scenario: Compare both detail tabs at standard and compact widths
+
+- **WHEN** the player selects a material and then a craftable at a supported standard or compact width
+- **THEN** the shared rows and first divider align and the crafting-level text is fully visible
+
 ### Requirement: Align tracking with the recipe ID
 
-CraftAtlas SHALL show only `ID: <spellID>` in the lower left of the selected recipe header. It SHALL align the existing Track crafting checkbox and label with the vertical center of the ID row on the right. Both controls SHALL remain readable and usable in enUS and esES at supported scales. The checkbox SHALL use the existing per-character ingredient tracking preference with the selected recipe's quantities.
+CraftAtlas SHALL show only `ID <spellID>` in the lower left of the selected recipe header. It SHALL align the existing Track crafting checkbox and label with the vertical center of the ID row on the right. Both controls SHALL remain readable and usable in enUS and esES at supported scales. The checkbox SHALL use the existing per-character ingredient tracking preference with the selected recipe's quantities.
 
 #### Scenario: Read the header and use tracking at different scales
 
 - **WHEN** the player shows a selected recipe in enUS or esES at a standard or compact scale
-- **THEN** the skill is below the profession and the lower left shows only the ID, such as `ID: 12088`, without a repeated name
+- **THEN** the skill is below the profession and the lower left shows only the ID, such as `ID 12088`, without a repeated name
 - **AND** the checkbox is on the same row on the right, remains below the recipe-required label when present, and is usable in each requirement state
 
 #### Scenario: Follow the existing ingredient tracking workflow
