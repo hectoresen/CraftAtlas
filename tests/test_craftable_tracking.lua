@@ -372,6 +372,14 @@ for _,w in ipairs(trackerRows) do
 end
 assert(bankButton and bankButton.points.TOPLEFT.y + -bankButton.height >= -34,
     "bank checkbox must not extend into the first tracker row")
+-- The real WoW 5.1 CheckButton may return numeric 1, not boolean true.
+includeBank=false
+bankButton:SetChecked(true)
+bankButton.OnClick(bankButton)
+eq(includeBank,true,"native numeric bank checkbox opt-in must persist")
+bankButton:SetChecked(false)
+bankButton.OnClick(bankButton)
+eq(includeBank,false,"native bank checkbox opt-out must persist")
 -- Toggle once, navigate to another recipe, and keep it enabled. Only the
 -- selected recipe's ingredients contribute to Material progress.
 local trackingCheckbox
