@@ -182,12 +182,8 @@ local function renderRequirements(recipe)
     local skillText = ns.L("CRAFT_SKILL_UNKNOWN")
     local skillMet
     if recipe.requiredSkill then
-        local stateKey = "CRAFT_SKILL_UNVERIFIED"
-        if rank ~= nil then
-            skillMet = rank >= recipe.requiredSkill
-            stateKey = skillMet and "CRAFT_SKILL_MET" or "CRAFT_REQUIRED_SKILL"
-        end
-        skillText = string.format(ns.L(stateKey), recipe.requiredSkill)
+        skillText = string.format(ns.L("CRAFT_REQUIRED_SKILL"), recipe.requiredSkill)
+        if rank ~= nil then skillMet = rank >= recipe.requiredSkill end
     end
     setRequirementText(view.requiredSkill, skillText, skillMet)
 

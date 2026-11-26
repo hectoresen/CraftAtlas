@@ -31,13 +31,12 @@ for _, key in ipairs({"TRACK_CRAFTING", "TRACK_PROGRESS", "TRACK_INCLUDE_BANK",
     assert(en ~= key and es ~= key and en ~= es,
         "localized craft tracker text required: " .. key)
 end
-for _, key in ipairs({"CRAFT_REQUIRED_SKILL", "CRAFT_SKILL_UNKNOWN", "CRAFT_SKILL_MET",
-    "CRAFT_SKILL_UNVERIFIED", "CRAFT_RECIPE_REQUIRED"}) do
+for _, key in ipairs({"CRAFT_REQUIRED_SKILL", "CRAFT_SKILL_UNKNOWN", "CRAFT_RECIPE_REQUIRED"}) do
     local en, es = ns.Text(key, "enUS"), ns.Text(key, "esES")
     assert(en ~= key and es ~= key and en ~= es, "localized requirement text required: " .. key)
 end
 assert(ns.Text("CRAFT_REQUIRED_SKILL", "esES"):format(245) == "Nivel 245")
-assert(ns.Text("CRAFT_SKILL_MET", "esES"):format(15) == "Nivel 15 · Alcanzado")
+assert(ns.Text("CRAFT_REQUIRED_SKILL", "enUS"):format(245) == "Skill 245")
 assert(ns.Text("CRAFT_RECIPE_REQUIRED", "esES") == "Se necesita receta")
 for _, locale in ipairs({"enUS", "esES"}) do
     assert(ns.Text("CRAFT_RECIPE_ID", locale):format(12088) == "ID: 12088")

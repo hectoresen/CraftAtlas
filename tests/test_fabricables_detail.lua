@@ -124,7 +124,7 @@ end
 local function isRed(field)
     return field.color[1] > field.color[2] * 2
 end
-local skill = label("Skill 15 · Met")
+local skill = label("Skill 15")
 local requirement = label("Recipe required")
 local id = label("ID: 2329")
 assert(isGray(skill) and isRed(requirement), "requirements are independent at exact rank")
@@ -150,13 +150,13 @@ assert(skill == label("Skill 15") and isRed(skill))
 assert(requirement == label("Recipe required") and isGray(requirement))
 rank = 16
 events.OnEvent(events, "SKILL_LINES_CHANGED")
-assert(skill == label("Skill 15 · Met") and isGray(skill))
+assert(skill.text == "Skill 15" and isGray(skill))
 
 events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
-assert(skill.text == "Skill 15 · Unverified" and not isGray(skill) and not isRed(skill))
+assert(skill.text == "Skill 15" and not isGray(skill) and not isRed(skill))
 assert(requirement.text == "Recipe required" and not isGray(requirement) and not isRed(requirement))
 events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGED")
-assert(skill.text == "Skill 15 · Met" and isGray(requirement))
+assert(skill.text == "Skill 15" and isGray(skill) and isGray(requirement))
 
 trainer = true
 events.OnEvent(events, "TRAINER_SHOW")
@@ -175,4 +175,9 @@ ns.SetRecipeDetail("ALCHEMY:2329")
 assert(skill.text == "Nivel 15" and isRed(skill))
 assert(requirement.text == "Se necesita receta" and isRed(requirement))
 assert(id.text == "ID: 2329" and label("Seguir fabricación").shown)
+rank = 15
+events.OnEvent(events, "SKILL_LINES_CHANGED")
+assert(skill.text == "Nivel 15" and isGray(skill))
+events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
+assert(skill.text == "Nivel 15" and not isGray(skill) and not isRed(skill))
 print("Fabricables detail native section and requirements PASS")

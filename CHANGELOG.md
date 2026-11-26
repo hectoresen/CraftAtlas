@@ -1,6 +1,6 @@
 ## Local Craftables requirements prototype
 
-- Show the minimum profession skill and a single recipe-required label when applicable. Show a skill deficit in dark red without a suffix.
+- Show the minimum profession skill and a single recipe-required label when applicable. Use color alone to indicate whether the minimum is met.
 - Show only the recipe ID in the lower left and align Track crafting with it on the right.
 
 ## Unreleased — licensed Forever catalog refresh (UPD005)
