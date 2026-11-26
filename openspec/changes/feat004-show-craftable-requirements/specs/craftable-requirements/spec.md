@@ -69,14 +69,20 @@ CraftAtlas SHALL evaluate the requirements for the selected recipe when displayi
 - **WHEN** the selection changes to another recipe or is cleared
 - **THEN** facts and states from the previous selection are absent from the new detail
 
-### Requirement: Match the Materials detail layout
+### Requirement: Align the Materials and Craftables detail layouts
 
-Craftables SHALL match the Materials detail icon, title, subtitle, lower metadata row, and first section divider positions and use the same native heading and metadata styles. The level SHALL have a full-width row below the profession. If present, the recipe-required label SHALL sit to the right of the profession.
+Both detail tabs SHALL align their icon, title, subtitle, level, ID, and first section divider with the same native styles. Materials SHALL show the title, client-provided item type, client-provided item level, and `ID <itemID>` in that order. It SHALL leave missing type or level data blank. In Craftables, the level SHALL be below the profession and any recipe-required label SHALL sit to its right on the subtitle row.
 
 #### Scenario: Compare both detail tabs at standard and compact widths
 
 - **WHEN** the player selects a material and then a craftable at a supported standard or compact width
-- **THEN** the shared rows and first divider align and the crafting-level text is fully visible
+- **THEN** the shared rows and first divider align and the full level text is visible in both tabs
+
+#### Scenario: Open a material with item metadata
+
+- **WHEN** the client supplies an item type and level for the selected material
+- **THEN** the header shows the item title, item type, localized item level, and `ID <itemID>` in four rows
+- **AND** switching to a material with missing metadata clears the corresponding values and retains its ID
 
 ### Requirement: Align tracking with the recipe ID
 

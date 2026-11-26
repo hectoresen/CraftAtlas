@@ -2,6 +2,7 @@
   "allowed_paths": [
     "addon/CraftAtlas/CraftAtlas.toc",
     "addon/CraftAtlas/Features/Settings/RecipesView.lua",
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
     "addon/CraftAtlas/Infrastructure/ProfessionRequirements.lua",
     "addon/CraftAtlas/Localization/Locales.lua",
     "tests/test_addon_configuration.lua",
