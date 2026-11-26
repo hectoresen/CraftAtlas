@@ -154,7 +154,7 @@ function ns.StyleExplorerGroupRow(row, label, count, expanded)
     row.groupName:Show()
 end
 
-function ns.StyleExplorerItemRow(row, compact)
+function ns.StyleExplorerItemRow(row, compact, flat)
     if row.groupHeader then row.groupHeader:Hide() end
     row.groupArrow:Hide()
     row.groupName:Hide()
@@ -162,8 +162,9 @@ function ns.StyleExplorerItemRow(row, compact)
     row.name:ClearAllPoints()
     if compact then
         -- Indentation communicates parent/child hierarchy independently of color.
-        row.icon:SetPoint("LEFT", row, "LEFT", 15, 0)
-        row.name:SetPoint("LEFT", row, "LEFT", 51, 0)
+        local iconOffset = flat and 2 or 15
+        row.icon:SetPoint("LEFT", row, "LEFT", iconOffset, 0)
+        row.name:SetPoint("LEFT", row, "LEFT", iconOffset + 36, 0)
         row.name:SetPoint("RIGHT", row, "RIGHT", -3, 0)
         row.professions:Hide()
     else

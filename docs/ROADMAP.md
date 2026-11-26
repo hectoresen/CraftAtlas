@@ -5,7 +5,7 @@
 ## Implemented functionality on main
 
 - Source-backed localized material tooltip annotations, user-configurable native AddOn options and movable/restorable minimap launcher.
-- Materiales: functional name/itemID search, profession filtering, grouped collapsible profession tree, native details, recipe usage and pagination.
+- Materiales supports name and itemID search, a single list for a selected profession, collapsible groups for All professions, native details, and paginated recipe uses.
 - Fabricables: recipe/output search, profession filter, source-backed ingredient quantities, native detail, Shift-click client-native chat links, cross-navigation and Back.
 - Opt-in **global per-character** craft tracking (persistent across recipe changes and `/reload`), native per-material and weighted total status bars, optional conditional open-bank counts; progress is recipe-scoped, not a multi-recipe planner.
 - Independent bounded catalog preparation indicators, coalesced background refresh, English/Spanish localization and owner-only release packaging workflow.
