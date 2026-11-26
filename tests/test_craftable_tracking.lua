@@ -137,6 +137,8 @@ eq(ns.SetCraftTrackingEnabled(true),true,"fallback identity persists tracking")
 eq(ns.IsCraftTrackingEnabled(),true,"fallback identity reads persisted tracking")
 realm="Test Realm"
 UnitFullName=nil
+eq(ns.IsCraftTrackingEnabled(),true,"normal identity sees fallback write")
+ns.SetCraftTrackingEnabled(false)
 ns.SetCraftBankPreference(true)
 eq(ns.GetCraftBankPreference(),true,"bank preference independent of global tracking")
 eq(ns.IsCraftTrackingEnabled(),false,"bank toggle never enables tracking")
