@@ -2,7 +2,7 @@
 
 ### Requirement: Show the minimum profession skill for the selected recipe
 
-CraftAtlas SHALL show the source-backed minimum below the profession. It SHALL use localized text and dark gray when verified skill meets or exceeds it, dark red when verified skill falls short or the profession is confirmed unlearned, and neutral when the minimum or skill is unknown. A known minimum SHALL remain visible.
+CraftAtlas SHALL show the source-backed minimum below the profession using only the localized skill label and numeric level. The text SHALL stay the same whether the color is dark gray for a met minimum, dark red for an unmet minimum, or neutral for unverified character skill. If the minimum is unknown, a neutral localized placeholder SHALL appear.
 
 #### Scenario: Meet the minimum exactly
 
@@ -12,7 +12,7 @@ CraftAtlas SHALL show the source-backed minimum below the profession. It SHALL u
 #### Scenario: Observe a skill deficit
 
 - **WHEN** the character's verified profession skill is below the selected recipe's minimum, or the character is confirmed to lack that profession
-- **THEN** the field displays only the localized level and numeric minimum in dark red, without a deficit suffix
+- **THEN** the field displays the localized level and numeric minimum in dark red
 
 #### Scenario: Exceed the minimum
 
@@ -22,8 +22,8 @@ CraftAtlas SHALL show the source-backed minimum below the profession. It SHALL u
 #### Scenario: Display missing skill information
 
 - **WHEN** the selected recipe has no source-backed minimum or the relevant character skill cannot be verified
-- **THEN** the field is neutral and the unavailable value is identified as unknown
-- **AND** a known minimum remains visible when only the character skill is unavailable
+- **THEN** the field shows the same known minimum in a neutral color if only the character's skill is unverified
+- **AND** the field shows a neutral placeholder when the catalog minimum is unknown
 
 ### Requirement: Show a single recipe-item requirement independently of skill
 
