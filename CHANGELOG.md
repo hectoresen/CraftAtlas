@@ -1,3 +1,11 @@
+## Unreleased — licensed Forever catalog refresh (UPD005)
+
+- Pinned a newer MIT LibProfessionDB Forever snapshot (1.60.1.70938) with exact source SHA and retained 1.60.1.69977 evidence for disputed records. This is a proposed data update, **not yet released**.
+- Catalog expanded to **12 professions** with six source-backed camping recipes in Herbalism and Skinning. Added six other recipe identities (including Enchant Boots - Speed); 5 reagent-free profession actions remain as distinct recipes.
+- Corrected five Tailoring recipe quantities and removed four Leatherworking recipe inputs based on the new pinned core source. Preserved 27 conflicting empty-reagent spells and one missing Alchemy recipe pending client verification.
+- Stored source-backed skill/difficulty, teaching items, 316 Forever vendor records including purchase cost/faction, and explicitly flagged borrowed acquisition identifiers for future recipe-planning work.
+- Rebuilt exact Lua indices and coverage report; 592 distinct input materials, 8,471 positive ingredient links and 2,518 recipes in the proposed dataset. No claim of complete live Forever coverage.
+
 # Maintenance checkpoint (2026-11-18)
 
 - Entered maintenance mode: no new features planned until further notice; only fixes, compatibility, security, release upkeep and documentation changes.
