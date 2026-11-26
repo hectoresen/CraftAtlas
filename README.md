@@ -1,10 +1,10 @@
 # CraftAtlas
 
-> **Maintenance mode (since 2026-11-18).** No new features are planned until further notice. Work is limited to bug fixes, client compatibility, security, release maintenance and documentation corrections. The official latest release is [v0.4.0](https://github.com/hectoresen/CraftAtlas/releases/tag/v0.4.0). Historical OpenSpec changes can remain active where acceptance evidence is incomplete; this is not a new-feature backlog.
+> **Maintenance mode (since 2026-11-18).** No new features are planned until further notice. Work is limited to bug fixes, client compatibility, security, release maintenance and documentation corrections. The official latest release is [v0.4.2](https://github.com/hectoresen/CraftAtlas/releases/tag/v0.4.2). Historical OpenSpec changes can remain active where acceptance evidence is incomplete; this is not a new-feature backlog.
 
 **CraftAtlas** is an offline, MIT-licensed addon for **World of Warcraft: Forever**. It shows which professions consume an item's materials and lets players explore materials and craftable results without requiring the character to know a profession.
 
-**Source manifest:** `0.2.0-dev` (see `addon/CraftAtlas/CraftAtlas.toc`); the explorer hides the version for development or unknown builds and displays only the installed release manifest version for official packages. The latest official packaged release is **v0.4.0** (2026-11-17); the maintainer has accepted subsequent functional behavior including global crafting tracking, but comprehensive client matrices remain separate. This is not a claim that every imported recipe is available on the current live realm or that every client/tooltip origin has been individually tested.
+**Source manifest:** `0.2.0-dev` (see `addon/CraftAtlas/CraftAtlas.toc`); the explorer hides the version for development or unknown builds and displays only the installed release manifest version for official packages. The latest official packaged release is **v0.4.2** (2026-11-22); the maintainer has accepted subsequent functional behavior including global crafting tracking, but comprehensive client matrices remain separate. This is not a claim that every imported recipe is available on the current live realm or that every client/tooltip origin has been individually tested.
 
 ## Current features
 
@@ -23,15 +23,21 @@
 
 Names, icons, rarity and stats come from native WoW APIs; CraftAtlas does not invent missing item data. Client-cache misses may leave search results incomplete, and non-item recipes are distinguished from crafted items. It does **not** track learned recipes or crafting eligibility, automate crafting, query auction data, sync over a network or build full dependency graphs. Opt-in Fabricables tracking *does* calculate observed bag quantities and, under supported open-bank conditions, bank quantities for the currently viewed recipe; it is not an inventory history or multi-recipe planner.
 
+## Refreshed Forever catalog (pending implementation acceptance)
+
+The proposed next data package uses a pinned MIT-licensed LibProfessionDB **v1.10.1 Forever 1.60.1.70938** mirror (SHA `c9425394`) and retains the old 1.60.1.69977 facts only for 28 disputed cases. It adds Herbalism/Herboristería and Skinning/Desuello camping recipes and source-backed skill, trainer/item and vendor metadata. Its canonical `Data/recipes.source.json` includes recipes without reagents; `recipe-uses.source.json` and Materials remain real-input-only projections. **The refreshed catalog is not part of an official release yet; its actual Forever client behavior is NOT RUN.**
+
+The full per-recipe machine-readable change record lives in `Data/reconciliation-report.json`. Changes from 593 to 592 material IDs result from removing item `4321` from four recipes; no new unique reagent IDs were introduced, but several new recipes reuse existing items. The 27 conflicting empty-reagent recipes and Alchemy 1251750 remain deliberately retained until verified; full live coverage is not claimed.
+
 ## Catalog and data limitations
 
 | Source-backed metric | Current bundled snapshot |
 | --- | ---: |
-| Distinct reagent itemIDs | **593** |
-| Consuming profession categories | **10** |
-| Reagents used by multiple professions | **237** |
-| Reagent-to-recipe input relationships | **8,455** |
-| Unique profession + spellID recipes | **2,506** |
+| Distinct reagent itemIDs | **592** |
+| Consuming profession categories | **12** |
+| Reagents used by multiple professions | **240** |
+| Reagent-to-recipe input relationships | **8,471** |
+| Unique profession + spellID recipes | **2,518** |
 
 The dataset is a pinned MIT-licensed **LibProfessionDB** snapshot from Forever beta client **1.60.1.69977**, transformed from [detok/ChalkBox](https://github.com/detok/ChalkBox/tree/f8bbc3e7af7476b5685f999b79b2470cd905e014/ChalkBox/Libs/LibProfessionDB-1.0). Upstream license and attribution are included in `addon/CraftAtlas/Data/LICENSE-LibProfessionDB.txt`. It is **not** a comprehensive or independently live-verified catalog. A crafted/equippable item can still be a reagent for another recipe (e.g., item 14044 is consumed by recipe 19093). The catalog is generated from `materials.source.json`, `professions.source.json` and `recipe-uses.source.json`; do not hand-edit generated Lua.
 
