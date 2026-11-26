@@ -70,6 +70,20 @@
       "esES": "Sastrería",
       "role": "consumer",
       "source": "WoW Classic crafting profession"
+    },
+    {
+      "key": "HERBALISM",
+      "enUS": "Herbalism",
+      "esES": "Herboristería",
+      "role": "consumer",
+      "source": "LibProfessionDB Forever 1.60.1.70938 camp recipes with source-backed reagents"
+    },
+    {
+      "key": "SKINNING",
+      "enUS": "Skinning",
+      "esES": "Desuello",
+      "role": "consumer",
+      "source": "LibProfessionDB Forever 1.60.1.70938 camp recipes with source-backed reagents"
     }
   ]
 }
