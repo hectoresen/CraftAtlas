@@ -1,11 +1,11 @@
 {
   "referenceUniverse": {
-    "clientBuild": "Forever 1.60.1.69977",
-    "sourceSnapshot": "LibProfessionDB Forever core files, vendored in detok/ChalkBox @ f8bbc3e7af7476b5685f999b79b2470cd905e014",
+    "clientBuild": "Forever 1.60.1.70938",
+    "sourceSnapshot": "https://github.com/ImCheesecake/Altisan/tree/c942539402802f2ec837cac1788f8c24fea374ed/Libs/LibProfessionDB/Data/Forever/_core (original LibProfessionDB v1.10.1, pinned mirror commit)",
     "eligibleItemIDs": null,
     "rights": "MIT; Copyright (c) 2026 Pimptasty",
-    "note": "This is a licensed MIT client-data subset only, not a complete universe of every live realm recipe or every profession. Release claims require current build QA.",
-    "observedDistinctReagentIDs": 593,
+    "note": "Licensed Forever source snapshot; 27 legacy ingredient/output records and one absent recipe retained pending live source verification. Current game/client completeness not proven.",
+    "observedDistinctReagentIDs": 592,
     "coveredProfessionSources": [
       "ALCHEMY",
       "BLACKSMITHING",
@@ -16,24 +16,28 @@
       "FISHING",
       "LEATHERWORKING",
       "MINING",
-      "TAILORING"
+      "TAILORING",
+      "HERBALISM",
+      "SKINNING"
     ],
     "liveClientValidated": false
   },
-  "candidateItemIDs": 593,
-  "verifiedItemIDs": 593,
-  "unverifiedItemIDs": 0,
-  "multiProfessionItemIDs": 237,
+  "candidateItemIDs": 592,
+  "verifiedItemIDs": 570,
+  "unverifiedItemIDs": 22,
+  "multiProfessionItemIDs": 240,
   "perProfessionCandidateItems": {
     "ALCHEMY": 99,
     "BLACKSMITHING": 154,
     "COOKING": 113,
-    "ENCHANTING": 123,
+    "ENCHANTING": 124,
     "ENGINEERING": 203,
     "FIRST_AID": 42,
     "FISHING": 7,
-    "LEATHERWORKING": 177,
+    "HERBALISM": 8,
+    "LEATHERWORKING": 176,
     "MINING": 27,
+    "SKINNING": 7,
     "TAILORING": 130
   },
   "coveragePercent": null,
