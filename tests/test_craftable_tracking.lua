@@ -171,7 +171,10 @@ local function widget(kind,parent)
     function w:SetScript(k,fn) self[k]=fn end
     function w:SetEnabled(v) self.enabled=v end
     function w:SetChecked(v) self.checked=v end
-    function w:GetChecked() return self.checked end
+    function w:GetChecked()
+        if self.kind == "CheckButton" then return self.checked and 1 or nil end
+        return self.checked
+    end
     function w:Show() self.shown=true end
     function w:Hide() self.shown=false end
     frames[#frames+1]=w
@@ -400,6 +403,7 @@ end)(),"material progress hidden when global preference is disabled")
 trackingCheckbox:SetChecked(true)
 trackingCheckbox.OnClick(trackingCheckbox)
 eq(trackingEnabled,true,"re-enable global tracking on recipe A")
+eq(trackingCheckbox.checked,true,"numeric GetChecked=1 must persist opt-in")
 uiNs.SetRecipeDetail(otherRecipe.key)
 eq(trackingCheckbox.checked,true,"global opt-in survives second navigation")
 assert(findLabel("0/1 · Missing 1"),"other recipe tracker reappears without rechecking")
