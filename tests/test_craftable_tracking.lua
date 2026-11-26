@@ -128,6 +128,15 @@ player=nil
 eq(ns.SetCraftTrackingEnabled(true),false,"identity required for global write")
 eq(ns.IsCraftTrackingEnabled(),false,"identity required for global read")
 player="Alice"
+-- Forever compatibility: realm may be absent from GetRealmName but present
+-- in UnitFullName during character initialization.
+realm=nil
+UnitFullName=function() return player,"Test Realm" end
+eq(ns.IsCraftTrackingEnabled(),false,"disabled character still resolves via full identity")
+eq(ns.SetCraftTrackingEnabled(true),true,"fallback identity persists tracking")
+eq(ns.IsCraftTrackingEnabled(),true,"fallback identity reads persisted tracking")
+realm="Test Realm"
+UnitFullName=nil
 ns.SetCraftBankPreference(true)
 eq(ns.GetCraftBankPreference(),true,"bank preference independent of global tracking")
 eq(ns.IsCraftTrackingEnabled(),false,"bank toggle never enables tracking")
