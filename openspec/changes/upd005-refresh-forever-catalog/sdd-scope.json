@@ -1,0 +1,21 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Data/**",
+    "addon/CraftAtlas/Domain/**",
+    "addon/CraftAtlas/Infrastructure/**",
+    "addon/CraftAtlas/Features/Settings/**",
+    "addon/CraftAtlas/Localization/**",
+    "scripts/build_materials.py",
+    "scripts/coverage_report.py",
+    "scripts/validate_data.py",
+    "scripts/validate_repo.py",
+    "tests/**",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/DATA_MODEL.md",
+    "docs/ARCHITECTURE.md",
+    "docs/TESTING.md",
+    "docs/ROADMAP.md",
+    "docs/OPENSPEC_STATUS.md"
+  ]
+}
