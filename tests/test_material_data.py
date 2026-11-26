@@ -67,8 +67,8 @@ class MaterialsTests(unittest.TestCase):
 
     def test_recipe_source_has_valid_reagent_relationships(self):
         self.assertEqual(g.validate_recipe_uses(self.recipes, self.data, self.registry), [])
-        self.assertEqual(len(self.recipes["uses"]), 8455)
-        self.assertEqual(len({row[0] for row in self.recipes["uses"]}), 593)
+        self.assertEqual(len(self.recipes["uses"]), 8471)
+        self.assertEqual(len({row[0] for row in self.recipes["uses"]}), 592)
 
     def test_recipe_relationship_validator_rejects_missing_source_relation(self):
         clone = dict(self.recipes)
@@ -87,8 +87,8 @@ class MaterialsTests(unittest.TestCase):
 
     def test_unique_recipe_compiler_and_source_consistency(self):
         grouped = g.group_recipe_catalog(self.recipes, self.registry)
-        self.assertEqual(len(grouped), 2506)
-        self.assertEqual(sum(len(value["inputs"]) for value in grouped.values()), 8455)
+        self.assertEqual(len(grouped), 2518)
+        self.assertEqual(sum(len(value["inputs"]) for value in grouped.values()), 8471)
         self.assertEqual(
             g.RECIPES_TARGET.read_text(encoding="utf-8"),
             g.generate_recipes(self.recipes, self.registry),
