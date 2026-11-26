@@ -106,7 +106,7 @@ CreateFrame = function(kind, name, parent, template)
 end
 GetLocale = function() return locale end
 GetItemInfo = function(id)
-    if id == 2770 then return "Copper Ore" end
+    if id == 2770 then return "Copper Ore", nil, 1, 10, nil, "Objeto comerciable" end
 end
 Enum = {TooltipDataType = {Item = 0}}
 TooltipDataProcessor = {AddTooltipPostCall = function() end}
@@ -349,7 +349,7 @@ local slashExplorer = named("CraftAtlasSettingsFrame")
 assert(slashExplorer:IsVisible(), "the plain slash command opens the explorer")
 slashExplorer:Hide()
 slashCommand("159")
-assert(slashExplorer:IsVisible() and visibleText("Item ID: 159", "FontString"),
+assert(slashExplorer:IsVisible() and visibleText("ID 159", "FontString"),
     "the numeric slash command selects the requested material")
 slashExplorer:Hide()
 local diagnostic, originalPrint = nil, print
@@ -451,7 +451,18 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
     search:SetText("2770")
     choose("Todas las profesiones", "Minería", window)
     assert(visibleText("Copper Ore", "FontString"))
-    local materialID = assert(visibleText(ns.L("ITEM_ID") .. ": 2770", "FontString"))
+    local materialID = assert(visibleText("ID 2770", "FontString"))
+    local materialType = assert(visibleText("Objeto comerciable", "FontString"))
+    local materialLevel = assert(visibleText("Nivel de objeto 10", "FontString"))
+    local materialTitle = assert(find(function(widget)
+        return widget.parent == materialID.parent and widget.kind == "FontString"
+            and widget:IsVisible() and widget.text == "Copper Ore"
+    end), "material title")
+    assert(materialType.parent == materialID.parent and materialLevel.parent == materialID.parent)
+    assert(materialTitle.anchors[1][5] > materialType.anchors[1][5]
+        and materialType.anchors[1][5] > materialLevel.anchors[1][5]
+        and materialLevel.anchors[1][5] > materialID.anchors[1][5],
+        "Materials displays title, type, level and ID in separate rows")
     local use = ns.GetRecipeUses(2770)[1]
     ns.NavigateToRecipe(use)
     search:SetText(tostring(use.spellID))
@@ -465,10 +476,16 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
         return widget.parent == recipeLabel.parent and widget.kind == "FontString"
             and widget.text == ns.ProfessionLabel(use.professionKey)
     end))
-    assert(craftableProfession.template == materialID.template
-        and craftableProfession.anchors[1][4] == materialID.anchors[1][4]
-        and craftableProfession.anchors[1][5] == materialID.anchors[1][5],
-        "Craftables uses the Materials subtitle font and position")
+    assert(craftableProfession.template == materialType.template
+        and craftableProfession.anchors[1][4] == materialType.anchors[1][4]
+        and craftableProfession.anchors[1][5] == materialType.anchors[1][5],
+        "both detail subtitles use the same font and position")
+    assert(recipeLabel.template == materialID.template
+        and recipeLabel.anchors[1][4] == materialID.anchors[1][4]
+        and recipeLabel.anchors[1][5] == materialID.anchors[1][5],
+        "both IDs use the same font and position")
+    assert(not materialType:IsVisible() and not materialLevel:IsVisible(),
+        "material metadata is hidden on the Craftables tab")
     local output = recipeLabel.text
     openOptions(registry)
     options:Hide()
@@ -487,6 +504,9 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
         "an open explorer refreshes its labels and maintains search state")
     assert(not findSelector("Español", window), "language remains in native options")
     options:Hide()
+    SlashCmdList.CRAFTATLAS("159")
+    assert(materialID.text == "ID 159" and materialType.text == "" and materialLevel.text == "",
+        "a material without client metadata clears both rows and keeps its ID")
 
     ns, registry = start(nativeDropdown, "available")
     local restored = named("CraftAtlasMinimapButton")

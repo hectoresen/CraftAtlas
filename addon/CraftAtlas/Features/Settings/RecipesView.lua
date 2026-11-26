@@ -207,7 +207,7 @@ local function render()
         view.title:SetText(name)
         view.icon:SetTexture(icon)
         view.profession:SetText(ns.ProfessionLabel(recipe.professionKey))
-        view.recipeID:SetText(string.format(ns.L("CRAFT_RECIPE_ID"), recipe.spellID))
+        view.recipeID:SetText(string.format(ns.L("EXPLORER_DETAIL_ID"), recipe.spellID))
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end

@@ -39,6 +39,6 @@ assert(ns.Text("CRAFT_REQUIRED_SKILL", "esES"):format(245) == "Nivel de fabricac
 assert(ns.Text("CRAFT_REQUIRED_SKILL", "enUS"):format(245) == "Crafting level 245")
 assert(ns.Text("CRAFT_RECIPE_REQUIRED", "esES") == "Se necesita receta")
 for _, locale in ipairs({"enUS", "esES"}) do
-    assert(ns.Text("CRAFT_RECIPE_ID", locale):format(12088) == "ID 12088")
+    assert(ns.Text("EXPLORER_DETAIL_ID", locale):format(12088) == "ID 12088")
 end
 print("Explorer locale regression PASS")
