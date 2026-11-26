@@ -2,6 +2,12 @@
 
 Automated tests, maintainer-reported game checks and source-data verification are three **distinct** categories. Do not mark one as proof of the others.
 
+## Craftables requirements prototype
+
+**Forever client acceptance: NOT RUN.** In the test build, open Fabricables directly with the native profession window closed. Select Alchemy spell 2329 and verify the catalog minimum of 15. Compare a character's skill below, equal to and above the minimum, and use known and unlearned recipes to check that each field changes color independently. If an API does not supply a trustworthy value, verify that the corresponding field is neutral and any catalog facts are still visible.
+
+Repeat with the matching profession window open and, when available, another character's profession view. Verify that learning a recipe, increasing skill or observing a recipe at a trainer refreshes only the relevant evidence. In enUS and esES, check standard and compact scales for legible labels and usable controls. Confirm the existing Track crafting, ingredient navigation, bank and reload behavior. Record the exact Forever build, locale, scale and outcome for each scenario.
+
 ## Evidence snapshot for current `main` (reconciled 2026-11-16)
 
 | Area | Present on `main` | In-game evidence | Still missing |

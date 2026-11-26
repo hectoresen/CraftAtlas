@@ -31,4 +31,13 @@ for _, key in ipairs({"TRACK_CRAFTING", "TRACK_PROGRESS", "TRACK_INCLUDE_BANK",
     assert(en ~= key and es ~= key and en ~= es,
         "localized craft tracker text required: " .. key)
 end
+for _, key in ipairs({"CRAFT_REQUIRED_SKILL", "CRAFT_SKILL_UNKNOWN", "CRAFT_SKILL_MET",
+    "CRAFT_SKILL_UNMET", "CRAFT_SKILL_UNVERIFIED", "CRAFT_RECIPE_LEARNED",
+    "CRAFT_RECIPE_UNLEARNED", "CRAFT_RECIPE_UNKNOWN", "CRAFT_SOURCE_ITEM",
+    "CRAFT_SOURCE_TRAINER", "CRAFT_SOURCE_ITEM_OR_TRAINER", "CRAFT_SOURCE_UNKNOWN"}) do
+    local en, es = ns.Text(key, "enUS"), ns.Text(key, "esES")
+    assert(en ~= key and es ~= key and en ~= es, "localized requirement text required: " .. key)
+end
+assert(ns.Text("CRAFT_REQUIRED_SKILL", "esES"):format(15, ns.Text("CRAFT_SKILL_MET", "esES"))
+    == "Nivel 15 · Alcanzado")
 print("Explorer locale regression PASS")

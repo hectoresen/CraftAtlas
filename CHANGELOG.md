@@ -1,3 +1,8 @@
+## Local Craftables requirements prototype
+
+- Show the selected recipe's minimum profession skill, recipe learning state and known source. Display confirmed success in dark gray, unmet requirements in dark red, and unverified states in neutral text.
+- Move Track crafting beneath the recipe information in the Fabricables detail.
+
 ## Unreleased — licensed Forever catalog refresh (UPD005)
 
 - Pinned a newer MIT LibProfessionDB Forever snapshot (1.60.1.70938) with exact source SHA and retained 1.60.1.69977 evidence for disputed records. This is a proposed data update, **not yet released**.

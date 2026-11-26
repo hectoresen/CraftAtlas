@@ -393,11 +393,10 @@ bankButton.OnClick(bankButton)
 eq(includeBank,false,"native bank checkbox opt-out must persist")
 -- Toggle once, navigate to another recipe, and keep it enabled. Only the
 -- selected recipe's ingredients contribute to Material progress.
-local trackingCheckbox
-for _,w in ipairs(frames) do
-    if w.kind=="CheckButton" and w.points and w.points.TOPRIGHT
-        and w.points.TOPRIGHT.x == -176 then trackingCheckbox=w end
-end
+local trackingLabel = findLabel("Track crafting")
+local trackingCheckbox = trackingLabel and trackingLabel.points.LEFT.relative
+assert(trackingCheckbox and trackingCheckbox.kind == "CheckButton",
+    "tracking label stays anchored to its native checkbox")
 assert(trackingCheckbox and trackingCheckbox.checked,
     "global checkbox is checked when tracking is enabled")
 uiNs.SetRecipeDetail(otherRecipe.key)

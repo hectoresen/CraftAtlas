@@ -156,6 +156,57 @@ local function updateIngredientSectionVisibility()
     end
 end
 
+local function setRequirementText(label, text, met)
+    label:SetText(text)
+    if met == true then
+        label:SetTextColor(0.56, 0.56, 0.56)
+    elseif met == false then
+        label:SetTextColor(0.75, 0.32, 0.31)
+    else
+        label:SetTextColor(0.90, 0.86, 0.80)
+    end
+    showControl(label, text ~= "")
+end
+
+local function renderRequirements(recipe)
+    if not recipe then
+        setRequirementText(view.requiredSkill, "")
+        setRequirementText(view.recipeStatus, "")
+        setRequirementText(view.recipeSource, "")
+        return
+    end
+
+    local rank, learned, trainer
+    if ns.GetCraftablePlayerRequirements then
+        rank, learned, trainer = ns.GetCraftablePlayerRequirements(recipe, view.changingProfession)
+    end
+    local skillText = ns.L("CRAFT_SKILL_UNKNOWN")
+    local skillMet
+    if recipe.requiredSkill then
+        local stateKey = "CRAFT_SKILL_UNVERIFIED"
+        if rank ~= nil then
+            skillMet = rank >= recipe.requiredSkill
+            stateKey = skillMet and "CRAFT_SKILL_MET" or "CRAFT_SKILL_UNMET"
+        end
+        skillText = string.format(ns.L("CRAFT_REQUIRED_SKILL"), recipe.requiredSkill, ns.L(stateKey))
+    end
+    setRequirementText(view.requiredSkill, skillText, skillMet)
+
+    local learnedKey = "CRAFT_RECIPE_UNKNOWN"
+    if learned ~= nil then
+        learnedKey = learned and "CRAFT_RECIPE_LEARNED" or "CRAFT_RECIPE_UNLEARNED"
+    end
+    setRequirementText(view.recipeStatus, ns.L(learnedKey), learned)
+
+    local sourceKey = "CRAFT_SOURCE_UNKNOWN"
+    if recipe.teachingItemID then
+        sourceKey = trainer and "CRAFT_SOURCE_ITEM_OR_TRAINER" or "CRAFT_SOURCE_ITEM"
+    elseif trainer then
+        sourceKey = "CRAFT_SOURCE_TRAINER"
+    end
+    setRequirementText(view.recipeSource, ns.L(sourceKey), learned)
+end
+
 local function render()
     if not view.frame then return end
     local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
@@ -182,6 +233,7 @@ local function render()
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
+    renderRequirements(recipe)
     local tracking = recipe and ns.IsCraftTrackingEnabled
         and ns.IsCraftTrackingEnabled() == true or false
     view.trackingActive = tracking
@@ -329,18 +381,42 @@ function ns.InitRecipeDetail(parent)
     view.profession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -40)
     view.profession:SetJustifyH("LEFT")
     view.profession:SetWordWrap(false)
+    local rightHeader = CreateFrame("Frame", nil, frame)
+    rightHeader:SetSize(146, 48)
+    rightHeader:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -52)
+
+    view.requiredSkill = font(frame, "GameFontHighlightSmall")
+    view.requiredSkill:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -53)
+    view.requiredSkill:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -1)
+    view.requiredSkill:SetJustifyH("LEFT")
+    view.requiredSkill:SetWordWrap(false)
+
     view.output = font(frame, "GameFontDisableSmall")
     view.output:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
-    view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
+    view.output:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -24)
     view.output:SetJustifyH("LEFT")
     view.output:SetWordWrap(false)
 
-    -- Optional tracker lives in the unused band between profession and metadata.
-    local trackCheckbox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-    trackCheckbox:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -176, -55)
+    view.recipeStatus = font(rightHeader, "GameFontHighlightSmall")
+    view.recipeStatus:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -1)
+    view.recipeStatus:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -1)
+    view.recipeStatus:SetJustifyH("LEFT")
+    view.recipeStatus:SetWordWrap(false)
+
+    view.recipeSource = font(rightHeader, "GameFontHighlightSmall")
+    view.recipeSource:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -14)
+    view.recipeSource:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -14)
+    view.recipeSource:SetJustifyH("LEFT")
+    view.recipeSource:SetWordWrap(false)
+
+    local trackCheckbox = CreateFrame("CheckButton", nil, rightHeader, "UICheckButtonTemplate")
+    trackCheckbox:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -26)
     trackCheckbox:SetSize(20, 20)
-    local trackLabel = font(frame, "GameFontHighlightSmall")
+    local trackLabel = font(rightHeader, "GameFontHighlightSmall")
     trackLabel:SetPoint("LEFT", trackCheckbox, "RIGHT", 2, 0)
+    trackLabel:SetPoint("RIGHT", rightHeader, "RIGHT", 0, 0)
+    trackLabel:SetJustifyH("LEFT")
+    trackLabel:SetWordWrap(false)
     trackLabel:SetText(ns.L("TRACK_CRAFTING"))
     trackCheckbox:SetScript("OnClick", function(self)
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
@@ -500,6 +576,28 @@ function ns.InitRecipeDetail(parent)
         end
     end
     view.inventoryListener = listener
+
+    local function refreshRequirements()
+        renderRequirements(view.selected and ns.GetCatalogRecipe(view.selected))
+    end
+    local professionListener = CreateFrame("Frame", nil, frame)
+    professionListener:SetScript("OnEvent", function(_, event)
+        if event == "TRADE_SKILL_DATA_SOURCE_CHANGING" then
+            view.changingProfession = true
+        elseif event == "TRADE_SKILL_DATA_SOURCE_CHANGED" or event == "TRADE_SKILL_CLOSE" then
+            view.changingProfession = false
+        end
+        if type(frame.IsVisible) == "function" and frame:IsVisible() then refreshRequirements() end
+    end)
+    if type(professionListener.RegisterEvent) == "function" then
+        for _, event in ipairs({"SKILL_LINES_CHANGED", "SPELLS_CHANGED", "NEW_RECIPE_LEARNED",
+            "TRADE_SKILL_SHOW", "TRADE_SKILL_CLOSE", "TRADE_SKILL_LIST_UPDATE",
+            "TRADE_SKILL_DATA_SOURCE_CHANGING", "TRADE_SKILL_DATA_SOURCE_CHANGED",
+            "TRAINER_SHOW", "TRAINER_UPDATE", "TRAINER_CLOSED"}) do
+            pcall(professionListener.RegisterEvent, professionListener, event)
+        end
+    end
+    frame:SetScript("OnShow", refreshRequirements)
 
     -- Native result tooltip; only real WoW item data can provide quality/stats.
     local outputHover = CreateFrame("Button", nil, frame)
