@@ -1,0 +1,983 @@
+{
+  "schemaVersion": 1,
+  "oldSourceBuild": "Forever 1.60.1.69977",
+  "newSourceBuild": "Forever 1.60.1.70938",
+  "sourceRevision": "c942539402802f2ec837cac1788f8c24fea374ed",
+  "previous": {
+    "recipes": 2506,
+    "relationships": 8455
+  },
+  "primary": {
+    "recipes": 2517,
+    "perProfession": {
+      "ALCHEMY": 194,
+      "BLACKSMITHING": 512,
+      "COOKING": 133,
+      "ENCHANTING": 262,
+      "ENGINEERING": 275,
+      "FIRST_AID": 33,
+      "FISHING": 4,
+      "HERBALISM": 3,
+      "LEATHERWORKING": 603,
+      "MINING": 18,
+      "SKINNING": 3,
+      "TAILORING": 477
+    }
+  },
+  "accepted": {
+    "recipes": 2518,
+    "relations": 8471,
+    "zeroReagent": 5,
+    "professions": 12
+  },
+  "addedRecipes": [
+    {
+      "key": "COOKING:3413",
+      "outputItemID": 0,
+      "kind": "unknown",
+      "ingredients": []
+    },
+    {
+      "key": "ENCHANTING:1328948",
+      "outputItemID": 0,
+      "kind": "enchant",
+      "ingredients": [
+        [
+          11175,
+          2
+        ],
+        [
+          11176,
+          8
+        ],
+        [
+          11178,
+          2
+        ],
+        [
+          12361,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "ENGINEERING:4073",
+      "outputItemID": 0,
+      "kind": "unknown",
+      "ingredients": []
+    },
+    {
+      "key": "ENGINEERING:19804",
+      "outputItemID": 0,
+      "kind": "unknown",
+      "ingredients": []
+    },
+    {
+      "key": "FIRST_AID:7924",
+      "outputItemID": 0,
+      "kind": "unknown",
+      "ingredients": []
+    },
+    {
+      "key": "FISHING:7732",
+      "outputItemID": 0,
+      "kind": "unknown",
+      "ingredients": []
+    },
+    {
+      "key": "HERBALISM:1229705",
+      "outputItemID": 279962,
+      "kind": "item",
+      "ingredients": [
+        [
+          765,
+          1
+        ],
+        [
+          2447,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "HERBALISM:1262980",
+      "outputItemID": 279964,
+      "kind": "item",
+      "ingredients": [
+        [
+          4470,
+          2
+        ],
+        [
+          8831,
+          1
+        ],
+        [
+          8836,
+          1
+        ]
+      ]
+    },
+    {
+      "key": "HERBALISM:1263070",
+      "outputItemID": 279947,
+      "kind": "item",
+      "ingredients": [
+        [
+          8925,
+          1
+        ],
+        [
+          13465,
+          4
+        ],
+        [
+          14047,
+          2
+        ]
+      ]
+    },
+    {
+      "key": "SKINNING:1229517",
+      "outputItemID": 279979,
+      "kind": "item",
+      "ingredients": [
+        [
+          2318,
+          3
+        ],
+        [
+          4470,
+          2
+        ]
+      ]
+    },
+    {
+      "key": "SKINNING:1262982",
+      "outputItemID": 279938,
+      "kind": "item",
+      "ingredients": [
+        [
+          3575,
+          1
+        ],
+        [
+          4234,
+          4
+        ],
+        [
+          4470,
+          2
+        ]
+      ]
+    },
+    {
+      "key": "SKINNING:1262985",
+      "outputItemID": 279969,
+      "kind": "item",
+      "ingredients": [
+        [
+          2319,
+          3
+        ],
+        [
+          2321,
+          1
+        ],
+        [
+          5784,
+          2
+        ]
+      ]
+    }
+  ],
+  "confirmedChanges": [
+    {
+      "key": "LEATHERWORKING:1301431",
+      "ingredients": [
+        {
+          "itemID": 4321,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 277002,
+      "newOutputItemID": 277002,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "LEATHERWORKING:1301437",
+      "ingredients": [
+        {
+          "itemID": 4321,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 277008,
+      "newOutputItemID": 277008,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "LEATHERWORKING:1301455",
+      "ingredients": [
+        {
+          "itemID": 4321,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 277026,
+      "newOutputItemID": 277026,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "LEATHERWORKING:1301461",
+      "ingredients": [
+        {
+          "itemID": 4321,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 277032,
+      "newOutputItemID": 277032,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "TAILORING:3758",
+      "ingredients": [
+        {
+          "itemID": 2997,
+          "oldQuantity": 4,
+          "newQuantity": 5
+        }
+      ],
+      "oldOutputItemID": 4241,
+      "newOutputItemID": 4241,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "TAILORING:6688",
+      "ingredients": [
+        {
+          "itemID": 2997,
+          "oldQuantity": 4,
+          "newQuantity": 5
+        }
+      ],
+      "oldOutputItemID": 5763,
+      "newOutputItemID": 5763,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "TAILORING:6693",
+      "ingredients": [
+        {
+          "itemID": 4305,
+          "oldQuantity": 4,
+          "newQuantity": 5
+        }
+      ],
+      "oldOutputItemID": 5764,
+      "newOutputItemID": 5764,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "TAILORING:6695",
+      "ingredients": [
+        {
+          "itemID": 4305,
+          "oldQuantity": 5,
+          "newQuantity": 6
+        }
+      ],
+      "oldOutputItemID": 5765,
+      "newOutputItemID": 5765,
+      "oldKind": "item",
+      "newKind": "item"
+    },
+    {
+      "key": "TAILORING:12079",
+      "ingredients": [
+        {
+          "itemID": 4339,
+          "oldQuantity": 4,
+          "newQuantity": 5
+        }
+      ],
+      "oldOutputItemID": 10051,
+      "newOutputItemID": 10051,
+      "oldKind": "item",
+      "newKind": "item"
+    }
+  ],
+  "missingFromPrimaryRetained": [
+    {
+      "key": "ALCHEMY:1251750",
+      "outputItemID": 250952,
+      "ingredients": [
+        [
+          3369,
+          2
+        ],
+        [
+          8845,
+          3
+        ],
+        [
+          8925,
+          1
+        ]
+      ]
+    }
+  ],
+  "sourceEmptyConflictsRetained": [
+    {
+      "key": "BLACKSMITHING:1252988",
+      "ingredients": [
+        {
+          "itemID": 7078,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251701,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "BLACKSMITHING:1252989",
+      "ingredients": [
+        {
+          "itemID": 7068,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 7,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251702,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "BLACKSMITHING:1252990",
+      "ingredients": [
+        {
+          "itemID": 7077,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 15,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251703,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "BLACKSMITHING:1253001",
+      "ingredients": [
+        {
+          "itemID": 7078,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251713,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "BLACKSMITHING:1253002",
+      "ingredients": [
+        {
+          "itemID": 7068,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 7,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251714,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "BLACKSMITHING:1253003",
+      "ingredients": [
+        {
+          "itemID": 7077,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 12359,
+          "oldQuantity": 15,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251715,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "ENGINEERING:1253004",
+      "ingredients": [
+        {
+          "itemID": 238780,
+          "oldQuantity": 1,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251652,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251716,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "ENGINEERING:1253005",
+      "ingredients": [
+        {
+          "itemID": 238780,
+          "oldQuantity": 1,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251717,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "ENGINEERING:1253006",
+      "ingredients": [
+        {
+          "itemID": 238780,
+          "oldQuantity": 1,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 1,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251718,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252982",
+      "ingredients": [
+        {
+          "itemID": 7082,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 32,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251695,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252983",
+      "ingredients": [
+        {
+          "itemID": 7069,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251696,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252984",
+      "ingredients": [
+        {
+          "itemID": 7081,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251697,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252985",
+      "ingredients": [
+        {
+          "itemID": 7076,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 32,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251698,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252986",
+      "ingredients": [
+        {
+          "itemID": 7075,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251699,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252987",
+      "ingredients": [
+        {
+          "itemID": 7067,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251700,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252995",
+      "ingredients": [
+        {
+          "itemID": 7082,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 32,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251707,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252996",
+      "ingredients": [
+        {
+          "itemID": 7069,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251708,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252997",
+      "ingredients": [
+        {
+          "itemID": 7081,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251709,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252998",
+      "ingredients": [
+        {
+          "itemID": 7076,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 32,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251710,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1252999",
+      "ingredients": [
+        {
+          "itemID": 7075,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251711,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "LEATHERWORKING:1253000",
+      "ingredients": [
+        {
+          "itemID": 7067,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 8170,
+          "oldQuantity": 24,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251651,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251712,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252979",
+      "ingredients": [
+        {
+          "itemID": 7080,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251692,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252980",
+      "ingredients": [
+        {
+          "itemID": 7070,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 5,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251693,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252981",
+      "ingredients": [
+        {
+          "itemID": 7079,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 9,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251694,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252991",
+      "ingredients": [
+        {
+          "itemID": 7080,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 12,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 6,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251704,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252992",
+      "ingredients": [
+        {
+          "itemID": 7070,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 5,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 2,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251705,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    },
+    {
+      "key": "TAILORING:1252993",
+      "ingredients": [
+        {
+          "itemID": 7079,
+          "oldQuantity": 2,
+          "newQuantity": null
+        },
+        {
+          "itemID": 14048,
+          "oldQuantity": 9,
+          "newQuantity": null
+        },
+        {
+          "itemID": 251650,
+          "oldQuantity": 3,
+          "newQuantity": null
+        }
+      ],
+      "oldOutputItemID": 251706,
+      "newOutputItemID": 0,
+      "oldKind": "item",
+      "newKind": "unknown"
+    }
+  ],
+  "notes": [
+    "Primary published source mirrors licensed LibProfessionDB core files; mirror commit is immutable.",
+    "Source-only evidence does not establish active live client availability.",
+    "All previously catalogued relations remain except explicitly sourced ingredient removals where other recipe records remain populated.",
+    "Do not automatically discard 27 conflicted recipe requirements or 1251750."
+  ]
+}
