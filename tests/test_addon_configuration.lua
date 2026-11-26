@@ -36,7 +36,9 @@ local function newWidget(kind, name, parent, template)
     function widget:IsShown() return self.shown end
     function widget:IsVisible() return self.shown and (not self.parent or self.parent:IsVisible()) end
     function widget:CreateTexture() return newWidget("Texture", nil, self) end
-    function widget:CreateFontString() return newWidget("FontString", nil, self) end
+    function widget:CreateFontString(_, _, fontTemplate)
+        return newWidget("FontString", nil, self, fontTemplate)
+    end
     function widget:SetSize(w, h) self.width, self.height = w, h end
     function widget:SetWidth(w) self.width = w end
     function widget:SetHeight(h) self.height = h end
@@ -449,6 +451,7 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
     search:SetText("2770")
     choose("Todas las profesiones", "Minería", window)
     assert(visibleText("Copper Ore", "FontString"))
+    local materialID = assert(visibleText(ns.L("ITEM_ID") .. ": 2770", "FontString"))
     local use = ns.GetRecipeUses(2770)[1]
     ns.NavigateToRecipe(use)
     search:SetText(tostring(use.spellID))
@@ -456,8 +459,16 @@ for _, nativeDropdown in ipairs({true, false, "forever", "forever-fallback"}) do
     assert(visibleText("Fabricables", "Button").selected and not visibleText("Configuración", "Button"))
     local recipeLabel = assert(find(function(widget)
         return widget.kind == "FontString" and widget:IsVisible()
-            and widget.text == "ID: " .. use.spellID
+            and widget.text == "ID " .. use.spellID
     end), "selected recipe")
+    local craftableProfession = assert(find(function(widget)
+        return widget.parent == recipeLabel.parent and widget.kind == "FontString"
+            and widget.text == ns.ProfessionLabel(use.professionKey)
+    end))
+    assert(craftableProfession.template == materialID.template
+        and craftableProfession.anchors[1][4] == materialID.anchors[1][4]
+        and craftableProfession.anchors[1][5] == materialID.anchors[1][5],
+        "Craftables uses the Materials subtitle font and position")
     local output = recipeLabel.text
     openOptions(registry)
     options:Hide()

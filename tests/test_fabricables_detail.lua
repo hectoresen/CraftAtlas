@@ -124,9 +124,9 @@ end
 local function isRed(field)
     return field.color[1] > field.color[2] * 2
 end
-local skill = label("Skill 15")
+local skill = label("Crafting level 15")
 local requirement = label("Recipe required")
-local id = label("ID: 2329")
+local id = label("ID 2329")
 assert(isGray(skill) and isRed(requirement), "requirements are independent at exact rank")
 
 local check = label("Track crafting").points.LEFT.relative
@@ -135,9 +135,16 @@ assert(check.kind == "CheckButton" and requirement.parent == column)
 assert(column.points.TOPRIGHT.x < 0 and check.points.LEFT.relative == id
     and check.points.LEFT.point == "RIGHT" and check.points.LEFT.y == 0,
     "tracking checkbox sits on the right on the recipe ID row")
-assert(skill.points.TOPLEFT.x == label("Alchemy").points.TOPLEFT.x
-    and skill.points.TOPLEFT.y < label("Alchemy").points.TOPLEFT.y,
-    "skill is aligned beneath the profession")
+local profession = label("Alchemy")
+assert(skill.points.TOPLEFT.x == profession.points.TOPLEFT.x
+    and skill.points.TOPLEFT.y < profession.points.TOPLEFT.y,
+    "level is aligned beneath the profession")
+assert(skill.points.TOPRIGHT.relative == profession.parent,
+    "the longer level label can use the full row at compact widths")
+assert(column.points.TOPRIGHT.y == profession.points.TOPLEFT.y,
+    "recipe requirement and profession use the same subtitle row")
+assert(section.points.TOPLEFT.y == -92 and itemList.points.TOPLEFT.y == -124,
+    "ingredient heading and content start match the first Materials section")
 
 local events
 for _, candidate in ipairs(widgets) do
@@ -146,17 +153,17 @@ end
 assert(events and events.events.SKILL_LINES_CHANGED)
 rank, learned = 14, true
 events.OnEvent(events, "NEW_RECIPE_LEARNED")
-assert(skill == label("Skill 15") and isRed(skill))
+assert(skill == label("Crafting level 15") and isRed(skill))
 assert(requirement == label("Recipe required") and isGray(requirement))
 rank = 16
 events.OnEvent(events, "SKILL_LINES_CHANGED")
-assert(skill.text == "Skill 15" and isGray(skill))
+assert(skill.text == "Crafting level 15" and isGray(skill))
 
 events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
-assert(skill.text == "Skill 15" and not isGray(skill) and not isRed(skill))
+assert(skill.text == "Crafting level 15" and not isGray(skill) and not isRed(skill))
 assert(requirement.text == "Recipe required" and not isGray(requirement) and not isRed(requirement))
 events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGED")
-assert(skill.text == "Skill 15" and isGray(skill) and isGray(requirement))
+assert(skill.text == "Crafting level 15" and isGray(skill) and isGray(requirement))
 
 trainer = true
 events.OnEvent(events, "TRAINER_SHOW")
@@ -166,18 +173,18 @@ events.OnEvent(events, "TRAINER_CLOSED")
 assert(requirement.shown)
 
 ns.SetRecipeDetail("ALCHEMY:2330")
-assert(skill.text == "Skill unknown" and not requirement.shown and id.text == "ID: 2330")
+assert(skill.text == "Skill unknown" and not requirement.shown and id.text == "ID 2330")
 ns.SetRecipeDetail(nil)
 assert(not skill.shown and not requirement.shown and id.text == "", "clearing selection clears the header")
 locale = "esES"
 rank, learned = 14, false
 ns.SetRecipeDetail("ALCHEMY:2329")
-assert(skill.text == "Nivel 15" and isRed(skill))
+assert(skill.text == "Nivel de fabricación 15" and isRed(skill))
 assert(requirement.text == "Se necesita receta" and isRed(requirement))
-assert(id.text == "ID: 2329" and label("Seguir fabricación").shown)
+assert(id.text == "ID 2329" and label("Seguir fabricación").shown)
 rank = 15
 events.OnEvent(events, "SKILL_LINES_CHANGED")
-assert(skill.text == "Nivel 15" and isGray(skill))
+assert(skill.text == "Nivel de fabricación 15" and isGray(skill))
 events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
-assert(skill.text == "Nivel 15" and not isGray(skill) and not isRed(skill))
+assert(skill.text == "Nivel de fabricación 15" and not isGray(skill) and not isRed(skill))
 print("Fabricables detail native section and requirements PASS")

@@ -35,10 +35,10 @@ for _, key in ipairs({"CRAFT_REQUIRED_SKILL", "CRAFT_SKILL_UNKNOWN", "CRAFT_RECI
     local en, es = ns.Text(key, "enUS"), ns.Text(key, "esES")
     assert(en ~= key and es ~= key and en ~= es, "localized requirement text required: " .. key)
 end
-assert(ns.Text("CRAFT_REQUIRED_SKILL", "esES"):format(245) == "Nivel 245")
-assert(ns.Text("CRAFT_REQUIRED_SKILL", "enUS"):format(245) == "Skill 245")
+assert(ns.Text("CRAFT_REQUIRED_SKILL", "esES"):format(245) == "Nivel de fabricación 245")
+assert(ns.Text("CRAFT_REQUIRED_SKILL", "enUS"):format(245) == "Crafting level 245")
 assert(ns.Text("CRAFT_RECIPE_REQUIRED", "esES") == "Se necesita receta")
 for _, locale in ipairs({"enUS", "esES"}) do
-    assert(ns.Text("CRAFT_RECIPE_ID", locale):format(12088) == "ID: 12088")
+    assert(ns.Text("CRAFT_RECIPE_ID", locale):format(12088) == "ID 12088")
 end
 print("Explorer locale regression PASS")

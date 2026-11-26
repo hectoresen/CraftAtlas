@@ -1,6 +1,7 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
+local INGREDIENTS_TOP, INGREDIENTS_BOTTOM = 124, 40
 -- One text baseline and a separate bar; three rows fit without collisions.
 local TRACKER_ROW_HEIGHT = 25
 local TRACKER_TOP_HEIGHT = 34
@@ -8,7 +9,7 @@ local TRACKER_BOTTOM_HEIGHT = 19
 
 local function trackedPageSize(availableHeight)
     -- Pair each paged ingredient with one independently rendered tracker row.
-    local remaining = availableHeight - 143 - 40 - 6
+    local remaining = availableHeight - INGREDIENTS_TOP - INGREDIENTS_BOTTOM - 6
         - TRACKER_TOP_HEIGHT - TRACKER_BOTTOM_HEIGHT
     return math.max(1, math.min(ITEMS_PER_PAGE,
         math.floor(remaining / (39 + TRACKER_ROW_HEIGHT))))
@@ -331,7 +332,7 @@ function ns.InitRecipeDetail(parent)
     local availableHeight = type(parent.GetHeight) == 'function' and parent:GetHeight() or 343
     view.availableHeight = availableHeight
     view.normalPageSize = math.max(1, math.min(ITEMS_PER_PAGE,
-        math.floor((availableHeight - 138 - 40) / 39)))
+        math.floor((availableHeight - INGREDIENTS_TOP - INGREDIENTS_BOTTOM) / 39)))
     view.pageSize = view.normalPageSize
 
     view.icon = frame:CreateTexture(nil, "ARTWORK")
@@ -340,43 +341,44 @@ function ns.InitRecipeDetail(parent)
     -- No UI-Quickslot2 overlay: its inner slot draws a duplicate inset square.
 
     view.title = font(frame, "GameFontHighlightLarge")
-    view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -18)
-    view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -18)
+    view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -19)
+    view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -19)
     view.title:SetJustifyH("LEFT")
     view.title:SetWordWrap(false)
     local titleLink = CreateFrame("Button", nil, frame)
-    titleLink:SetPoint("TOPLEFT", frame, "TOPLEFT", 74, -15)
-    titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -15)
+    titleLink:SetPoint("TOPLEFT", frame, "TOPLEFT", 74, -16)
+    titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -11, -16)
     titleLink:SetHeight(27)
     titleLink:SetScript("OnClick", function(_, button)
         if not (ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button)) then return end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
-    view.profession = font(frame, "GameFontHighlightSmall")
-    view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -40)
-    view.profession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -40)
+    local rightHeader = CreateFrame("Frame", nil, frame)
+    rightHeader:SetSize(146, 50)
+    rightHeader:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -42)
+
+    view.profession = font(frame, "GameFontDisableSmall")
+    view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -42)
+    view.profession:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, 0)
     view.profession:SetJustifyH("LEFT")
     view.profession:SetWordWrap(false)
-    local rightHeader = CreateFrame("Frame", nil, frame)
-    rightHeader:SetSize(146, 48)
-    rightHeader:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -52)
 
-    view.requiredSkill = font(frame, "GameFontHighlightSmall")
-    view.requiredSkill:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -53)
-    view.requiredSkill:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -1)
+    view.requiredSkill = font(frame, "GameFontDisableSmall")
+    view.requiredSkill:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -56)
+    view.requiredSkill:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -56)
     view.requiredSkill:SetJustifyH("LEFT")
     view.requiredSkill:SetWordWrap(false)
 
     view.recipeID = font(frame, "GameFontDisableSmall")
-    view.recipeID:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
-    view.recipeID:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -24)
+    view.recipeID:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -74)
+    view.recipeID:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -32)
     view.recipeID:SetJustifyH("LEFT")
     view.recipeID:SetWordWrap(false)
 
-    view.recipeRequirement = font(rightHeader, "GameFontHighlightSmall")
-    view.recipeRequirement:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, -1)
-    view.recipeRequirement:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, -1)
+    view.recipeRequirement = font(rightHeader, "GameFontDisableSmall")
+    view.recipeRequirement:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, 0)
+    view.recipeRequirement:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, 0)
     view.recipeRequirement:SetJustifyH("LEFT")
     view.recipeRequirement:SetWordWrap(false)
 
@@ -407,14 +409,14 @@ function ns.InitRecipeDetail(parent)
     view.trackCheckbox = trackCheckbox
     view.trackLabel = trackLabel
 
-    view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -103, function()
+    view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -92, function()
         updateIngredientSectionVisibility()
     end)
 
     local itemList = CreateFrame("Frame", nil, frame)
     view.itemList = itemList
-    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -143)
-    itemList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 40)
+    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -INGREDIENTS_TOP)
+    itemList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, INGREDIENTS_BOTTOM)
 
     local count = ITEMS_PER_PAGE
     for i = 1, count do
