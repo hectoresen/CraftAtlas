@@ -1,0 +1,12 @@
+{
+  "allowed_paths": [
+    "README.md",
+    "docs/v0.5.0/README.md",
+    "docs/v0.5.0/materials_menu.png",
+    "docs/v0.5.0/craftables_menu.png",
+    "docs/v0.5.0/craftables_tracking.png",
+    "docs/v0.5.0/options_menu.png",
+    "docs/v0.5.0/icon_minimap_tooltip.png",
+    "docs/v0.5.0/item_tooltip.png"
+  ]
+}
