@@ -1,0 +1,15 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua",
+    "tests/test_material_profession_filter.lua",
+    "tests/test_shared_widgets.lua",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/DATA_MODEL.md",
+    "docs/INSTALLATION.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md"
+  ]
+}
