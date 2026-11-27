@@ -27,6 +27,7 @@ Infrastructure/InventoryCounts.lua
 Localization/ProfessionLabels.lua
 Infrastructure/ItemInfo.lua
 Infrastructure/RecipeInfo.lua
+Infrastructure/ProfessionRequirements.lua
 Infrastructure/ChatLinks.lua
 Infrastructure/RecipeNameCache.lua
 Infrastructure/TooltipAdapter.lua
