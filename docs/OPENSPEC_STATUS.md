@@ -77,3 +77,9 @@ Older partially accepted historical changes listed above remain **OPEN**; #47 do
 **Repository governance observed 2026-11-18:** two active rulesets protect `main`; all four CI contexts (`repository-validation`, `traceability`, `lua-compatibility`, `lua-regressions`) are required with no CI bypass, and the review ruleset has `require_code_owner_review: true`. The two-account behavior matrix remains untested. This supersedes older instructions asking the owner to enable CODEOWNERS.
 
 **Disposition:** enter maintenance with a truthful *open but documented* OpenSpec ledger rather than label unverified changes complete. A future archive transaction must follow `docs/SDD_COMPLIANCE.md`, not a docs-only exemption.
+
+## Forever screenshot documentation (2026-11-27)
+
+| Change | Approved spec | Implementation | Acceptance evidence | Archive state |
+| --- | --- | --- | --- | --- |
+| `upd006-document-forever-screenshots` | [#81](https://github.com/hectoresen/CraftAtlas/pull/81), approved by @hectoresen and merged | [#82](https://github.com/hectoresen/CraftAtlas/pull/82) | Six PNG signatures, chunk checksums, and SHA-256 hashes match the contributor originals. The [gallery](v0.5.0/README.md) loads all six images when opened from the root README on GitHub. Repository and package tests passed. The test ZIP contained 32 runtime files and excluded the screenshots. | **Prepared** in PR #82 at `openspec/changes/archive/2026-11-27-upd006-document-forever-screenshots/` with the canonical requirements synchronized. |
