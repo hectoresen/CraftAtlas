@@ -1,0 +1,18 @@
+{
+  "allowed_paths": [
+    "addon/CraftAtlas/CraftAtlas.toc",
+    "addon/CraftAtlas/Features/Settings/RecipesView.lua",
+    "addon/CraftAtlas/Features/Settings/Settings.lua",
+    "addon/CraftAtlas/Infrastructure/ProfessionRequirements.lua",
+    "addon/CraftAtlas/Localization/Locales.lua",
+    "tests/test_addon_configuration.lua",
+    "tests/test_craftable_requirements.lua",
+    "tests/test_craftable_tracking.lua",
+    "tests/test_explorer_locales.lua",
+    "tests/test_fabricables_detail.lua",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/TESTING.md"
+  ]
+}
