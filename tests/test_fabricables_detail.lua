@@ -7,7 +7,17 @@ local function widget(kind, parent)
     function self:SetHeight(h) self.height=h end
     function self:SetWidth(w) self.width=w end
     function self:GetHeight() return self.height end
-    function self:SetPoint() end
+    function self:SetPoint(point, relative, relativePoint, x, y)
+        self.points = self.points or {}
+        self.points[point] = {relative = relative, point = relativePoint, x = x, y = y}
+    end
+    function self:RegisterEvent(event)
+        self.events = self.events or {}
+        self.events[event] = true
+    end
+    function self:IsVisible()
+        return self.shown and (not self.parent or self.parent:IsVisible())
+    end
     function self:ClearAllPoints() end
     function self:CreateTexture() return widget("Texture", self) end
     function self:CreateFontString() return widget("FontString", self) end
@@ -15,7 +25,7 @@ local function widget(kind, parent)
     function self:SetColorTexture() end
     function self:SetHighlightTexture() end
     function self:SetText(value) self.text=value end
-    function self:SetTextColor() end
+    function self:SetTextColor(r, g, b) self.color = {r, g, b} end
     function self:SetJustifyH() end
     function self:SetWordWrap() end
     function self:SetScript(name, callback) self[name]=callback end
@@ -34,16 +44,17 @@ local ingredientSet = {
     {itemID=3371, quantity=1},
 }
 local recipe = {spellID=2329, professionKey="ALCHEMY", outputItemID=118,
-    kind="item", ingredients=ingredientSet}
+    kind="item", ingredients=ingredientSet, requiredSkill=15, teachingItemID=2450}
+local unknownRecipe = {spellID=2330, professionKey="ALCHEMY", kind="unknown", ingredients={}}
+local rank, learned, trainer = 15, false, false
+local locale = "enUS"
 local ns = {
-    L = function(key)
-        return ({RECIPE_INGREDIENT_COUNT="Ingredients (%d)", SELECT_RECIPE="Select recipe",
-            RECIPE_ID="Recipe", ITEM_ID="Item", RECIPE_QUANTITY="x%d",
-            RECIPE_PAGE_STATUS="Page %d / %d", PREVIOUS_PAGE="Previous",
-            NEXT_PAGE="Next"})[key] or key
+    GetCraftablePlayerRequirements = function(selected, changing)
+        if selected == recipe and not changing then return rank, learned, trainer end
     end,
     GetCatalogRecipe = function(key)
         if key=="ALCHEMY:2329" then return recipe end
+        if key=="ALCHEMY:2330" then return unknownRecipe end
     end,
     GetRecipeSpellPresentation = function() return "Minor Potion", 123 end,
     GetItemDisplay = function(id) return "Item "..id, id+1000 end,
@@ -60,6 +71,8 @@ local ns = {
     ShowOutputTooltip=function() return true end,
     HideRecipeTooltip=function() end,
 }
+assert(loadfile("addon/CraftAtlas/Localization/Locales.lua"))("CraftAtlas", ns)
+ns.L = function(key) return ns.Text(key, locale) end
 assert(loadfile("addon/CraftAtlas/Features/Settings/Shared/ExplorerWidgets.lua"))("CraftAtlas",ns)
 assert(loadfile("addon/CraftAtlas/Features/Settings/RecipesView.lua"))("CraftAtlas",ns)
 local parent=widget("Frame")
@@ -99,4 +112,79 @@ ns.SetRecipeDetail(nil)
 assert(section.label.text=="Ingredients (0)", "no selection shows zero ingredients")
 ns.SetRecipeDetail("ALCHEMY:2329")
 assert(section.label.text=="Ingredients (3)", "reselection restores the factual ingredient count")
-print("Fabricables detail native section smoke PASS")
+local function label(text)
+    for _, candidate in ipairs(widgets) do
+        if candidate.kind == "FontString" and candidate.text == text then return candidate end
+    end
+    error("Missing detail label: " .. text)
+end
+local function isGray(field)
+    return field.color[1] == field.color[2] and field.color[2] == field.color[3]
+end
+local function isRed(field)
+    return field.color[1] > field.color[2] * 2
+end
+local skill = label("Crafting level 15")
+local requirement = label("Recipe required")
+local id = label("ID 2329")
+assert(isGray(skill) and isRed(requirement), "requirements are independent at exact rank")
+
+local check = label("Track crafting").points.LEFT.relative
+local column = check.parent
+assert(check.kind == "CheckButton" and requirement.parent == column)
+assert(column.points.TOPRIGHT.x < 0 and check.points.LEFT.relative == id
+    and check.points.LEFT.point == "RIGHT" and check.points.LEFT.y == 0,
+    "tracking checkbox sits on the right on the recipe ID row")
+local profession = label("Alchemy")
+assert(skill.points.TOPLEFT.x == profession.points.TOPLEFT.x
+    and skill.points.TOPLEFT.y < profession.points.TOPLEFT.y,
+    "level is aligned beneath the profession")
+assert(skill.points.TOPRIGHT.relative == profession.parent,
+    "the longer level label can use the full row at compact widths")
+assert(column.points.TOPRIGHT.y == profession.points.TOPLEFT.y,
+    "recipe requirement and profession use the same subtitle row")
+assert(section.points.TOPLEFT.y == -92 and itemList.points.TOPLEFT.y == -124,
+    "ingredient heading and content start match the first Materials section")
+
+local events
+for _, candidate in ipairs(widgets) do
+    if candidate.events and candidate.events.NEW_RECIPE_LEARNED then events = candidate end
+end
+assert(events and events.events.SKILL_LINES_CHANGED)
+rank, learned = 14, true
+events.OnEvent(events, "NEW_RECIPE_LEARNED")
+assert(skill == label("Crafting level 15") and isRed(skill))
+assert(requirement == label("Recipe required") and isGray(requirement))
+rank = 16
+events.OnEvent(events, "SKILL_LINES_CHANGED")
+assert(skill.text == "Crafting level 15" and isGray(skill))
+
+events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
+assert(skill.text == "Crafting level 15" and not isGray(skill) and not isRed(skill))
+assert(requirement.text == "Recipe required" and not isGray(requirement) and not isRed(requirement))
+events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGED")
+assert(skill.text == "Crafting level 15" and isGray(skill) and isGray(requirement))
+
+trainer = true
+events.OnEvent(events, "TRAINER_SHOW")
+assert(not requirement.shown, "an observed trainer offer removes the item requirement")
+trainer = false
+events.OnEvent(events, "TRAINER_CLOSED")
+assert(requirement.shown)
+
+ns.SetRecipeDetail("ALCHEMY:2330")
+assert(skill.text == "Skill unknown" and not requirement.shown and id.text == "ID 2330")
+ns.SetRecipeDetail(nil)
+assert(not skill.shown and not requirement.shown and id.text == "", "clearing selection clears the header")
+locale = "esES"
+rank, learned = 14, false
+ns.SetRecipeDetail("ALCHEMY:2329")
+assert(skill.text == "Nivel de fabricación 15" and isRed(skill))
+assert(requirement.text == "Se necesita receta" and isRed(requirement))
+assert(id.text == "ID 2329" and label("Seguir fabricación").shown)
+rank = 15
+events.OnEvent(events, "SKILL_LINES_CHANGED")
+assert(skill.text == "Nivel de fabricación 15" and isGray(skill))
+events.OnEvent(events, "TRADE_SKILL_DATA_SOURCE_CHANGING")
+assert(skill.text == "Nivel de fabricación 15" and not isGray(skill) and not isRed(skill))
+print("Fabricables detail native section and requirements PASS")

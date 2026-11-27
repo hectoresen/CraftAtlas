@@ -151,7 +151,8 @@ local function showDetail()
     if not valid then
         ui.detailTitle:SetText(ns.L("SELECT_MATERIAL"))
         ui.detailTitle:SetTextColor(1, 1, 1)
-        ui.detailMeta:SetText("")
+        ui.detailType:SetText("")
+        ui.detailLevel:SetText("")
         ui.detailID:SetText("")
         ui.professionUses.keys = {}
         ui.professionUses.page = 1
@@ -165,16 +166,11 @@ local function showDetail()
         ui.detailIcon:Show()
     end
     ui.detailTitle:SetText(name or (ns.L("ITEM_ID") .. " " .. itemID))
-    ui.detailID:SetText(ns.L("ITEM_ID") .. ": " .. itemID)
     local metadata = ns.GetItemMetadata(itemID)
-    local details = {}
-    if metadata then
-        if metadata.itemType then details[#details + 1] = metadata.itemType end
-        if metadata.level then
-            details[#details + 1] = string.format(ns.L("ITEM_LEVEL"), metadata.level)
-        end
-    end
-    ui.detailMeta:SetText(table.concat(details, "  |  "))
+    ui.detailType:SetText(metadata and metadata.itemType or "")
+    ui.detailLevel:SetText(metadata and metadata.level
+        and string.format(ns.L("ITEM_LEVEL"), metadata.level) or "")
+    ui.detailID:SetText(string.format(ns.L("EXPLORER_DETAIL_ID"), itemID))
     local colors = type(ITEM_QUALITY_COLORS) == "table" and ITEM_QUALITY_COLORS or nil
     local qualityColor = metadata and colors and colors[metadata.quality]
     if qualityColor and qualityColor.r and qualityColor.g and qualityColor.b then
@@ -695,6 +691,7 @@ local function createPanel()
     detailTitle:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -19)
     detailTitle:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -19)
     detailTitle:SetJustifyH("LEFT")
+    detailTitle:SetWordWrap(false)
     ui.detailTitle = detailTitle
     local materialTitleLink = CreateFrame("Button", nil, right)
     materialTitleLink:SetPoint("TOPLEFT", right, "TOPLEFT", 74, -16)
@@ -706,15 +703,26 @@ local function createPanel()
         end
     end)
     ui.materialTitleLink = materialTitleLink
+    local detailType = font(right, "GameFontDisableSmall")
+    detailType:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -42)
+    detailType:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -42)
+    detailType:SetJustifyH("LEFT")
+    detailType:SetWordWrap(false)
+    ui.detailType = detailType
+
+    local detailLevel = font(right, "GameFontDisableSmall")
+    detailLevel:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -56)
+    detailLevel:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -56)
+    detailLevel:SetJustifyH("LEFT")
+    detailLevel:SetWordWrap(false)
+    ui.detailLevel = detailLevel
+
     local detailID = font(right, "GameFontDisableSmall")
-    detailID:SetPoint("TOPLEFT", right, "TOPLEFT", 75, -42)
+    detailID:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -74)
+    detailID:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -74)
+    detailID:SetJustifyH("LEFT")
+    detailID:SetWordWrap(false)
     ui.detailID = detailID
-    local detailMeta = font(right, "GameFontDisableSmall")
-    detailMeta:SetPoint("TOPLEFT", right, "TOPLEFT", 17, -74)
-    detailMeta:SetPoint("TOPRIGHT", right, "TOPRIGHT", -12, -74)
-    detailMeta:SetJustifyH("LEFT")
-    detailMeta:SetWordWrap(false)
-    ui.detailMeta = detailMeta
     createProfessionDetail(right)
     ns.InitRecipePanel(right, contentHeight)
     ns.InitRecipeDetail(right)
@@ -760,8 +768,8 @@ local function showActiveDetail()
             ui.materialTitleLink:Hide()
         end
     end
-    for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailID, ui.detailMeta,
-        ui.professionUses.section}) do
+    for _, element in ipairs({ui.detailIcon, ui.detailTitle, ui.detailType, ui.detailLevel,
+        ui.detailID, ui.professionUses.section}) do
         if material then element:Show() else element:Hide() end
     end
     if not material then
