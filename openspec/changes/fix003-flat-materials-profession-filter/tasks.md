@@ -15,6 +15,6 @@
 
 ## Verification evidence
 
-Lua 5.1 parsed 55 files and all 25 isolated fixtures passed. The 151 Python tests, release-readiness script, generated-data check, strict OpenSpec validation, and local SDD and documentation checks passed. The SDD check used the recorded owner approval and merge for [spec PR #78](https://github.com/hectoresen/CraftAtlas/pull/78).
+Lua 5.1 parsed 57 files and all 26 isolated fixtures passed after aligning the explorer fixture with the localized detail ID label from PR #80. The 151 Python tests, release-readiness script, generated-data check, strict OpenSpec validation, and local SDD and documentation checks passed. The SDD check used the recorded owner approval and merge for [spec PR #78](https://github.com/hectoresen/CraftAtlas/pull/78).
 
 The change stays active while task 2.3 remains open. See the [Forever acceptance checklist](../../../docs/TESTING.md#materiales-profession-filter) for the required enUS and esES evidence.

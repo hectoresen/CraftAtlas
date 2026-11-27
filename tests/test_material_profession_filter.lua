@@ -166,8 +166,9 @@ assert(offset > 0 and scrollbar.value == offset)
 assertFlat(alchemyItems)
 local last = pool[#pool]
 assert(last.itemID == 113 and last.hoverTexture)
+local detailID = string.format(ns.L("EXPLORER_DETAIL_ID"), last.itemID)
 last:Click()
-assert(last.highlight:IsShown() and textVisible(ns.L("ITEM_ID") .. ": 113"))
+assert(last.highlight:IsShown() and textVisible(detailID), "select the item shown on the recycled row")
 shiftDown = true
 pool[1]:Click()
 shiftDown = false
@@ -177,7 +178,7 @@ assert(recipeDetail == "ALCHEMY:700")
 assert(find(function(frame) return frame.kind == "Button" and frame.text == ns.L("BACK") end)):Click()
 assert(search.text == "Reagent" and selector.text == "Alchemy" and scrollbar.value == offset)
 assertFlat(alchemyItems)
-assert(last.highlight:IsShown() and textVisible(ns.L("ITEM_ID") .. ": 113"))
+assert(last.highlight:IsShown() and textVisible(detailID), "restore the selected material after Back")
 
 search:SetText("Reagent 02")
 assertFlat({102})
