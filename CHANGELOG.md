@@ -1,4 +1,4 @@
-## Local Craftables requirements prototype
+## Unreleased — Craftables requirements and detail layout (FEAT004)
 
 - Show the minimum profession skill and a single recipe-required label when applicable. Use color alone to indicate whether the minimum is met.
 - Align the Materials and Craftables headers. Give types and levels separate rows and put `ID <number>` on the lower left. Align Track crafting with the Craftables ID on the right.
