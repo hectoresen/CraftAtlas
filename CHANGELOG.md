@@ -1,3 +1,8 @@
+## Unreleased — Craftables requirements and detail layout (FEAT004)
+
+- Show the minimum profession skill and a single recipe-required label when applicable. Use color alone to indicate whether the minimum is met.
+- Align the Materials and Craftables headers. Give types and levels separate rows and put `ID <number>` on the lower left. Align Track crafting with the Craftables ID on the right.
+
 ## Unreleased — licensed Forever catalog refresh (UPD005)
 
 - Pinned a newer MIT LibProfessionDB Forever snapshot (1.60.1.70938) with exact source SHA and retained 1.60.1.69977 evidence for disputed records. This is a proposed data update, **not yet released**.

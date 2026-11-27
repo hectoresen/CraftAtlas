@@ -2,6 +2,16 @@
 
 Automated tests, maintainer-reported game checks and source-data verification are three **distinct** categories. Do not mark one as proof of the others.
 
+## Craftables requirements and aligned detail headers
+
+**Offline PASS (2026-11-27).** The release check script, generated-data check, 151 Python tests, Lua 5.1 syntax for 56 files, 25 isolated Lua fixtures and strict OpenSpec validation (38 items) passed. The Craftables requirements and Fabricables detail fixtures cover guarded API reads, independent colors, known and missing metadata, and the header and tracking positions. The addon configuration fixture compares the two detail layouts. The local test ZIP's 33 runtime files matched the rebased checkout after normalizing line endings.
+
+**Contributor layout feedback (2026-11-27).** `sebasgrios` reported the final layout satisfactory after the local test-build iterations. The exact Forever build, locale and scale coverage, and the results of the full acceptance matrix are unrecorded.
+
+**Documented Forever client acceptance: pending.** In the test build, open Fabricables directly with the native profession window closed. Select Tailoring spell 12088 and verify that the header displays `ID 12088` with **Track crafting** on the same row. Verify that the minimum reads `Crafting level 245` in enUS or `Nivel de fabricación 245` in esES. It should stay the same in dark red below 245, dark gray at or above 245, and neutral when the character's rank is unverified. This entry has no catalog teaching item, so the recipe-required label is hidden. On an entry with a teaching item, verify that the same label is gray when learned, red when unlearned, and neutral if the client cannot verify the state. Check the two colors independently.
+
+Repeat with the matching profession window open and, when available, another character's profession view. Verify that learning a recipe, increasing skill or observing a recipe at a trainer refreshes only the relevant evidence. In enUS and esES, compare the two detail tabs at standard and compact scales. Verify that the title, type or profession, level, ID and first section divider align. Confirm the full level text and the `ID <number>` format in both tabs. Switch from a material with both client metadata values to a material without them and confirm the type and level clear. Confirm the existing Track crafting, ingredient navigation, bank and reload behavior. Record the exact Forever build, locale, scale and outcome for each scenario.
+
 ## Evidence snapshot for current `main` (reconciled 2026-11-16)
 
 | Area | Present on `main` | In-game evidence | Still missing |

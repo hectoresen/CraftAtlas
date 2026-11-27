@@ -1,6 +1,7 @@
 local _, ns = ...
 local view = {page = 1, pageSize = 5, selected = nil, rows = {}, ingredients = {}}
 local ITEMS_PER_PAGE = 5
+local INGREDIENTS_TOP, INGREDIENTS_BOTTOM = 124, 40
 -- One text baseline and a separate bar; three rows fit without collisions.
 local TRACKER_ROW_HEIGHT = 25
 local TRACKER_TOP_HEIGHT = 34
@@ -8,7 +9,7 @@ local TRACKER_BOTTOM_HEIGHT = 19
 
 local function trackedPageSize(availableHeight)
     -- Pair each paged ingredient with one independently rendered tracker row.
-    local remaining = availableHeight - 143 - 40 - 6
+    local remaining = availableHeight - INGREDIENTS_TOP - INGREDIENTS_BOTTOM - 6
         - TRACKER_TOP_HEIGHT - TRACKER_BOTTOM_HEIGHT
     return math.max(1, math.min(ITEMS_PER_PAGE,
         math.floor(remaining / (39 + TRACKER_ROW_HEIGHT))))
@@ -133,7 +134,7 @@ local function describe(recipe)
         outputName, outputIcon = ns.GetItemDisplay(recipe.outputItemID)
     end
     return (outputName or name or (ns.L("RECIPE_ID") .. " " .. recipe.spellID)),
-        (outputIcon or spellIcon or "Interface\\Icons\\INV_Misc_QuestionMark"), name
+        (outputIcon or spellIcon or "Interface\\Icons\\INV_Misc_QuestionMark")
 end
 
 local function updateIngredientSectionVisibility()
@@ -156,32 +157,61 @@ local function updateIngredientSectionVisibility()
     end
 end
 
+local function setRequirementText(label, text, met)
+    label:SetText(text)
+    if met == true then
+        label:SetTextColor(0.56, 0.56, 0.56)
+    elseif met == false then
+        label:SetTextColor(0.75, 0.32, 0.31)
+    else
+        label:SetTextColor(0.90, 0.86, 0.80)
+    end
+    showControl(label, text ~= "")
+end
+
+local function renderRequirements(recipe)
+    if not recipe then
+        setRequirementText(view.requiredSkill, "")
+        setRequirementText(view.recipeRequirement, "")
+        return
+    end
+
+    local rank, learned, trainer
+    if ns.GetCraftablePlayerRequirements then
+        rank, learned, trainer = ns.GetCraftablePlayerRequirements(recipe, view.changingProfession)
+    end
+    local skillText = ns.L("CRAFT_SKILL_UNKNOWN")
+    local skillMet
+    if recipe.requiredSkill then
+        skillText = string.format(ns.L("CRAFT_REQUIRED_SKILL"), recipe.requiredSkill)
+        if rank ~= nil then skillMet = rank >= recipe.requiredSkill end
+    end
+    setRequirementText(view.requiredSkill, skillText, skillMet)
+
+    local recipeText = recipe.teachingItemID and not trainer and ns.L("CRAFT_RECIPE_REQUIRED") or ""
+    setRequirementText(view.recipeRequirement, recipeText, learned)
+end
+
 local function render()
     if not view.frame then return end
     local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
     if not recipe then
         view.title:SetText(ns.L("SELECT_RECIPE"))
         view.profession:SetText("")
-        view.output:SetText("")
+        view.recipeID:SetText("")
         view.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
         view.ingredients = {}
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), 0))
     else
-        local name, icon, spellName = describe(recipe)
+        local name, icon = describe(recipe)
         view.title:SetText(name)
         view.icon:SetTexture(icon)
         view.profession:SetText(ns.ProfessionLabel(recipe.professionKey))
-        local recipeLabel = ns.L("RECIPE_ID") .. " " .. tostring(recipe.spellID)
-        if recipe.outputItemID then
-            view.output:SetText((spellName and (spellName .. "  |  ") or "") .. recipeLabel)
-        elseif recipe.kind == "enchant" then
-            view.output:SetText(ns.L("RECIPE_ENCHANT_ACTION") .. "  |  " .. recipeLabel)
-        else
-            view.output:SetText(ns.L("RECIPE_OUTPUT_UNKNOWN") .. "  |  " .. recipeLabel)
-        end
+        view.recipeID:SetText(string.format(ns.L("EXPLORER_DETAIL_ID"), recipe.spellID))
         view.section:SetTitle(string.format(ns.L("RECIPE_INGREDIENT_COUNT"), #recipe.ingredients))
         view.ingredients = recipe.ingredients
     end
+    renderRequirements(recipe)
     local tracking = recipe and ns.IsCraftTrackingEnabled
         and ns.IsCraftTrackingEnabled() == true or false
     view.trackingActive = tracking
@@ -302,7 +332,7 @@ function ns.InitRecipeDetail(parent)
     local availableHeight = type(parent.GetHeight) == 'function' and parent:GetHeight() or 343
     view.availableHeight = availableHeight
     view.normalPageSize = math.max(1, math.min(ITEMS_PER_PAGE,
-        math.floor((availableHeight - 138 - 40) / 39)))
+        math.floor((availableHeight - INGREDIENTS_TOP - INGREDIENTS_BOTTOM) / 39)))
     view.pageSize = view.normalPageSize
 
     view.icon = frame:CreateTexture(nil, "ARTWORK")
@@ -311,36 +341,55 @@ function ns.InitRecipeDetail(parent)
     -- No UI-Quickslot2 overlay: its inner slot draws a duplicate inset square.
 
     view.title = font(frame, "GameFontHighlightLarge")
-    view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -18)
-    view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -18)
+    view.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -19)
+    view.title:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -19)
     view.title:SetJustifyH("LEFT")
     view.title:SetWordWrap(false)
     local titleLink = CreateFrame("Button", nil, frame)
-    titleLink:SetPoint("TOPLEFT", frame, "TOPLEFT", 74, -15)
-    titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -15)
+    titleLink:SetPoint("TOPLEFT", frame, "TOPLEFT", 74, -16)
+    titleLink:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -11, -16)
     titleLink:SetHeight(27)
     titleLink:SetScript("OnClick", function(_, button)
         if not (ns.IsEntityChatLinkClick and ns.IsEntityChatLinkClick(button)) then return end
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
         if recipe then ns.InsertRecipeChatLink(recipe) end
     end)
-    view.profession = font(frame, "GameFontHighlightSmall")
-    view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -40)
-    view.profession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -14, -40)
+    local rightHeader = CreateFrame("Frame", nil, frame)
+    rightHeader:SetSize(146, 50)
+    rightHeader:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -42)
+
+    view.profession = font(frame, "GameFontDisableSmall")
+    view.profession:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -42)
+    view.profession:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, 0)
     view.profession:SetJustifyH("LEFT")
     view.profession:SetWordWrap(false)
-    view.output = font(frame, "GameFontDisableSmall")
-    view.output:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -76)
-    view.output:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -76)
-    view.output:SetJustifyH("LEFT")
-    view.output:SetWordWrap(false)
 
-    -- Optional tracker lives in the unused band between profession and metadata.
-    local trackCheckbox = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-    trackCheckbox:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -176, -55)
+    view.requiredSkill = font(frame, "GameFontDisableSmall")
+    view.requiredSkill:SetPoint("TOPLEFT", frame, "TOPLEFT", 75, -56)
+    view.requiredSkill:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -56)
+    view.requiredSkill:SetJustifyH("LEFT")
+    view.requiredSkill:SetWordWrap(false)
+
+    view.recipeID = font(frame, "GameFontDisableSmall")
+    view.recipeID:SetPoint("TOPLEFT", frame, "TOPLEFT", 17, -74)
+    view.recipeID:SetPoint("TOPRIGHT", rightHeader, "TOPLEFT", -8, -32)
+    view.recipeID:SetJustifyH("LEFT")
+    view.recipeID:SetWordWrap(false)
+
+    view.recipeRequirement = font(rightHeader, "GameFontDisableSmall")
+    view.recipeRequirement:SetPoint("TOPLEFT", rightHeader, "TOPLEFT", 0, 0)
+    view.recipeRequirement:SetPoint("TOPRIGHT", rightHeader, "TOPRIGHT", 0, 0)
+    view.recipeRequirement:SetJustifyH("LEFT")
+    view.recipeRequirement:SetWordWrap(false)
+
+    local trackCheckbox = CreateFrame("CheckButton", nil, rightHeader, "UICheckButtonTemplate")
+    trackCheckbox:SetPoint("LEFT", view.recipeID, "RIGHT", 8, 0)
     trackCheckbox:SetSize(20, 20)
-    local trackLabel = font(frame, "GameFontHighlightSmall")
+    local trackLabel = font(rightHeader, "GameFontHighlightSmall")
     trackLabel:SetPoint("LEFT", trackCheckbox, "RIGHT", 2, 0)
+    trackLabel:SetPoint("RIGHT", rightHeader, "RIGHT", 0, 0)
+    trackLabel:SetJustifyH("LEFT")
+    trackLabel:SetWordWrap(false)
     trackLabel:SetText(ns.L("TRACK_CRAFTING"))
     trackCheckbox:SetScript("OnClick", function(self)
         local recipe = view.selected and ns.GetCatalogRecipe(view.selected)
@@ -360,14 +409,14 @@ function ns.InitRecipeDetail(parent)
     view.trackCheckbox = trackCheckbox
     view.trackLabel = trackLabel
 
-    view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -103, function()
+    view.section = ns.CreateExplorerSection(frame, "RECIPE_INGREDIENT_COUNT", -92, function()
         updateIngredientSectionVisibility()
     end)
 
     local itemList = CreateFrame("Frame", nil, frame)
     view.itemList = itemList
-    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -143)
-    itemList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, 40)
+    itemList:SetPoint("TOPLEFT", frame, "TOPLEFT", 15, -INGREDIENTS_TOP)
+    itemList:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -15, INGREDIENTS_BOTTOM)
 
     local count = ITEMS_PER_PAGE
     for i = 1, count do
@@ -500,6 +549,28 @@ function ns.InitRecipeDetail(parent)
         end
     end
     view.inventoryListener = listener
+
+    local function refreshRequirements()
+        renderRequirements(view.selected and ns.GetCatalogRecipe(view.selected))
+    end
+    local professionListener = CreateFrame("Frame", nil, frame)
+    professionListener:SetScript("OnEvent", function(_, event)
+        if event == "TRADE_SKILL_DATA_SOURCE_CHANGING" then
+            view.changingProfession = true
+        elseif event == "TRADE_SKILL_DATA_SOURCE_CHANGED" or event == "TRADE_SKILL_CLOSE" then
+            view.changingProfession = false
+        end
+        if type(frame.IsVisible) == "function" and frame:IsVisible() then refreshRequirements() end
+    end)
+    if type(professionListener.RegisterEvent) == "function" then
+        for _, event in ipairs({"SKILL_LINES_CHANGED", "SPELLS_CHANGED", "NEW_RECIPE_LEARNED",
+            "TRADE_SKILL_SHOW", "TRADE_SKILL_CLOSE", "TRADE_SKILL_LIST_UPDATE",
+            "TRADE_SKILL_DATA_SOURCE_CHANGING", "TRADE_SKILL_DATA_SOURCE_CHANGED",
+            "TRAINER_SHOW", "TRAINER_UPDATE", "TRAINER_CLOSED"}) do
+            pcall(professionListener.RegisterEvent, professionListener, event)
+        end
+    end
+    frame:SetScript("OnShow", refreshRequirements)
 
     -- Native result tooltip; only real WoW item data can provide quality/stats.
     local outputHover = CreateFrame("Button", nil, frame)
