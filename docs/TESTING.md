@@ -24,6 +24,12 @@ Repeat with the matching profession window open and, when available, another cha
 
 **Interpretation:** `NOT RUN` in an older PR implementation environment means that particular command or client scenario was not executed **there**, not that the feature never merged or that subsequent GitHub CI never ran. A screenshot confirms only the specific state it depicts. Source merged ≠ final visual acceptance ≠ full live-catalog verification. Keep those categories separate; do not reopen source implementation tasks simply because client evidence is incomplete.
 
+## Materiales profession filter
+
+The [approved FIX003 specification](https://github.com/hectoresen/CraftAtlas/pull/78) defines the manual acceptance scenarios. `tests/test_material_profession_filter.lua` drives the explorer's search and profession controls, checks the distinct count and scroll bounds, selects a recycled row, inserts a mock client item link and returns from a crafting use with Back. It verifies the selected itemID using the localized detail label introduced in PR #80. It also covers unresolved names, numeric lookup, search across profession changes, and restoration of the grouped and collapsed states. Lua 5.1 parsed 57 files and all 26 isolated fixtures passed. The 151 Python tests, release-readiness script, generated-data check, strict OpenSpec validation, and local SDD and documentation checks also passed.
+
+**Forever acceptance: NOT RUN.** Record the exact Forever build, addon revision and results in enUS and esES. Collapse a group in All professions, select that profession, and verify that matching materials appear once in a single scrollable list. Check search, the visible count, selection and Shift + left-click, then follow a crafting use and verify the query, filter, selection and scroll position after Back. Choose All professions again and verify that the tree restores the original collapse state.
+
 ## Slash command registration and dungeon markers
 
 Implementation of [spec PR #73](https://github.com/hectoresen/CraftAtlas/pull/73).
@@ -149,6 +155,7 @@ python3 scripts/coverage_report.py
 python3 -m unittest discover -s tests -p 'test_toc_modules.py' -v
 texlua tests/test_addon.lua
 texlua tests/test_material_search.lua
+texlua tests/test_material_profession_filter.lua
 texlua tests/test_recipe_usage.lua
 texlua tests/test_recipe_info.lua
 texlua tests/test_recipe_pagination.lua
@@ -189,7 +196,7 @@ This is user-reported **functional acceptance**, not proof of all possible clien
 ## Manual game-client matrix for subsequent releases
 
 - Record exact Forever build and Lua errors at startup and on `/craftatlas` and `/craftatlas <itemID>`.
-- Inspect grouped Materiales search, profession filter, unique global counts, per-group matching counts, multi-profession entries, group collapse/restore, row recycling, non-row profession divider appearance, source-backed native profession icons with pagination/section collapse, recipe-area reflow/page-size restoration, client item metadata and vertical use pagination at multiple UI scales.
+- Inspect both Materiales presentations. A specific profession shows one flat list with one row per matching itemID. All professions shows collapsible groups, matching per-group counts and a distinct global count. Check a multi-profession entry, collapse restoration and row recycling. Also check the native profession icons, section collapse, recipe-area reflow and pagination, and client item metadata at multiple UI scales.
 - Inspect Fabricables by spell/name, crafted-output name, numeric ID and profession; distinguish missing spell name cache from genuine empty results.
 - Compare every ingredient and quantity for a selected verified recipe to the current live client (e.g., spell 19093 consumes items 14044, 14341 and 15410 in the pinned source). Confirm correct enchantment/non-item fallback.
 - Verify native tooltip data for items and recipes; no fabricated quality, stats or learned/craftable status.

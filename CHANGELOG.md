@@ -30,6 +30,10 @@ This file summarizes implemented source changes. Historical PRs are not active f
 
 ## [Unreleased source changes] — `0.2.0-dev`
 
+### Materiales profession filter
+
+- Show a single scrollable list of unique matching materials when a profession is selected. Choosing All professions restores the collapsible tree and its expansion choices.
+
 ### Slash command registration
 
 - Register `/craftatlas` in the client's existing command table. The fix removes the global reassignment implicated in DungeonJournal's blocked skull marker. Full Forever acceptance evidence is pending.

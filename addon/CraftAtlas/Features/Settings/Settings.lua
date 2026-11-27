@@ -189,14 +189,23 @@ local function showDetail()
     ns.RefreshRecipePanel(itemID)
 end
 
+local function getVisibleResults()
+    if currentView == "materials" and selectedProfession == "" then
+        return treeEntries, true
+    end
+    return results, false
+end
+
 local function updateRows()
     if not ui.rows then return end
-    local count = currentView == "materials" and #treeEntries or #results
+    local visible, grouped = getVisibleResults()
+    local count = #visible
     scrollOffset = math.min(scrollOffset, math.max(0, count - VISIBLE_ROWS))
     for index, row in ipairs(ui.rows) do
-        local entry = currentView == "materials" and treeEntries[index + scrollOffset] or nil
-        local itemID = entry and entry.itemID or (currentView == "recipes" and results[index + scrollOffset])
-        if entry and not itemID then
+        local entry = visible[index + scrollOffset]
+        local itemID = entry
+        if grouped and entry then itemID = entry.itemID end
+        if grouped and entry and not itemID then
             row.itemID = nil
             row.groupKey = entry.group
             local collapsed = (searchQuery ~= "" and treeState.searchOverrides[entry.group] == false)
@@ -204,7 +213,7 @@ local function updateRows()
             ns.StyleExplorerGroupRow(row, labelProfession(entry.group), entry.count, not collapsed)
             row:Show()
         elseif itemID then
-            ns.StyleExplorerItemRow(row, currentView == "materials")
+            ns.StyleExplorerItemRow(row, currentView == "materials", not grouped)
             row.groupKey = nil
             local name, icon, subtitle
             if currentView == "recipes" then
@@ -300,18 +309,20 @@ local function refreshResults(resetOffset)
             generation = catalogGenerations[currentView]
         }
     end
-    if currentView == "materials" then
+    local visible, grouped = getVisibleResults()
+    if grouped then
         -- The tree is a cheap projection of the cached filtered list and live collapse state.
         local groups = ns.BuildProfessionGroups(results, ns.materials, ns.professionOrder)
         treeEntries = ns.FlattenProfessionGroups(groups, treeState, searchQuery ~= "")
+        visible = treeEntries
         catalogMetrics.materialProjections = catalogMetrics.materialProjections + 1
     end
     local selected = currentView == "recipes" and selectedRecipe or selectedID
     local index
-    local visible = currentView == "materials" and treeEntries or results
     for i, key in ipairs(visible) do
-        if (currentView == "materials" and key.itemID == selected)
-            or (currentView == "recipes" and key == selected) then index = i break end
+        local itemID = key
+        if grouped then itemID = key.itemID end
+        if itemID and itemID == selected then index = i break end
     end
     local stillMatches = false
     for _, key in ipairs(results) do
@@ -319,7 +330,7 @@ local function refreshResults(resetOffset)
     end
     if not stillMatches and not forcedSelection then
         selected = results[1]
-        if currentView == "materials" then
+        if grouped then
             for _, entry in ipairs(treeEntries) do
                 if entry.itemID then selected = entry.itemID break end
             end
@@ -456,9 +467,8 @@ local function createRows(left)
     ui.scrollbar = scrollbar
     left:EnableMouseWheel(true)
     left:SetScript("OnMouseWheel", function(_, delta)
-        local total = currentView == "materials" and #treeEntries or #results
-        scrollOffset = math.max(0, math.min(total - VISIBLE_ROWS, scrollOffset - delta * 2))
-        scrollOffset = math.max(0, scrollOffset)
+        local visible = getVisibleResults()
+        scrollOffset = math.max(0, math.min(#visible - VISIBLE_ROWS, scrollOffset - delta * 2))
         updateRows()
     end)
 end
